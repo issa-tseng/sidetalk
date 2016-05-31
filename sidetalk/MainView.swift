@@ -9,45 +9,67 @@ class MainView: NSView {
         NSFontAttributeName: NSFont.systemFontOfSize(10)
     ];
 
-    override func drawRect(dirtyRect: NSRect) {
-        let avatarSize = CGFloat(48);
-        let avatarHalf = avatarSize / 2;
+    let outlineLayer: CAShapeLayer
+    let textLayer: CATextLayer
+    let textboxLayer: CAShapeLayer
+    let avatarLayer: CAAvatarLayer
 
-        let text = NSString.init(string: "Test text");
+    override init(frame: CGRect) {
         let origin = NSPoint( x: 100, y: 500 );
 
-        // figure out text footprint
-        let textSize = text.sizeWithAttributes(self.labelTextAttr);
-        let textOrigin = NSPoint( x: origin.x - avatarHalf - textSize.width - 16, y: origin.y - (textSize.height / 2) );
-        let textBounds = CGRect( origin: textOrigin, size: textSize );
+        // set up avatar layout.
+        let avatarLength = CGFloat(48);
+        let avatarHalf = avatarLength / 2;
+        let avatarSize = CGSize(width: avatarLength, height: avatarLength);
+        let avatarBounds = CGRect(origin: origin, size: avatarSize);
 
-        // render label background
-        let labelPath = NSBezierPath();
-        labelPath.appendBezierPathWithRoundedRect(textBounds.insetBy( dx: -8, dy: -4 ), xRadius: 10, yRadius: 10);
-        NSColor.blackColor().colorWithAlphaComponent(0.12).set();
-        labelPath.fill();
-
-        // render text label
-        text.drawAtPoint(textOrigin, withAttributes: self.labelTextAttr);
-
-        // prepare avatar
+        // set up avatar.
         let image = NSImage.init(byReferencingFile: "/Users/cxlt/Code/sidetalk/sidetalk/Resources/test1.png")!
-        let avatarBounds = CGRect( x: origin.x - avatarHalf, y: origin.y - avatarHalf, width: avatarSize, height: avatarSize);
-        image.resizingMode = .Stretch;
+        self.avatarLayer = CAAvatarLayer();
+        self.avatarLayer.frame = NSRect(origin: origin, size: NSSize(width: avatarLength, height: avatarLength))
+        self.avatarLayer.image = image;
 
-        // render avatar
-        NSGraphicsContext.saveGraphicsState();
-        let avatarPath = NSBezierPath();
-        avatarPath.appendBezierPathWithRoundedRect(avatarBounds, xRadius: avatarHalf, yRadius: avatarHalf);
-        avatarPath.addClip();
-        image.drawInRect(avatarBounds, fromRect: CGRect.init(origin: CGPoint.zero, size: image.size), operation: .CompositeSourceOver, fraction: 0.9);
-        NSGraphicsContext.restoreGraphicsState();
+        // set up status ring.
+        let outlinePath = NSBezierPath(roundedRect: avatarBounds, xRadius: avatarHalf, yRadius: avatarHalf);
+        self.outlineLayer = CAShapeLayer();
+        self.outlineLayer.path = outlinePath.CGPath;
+        self.outlineLayer.fillColor = NSColor.clearColor().CGColor;
+        self.outlineLayer.strokeColor = NSColor.init(red: 0.027, green: 0.785, blue: 0.746, alpha: 0.95).CGColor;
+        self.outlineLayer.lineWidth = 2;
 
-        // render outline
-        let outlinePath = NSBezierPath();
-        outlinePath.lineWidth = 2;
-        outlinePath.appendBezierPathWithRoundedRect(avatarBounds, xRadius: avatarHalf, yRadius: avatarHalf);
-        NSColor.init(red: 0.027, green: 0.785, blue: 0.746, alpha: 0.95).set();
-        outlinePath.stroke();
+        // set up text layout.
+        let text = NSAttributedString(string: "Test text", attributes: self.labelTextAttr);
+        let textSize = text.size();
+        let textOrigin = NSPoint(x: origin.x - 16 - textSize.width, y: origin.y + 3 + textSize.height);
+        let textBounds = NSRect(origin: textOrigin, size: textSize);
+
+        // set up text.
+        self.textLayer = CATextLayer();
+        self.textLayer.position = textOrigin;
+        self.textLayer.frame = textBounds;
+        self.textLayer.contentsScale = NSScreen.mainScreen()!.backingScaleFactor;
+        self.textLayer.string = text;
+
+        // set up textbox.
+        let textboxRadius = CGFloat(3);
+        let textboxPath = NSBezierPath(roundedRect: textBounds.insetBy(dx: -6, dy: -2), xRadius: textboxRadius, yRadius: textboxRadius);
+        self.textboxLayer = CAShapeLayer();
+        self.textboxLayer.path = textboxPath.CGPath;
+        self.textboxLayer.fillColor = NSColor.blackColor().colorWithAlphaComponent(0.12).CGColor;
+
+        // actually init.
+        super.init(frame: frame);
+        self.wantsLayer = true;
+
+        // now add the layers
+        let layer = self.layer!
+        layer.addSublayer(self.avatarLayer);
+        layer.addSublayer(self.outlineLayer);
+        layer.addSublayer(self.textboxLayer);
+        layer.addSublayer(self.textLayer);
+    }
+
+    required init(coder: NSCoder) {
+        fatalError("no coder");
     }
 }
