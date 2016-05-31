@@ -13,6 +13,18 @@
 		4512824D1CF9295C0088DEDE /* sidetalkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4512824C1CF9295C0088DEDE /* sidetalkTests.swift */; };
 		451282581CF9295C0088DEDE /* sidetalkUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451282571CF9295C0088DEDE /* sidetalkUITests.swift */; };
 		451282661CFA6F100088DEDE /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451282651CFA6F100088DEDE /* MainView.swift */; };
+		45AEBFEB1CFD14A200203967 /* AvatarLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFEA1CFD14A200203967 /* AvatarLayer.swift */; };
+		45AEC0051CFD1F6700203967 /* XUIBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFED1CFD1F6700203967 /* XUIBase.m */; };
+		45AEC0061CFD1F6700203967 /* XUIBezierPathAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFEF1CFD1F6700203967 /* XUIBezierPathAdditions.m */; };
+		45AEC0071CFD1F6700203967 /* XUIColorAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFF11CFD1F6700203967 /* XUIColorAdditions.m */; };
+		45AEC0081CFD1F6700203967 /* XUIFontAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFF31CFD1F6700203967 /* XUIFontAdditions.m */; };
+		45AEC0091CFD1F6700203967 /* XUIGeometry.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFF51CFD1F6700203967 /* XUIGeometry.m */; };
+		45AEC00A1CFD1F6700203967 /* XUIGraphics.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFF71CFD1F6700203967 /* XUIGraphics.m */; };
+		45AEC00B1CFD1F6700203967 /* XUIImageAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFF91CFD1F6700203967 /* XUIImageAdditions.m */; };
+		45AEC00C1CFD1F6700203967 /* XUIIndexPathAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFFB1CFD1F6700203967 /* XUIIndexPathAdditions.m */; };
+		45AEC00D1CFD1F6700203967 /* XUIValueAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0001CFD1F6700203967 /* XUIValueAdditions.m */; };
+		45AEC00E1CFD1F6700203967 /* XUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0021CFD1F6700203967 /* XUIView.m */; };
+		45AEC00F1CFD1F6700203967 /* XUIViewAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0041CFD1F6700203967 /* XUIViewAdditions.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +57,33 @@
 		451282571CF9295C0088DEDE /* sidetalkUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sidetalkUITests.swift; sourceTree = "<group>"; };
 		451282591CF9295C0088DEDE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		451282651CFA6F100088DEDE /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		45AEBFEA1CFD14A200203967 /* AvatarLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AvatarLayer.swift; sourceTree = "<group>"; };
+		45AEBFEC1CFD1F6700203967 /* XUIBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIBase.h; path = XUIKit/XUIBase.h; sourceTree = "<group>"; };
+		45AEBFED1CFD1F6700203967 /* XUIBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIBase.m; path = XUIKit/XUIBase.m; sourceTree = "<group>"; };
+		45AEBFEE1CFD1F6700203967 /* XUIBezierPathAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIBezierPathAdditions.h; path = XUIKit/XUIBezierPathAdditions.h; sourceTree = "<group>"; };
+		45AEBFEF1CFD1F6700203967 /* XUIBezierPathAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIBezierPathAdditions.m; path = XUIKit/XUIBezierPathAdditions.m; sourceTree = "<group>"; };
+		45AEBFF01CFD1F6700203967 /* XUIColorAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIColorAdditions.h; path = XUIKit/XUIColorAdditions.h; sourceTree = "<group>"; };
+		45AEBFF11CFD1F6700203967 /* XUIColorAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIColorAdditions.m; path = XUIKit/XUIColorAdditions.m; sourceTree = "<group>"; };
+		45AEBFF21CFD1F6700203967 /* XUIFontAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIFontAdditions.h; path = XUIKit/XUIFontAdditions.h; sourceTree = "<group>"; };
+		45AEBFF31CFD1F6700203967 /* XUIFontAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIFontAdditions.m; path = XUIKit/XUIFontAdditions.m; sourceTree = "<group>"; };
+		45AEBFF41CFD1F6700203967 /* XUIGeometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIGeometry.h; path = XUIKit/XUIGeometry.h; sourceTree = "<group>"; };
+		45AEBFF51CFD1F6700203967 /* XUIGeometry.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIGeometry.m; path = XUIKit/XUIGeometry.m; sourceTree = "<group>"; };
+		45AEBFF61CFD1F6700203967 /* XUIGraphics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIGraphics.h; path = XUIKit/XUIGraphics.h; sourceTree = "<group>"; };
+		45AEBFF71CFD1F6700203967 /* XUIGraphics.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIGraphics.m; path = XUIKit/XUIGraphics.m; sourceTree = "<group>"; };
+		45AEBFF81CFD1F6700203967 /* XUIImageAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIImageAdditions.h; path = XUIKit/XUIImageAdditions.h; sourceTree = "<group>"; };
+		45AEBFF91CFD1F6700203967 /* XUIImageAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIImageAdditions.m; path = XUIKit/XUIImageAdditions.m; sourceTree = "<group>"; };
+		45AEBFFA1CFD1F6700203967 /* XUIIndexPathAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIIndexPathAdditions.h; path = XUIKit/XUIIndexPathAdditions.h; sourceTree = "<group>"; };
+		45AEBFFB1CFD1F6700203967 /* XUIIndexPathAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIIndexPathAdditions.m; path = XUIKit/XUIIndexPathAdditions.m; sourceTree = "<group>"; };
+		45AEBFFC1CFD1F6700203967 /* XUIKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIKit.h; path = XUIKit/XUIKit.h; sourceTree = "<group>"; };
+		45AEBFFD1CFD1F6700203967 /* XUIKitPrefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIKitPrefix.pch; path = XUIKit/XUIKitPrefix.pch; sourceTree = "<group>"; };
+		45AEBFFE1CFD1F6700203967 /* XUITypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUITypes.h; path = XUIKit/XUITypes.h; sourceTree = "<group>"; };
+		45AEBFFF1CFD1F6700203967 /* XUIValueAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIValueAdditions.h; path = XUIKit/XUIValueAdditions.h; sourceTree = "<group>"; };
+		45AEC0001CFD1F6700203967 /* XUIValueAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIValueAdditions.m; path = XUIKit/XUIValueAdditions.m; sourceTree = "<group>"; };
+		45AEC0011CFD1F6700203967 /* XUIView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIView.h; path = XUIKit/XUIView.h; sourceTree = "<group>"; };
+		45AEC0021CFD1F6700203967 /* XUIView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIView.m; path = XUIKit/XUIView.m; sourceTree = "<group>"; };
+		45AEC0031CFD1F6700203967 /* XUIViewAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIViewAdditions.h; path = XUIKit/XUIViewAdditions.h; sourceTree = "<group>"; };
+		45AEC0041CFD1F6700203967 /* XUIViewAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIViewAdditions.m; path = XUIKit/XUIViewAdditions.m; sourceTree = "<group>"; };
+		45AEC0101CFD1FBB00203967 /* sidetalk-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sidetalk-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +114,7 @@
 		451282301CF9295C0088DEDE = {
 			isa = PBXGroup;
 			children = (
+				45AEBFC41CFACECE00203967 /* XUIKit */,
 				4512823B1CF9295C0088DEDE /* sidetalk */,
 				4512824B1CF9295C0088DEDE /* sidetalkTests */,
 				451282561CF9295C0088DEDE /* sidetalkUITests */,
@@ -95,11 +135,13 @@
 		4512823B1CF9295C0088DEDE /* sidetalk */ = {
 			isa = PBXGroup;
 			children = (
+				45AEC0101CFD1FBB00203967 /* sidetalk-Bridging-Header.h */,
 				4512823C1CF9295C0088DEDE /* AppDelegate.swift */,
 				4512823E1CF9295C0088DEDE /* Assets.xcassets */,
 				451282401CF9295C0088DEDE /* MainMenu.xib */,
 				451282431CF9295C0088DEDE /* Info.plist */,
 				451282651CFA6F100088DEDE /* MainView.swift */,
+				45AEBFEA1CFD14A200203967 /* AvatarLayer.swift */,
 			);
 			path = sidetalk;
 			sourceTree = "<group>";
@@ -120,6 +162,38 @@
 				451282591CF9295C0088DEDE /* Info.plist */,
 			);
 			path = sidetalkUITests;
+			sourceTree = "<group>";
+		};
+		45AEBFC41CFACECE00203967 /* XUIKit */ = {
+			isa = PBXGroup;
+			children = (
+				45AEBFEC1CFD1F6700203967 /* XUIBase.h */,
+				45AEBFED1CFD1F6700203967 /* XUIBase.m */,
+				45AEBFEE1CFD1F6700203967 /* XUIBezierPathAdditions.h */,
+				45AEBFEF1CFD1F6700203967 /* XUIBezierPathAdditions.m */,
+				45AEBFF01CFD1F6700203967 /* XUIColorAdditions.h */,
+				45AEBFF11CFD1F6700203967 /* XUIColorAdditions.m */,
+				45AEBFF21CFD1F6700203967 /* XUIFontAdditions.h */,
+				45AEBFF31CFD1F6700203967 /* XUIFontAdditions.m */,
+				45AEBFF41CFD1F6700203967 /* XUIGeometry.h */,
+				45AEBFF51CFD1F6700203967 /* XUIGeometry.m */,
+				45AEBFF61CFD1F6700203967 /* XUIGraphics.h */,
+				45AEBFF71CFD1F6700203967 /* XUIGraphics.m */,
+				45AEBFF81CFD1F6700203967 /* XUIImageAdditions.h */,
+				45AEBFF91CFD1F6700203967 /* XUIImageAdditions.m */,
+				45AEBFFA1CFD1F6700203967 /* XUIIndexPathAdditions.h */,
+				45AEBFFB1CFD1F6700203967 /* XUIIndexPathAdditions.m */,
+				45AEBFFC1CFD1F6700203967 /* XUIKit.h */,
+				45AEBFFD1CFD1F6700203967 /* XUIKitPrefix.pch */,
+				45AEBFFE1CFD1F6700203967 /* XUITypes.h */,
+				45AEBFFF1CFD1F6700203967 /* XUIValueAdditions.h */,
+				45AEC0001CFD1F6700203967 /* XUIValueAdditions.m */,
+				45AEC0011CFD1F6700203967 /* XUIView.h */,
+				45AEC0021CFD1F6700203967 /* XUIView.m */,
+				45AEC0031CFD1F6700203967 /* XUIViewAdditions.h */,
+				45AEC0041CFD1F6700203967 /* XUIViewAdditions.m */,
+			);
+			name = XUIKit;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -252,8 +326,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				45AEC00E1CFD1F6700203967 /* XUIView.m in Sources */,
+				45AEC00D1CFD1F6700203967 /* XUIValueAdditions.m in Sources */,
 				451282661CFA6F100088DEDE /* MainView.swift in Sources */,
+				45AEC00F1CFD1F6700203967 /* XUIViewAdditions.m in Sources */,
+				45AEC0051CFD1F6700203967 /* XUIBase.m in Sources */,
+				45AEC0091CFD1F6700203967 /* XUIGeometry.m in Sources */,
+				45AEBFEB1CFD14A200203967 /* AvatarLayer.swift in Sources */,
+				45AEC0061CFD1F6700203967 /* XUIBezierPathAdditions.m in Sources */,
+				45AEC0081CFD1F6700203967 /* XUIFontAdditions.m in Sources */,
+				45AEC00C1CFD1F6700203967 /* XUIIndexPathAdditions.m in Sources */,
+				45AEC00B1CFD1F6700203967 /* XUIImageAdditions.m in Sources */,
+				45AEC0071CFD1F6700203967 /* XUIColorAdditions.m in Sources */,
 				4512823D1CF9295C0088DEDE /* AppDelegate.swift in Sources */,
+				45AEC00A1CFD1F6700203967 /* XUIGraphics.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -303,7 +389,7 @@
 		4512825A1CF9295C0088DEDE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -337,10 +423,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/sidetalk/sidetalk-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -348,7 +436,7 @@
 		4512825B1CF9295C0088DEDE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -376,9 +464,11 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/sidetalk/sidetalk-Bridging-Header.h";
 			};
 			name = Release;
 		};
@@ -386,11 +476,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = sidetalk/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.giantacorn.sidetalk;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "sidetalk/sidetalk-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
@@ -398,11 +491,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = sidetalk/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.giantacorn.sidetalk;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "sidetalk/sidetalk-Bridging-Header.h";
 			};
 			name = Release;
 		};
