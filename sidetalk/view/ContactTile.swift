@@ -62,6 +62,7 @@ class ContactTile : NSView {
         self.textboxLayer.fillColor = NSColor.blackColor().colorWithAlphaComponent(0.2).CGColor;
 
         // actually init.
+        NSLog("init \(self.contact.displayName)");
         super.init(frame: frame);
         self.wantsLayer = true;
 
