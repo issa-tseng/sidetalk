@@ -18,6 +18,7 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#import <XUIKit/XUIBase.h>
 #import <XUIKit/XUIFontAdditions.h>
 
 #import <objc/objc-runtime.h>
@@ -93,7 +94,9 @@
     int unitsPerEm = CTFontGetUnitsPerEm(ctFont);
 
     long ascent  = lroundf( (     CTFontGetAscent( ctFont)  /  unitsPerEm) * pointSize);
-    long descent = lroundf(-(-abs(CTFontGetDescent(ctFont)) /  unitsPerEm) * pointSize);
+    CGFloat signedDescent = CTFontGetDescent(ctFont);
+    if (signedDescent > 0) { signedDescent *= -1; }
+    long descent = lroundf(-(signedDescent / unitsPerEm) * pointSize);
     long lineGap = lroundf( (     CTFontGetLeading(ctFont)  /  unitsPerEm) * pointSize);
     
     return ascent + descent + lineGap;

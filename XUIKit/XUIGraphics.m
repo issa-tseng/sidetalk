@@ -205,7 +205,7 @@ void XUIGraphicsBeginImageContextWithOptions(CGSize size, BOOL opaque, CGFloat s
     
     if (width > 0 && height > 0) {
         CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-        CGBitmapInfo bitmapInfo = (opaque? kCGImageAlphaNoneSkipFirst : kCGImageAlphaPremultipliedFirst);
+        CGBitmapInfo bitmapInfo = (CGBitmapInfo)(opaque? kCGImageAlphaNoneSkipFirst : kCGImageAlphaPremultipliedFirst);
         
         CGContextRef ctx = CGBitmapContextCreate(NULL, width, height, 8, 4 * width, colorSpace, bitmapInfo);
         CGContextConcatCTM(ctx, CGAffineTransformMake(1, 0, 0, -1, 0, height));

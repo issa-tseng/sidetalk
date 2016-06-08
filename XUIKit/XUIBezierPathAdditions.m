@@ -18,6 +18,7 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#import <XUIKit/XUIBase.h>
 #import <XUIKit/XUIBezierPathAdditions.h>
 
 #import <objc/objc-runtime.h>
