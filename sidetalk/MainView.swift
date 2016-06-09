@@ -84,7 +84,7 @@ class MainView: NSView {
                 }
 
                 anim.toValue = NSValue.init(point: to);
-                anim.beginTime = CACurrentMediaTime() + (0.02 * Double(this ?? 0));
+                anim.duration = NSTimeInterval(0.2 + (0.02 * Double(this ?? 0)));
                 tile.layer!.removeAnimationForKey("contacttile-layout");
                 tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
                 tile.layer!.position = to;
