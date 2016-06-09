@@ -4,15 +4,17 @@ import Cocoa
 
 class ContactTile : NSView {
     let contact: Contact;
+    let size: CGSize;
 
     let avatarLayer: CAAvatarLayer
     let outlineLayer: CAShapeLayer
     let textboxLayer: CAShapeLayer
     let textLayer: CATextLayer
 
-    init(frame: CGRect, contact: Contact) {
-        // save contact.
+    init(frame: CGRect, size: CGSize, contact: Contact) {
+        // save props.
         self.contact = contact;
+        self.size = size;
 
         // create layers.
         self.avatarLayer = CAAvatarLayer(); // TODO: maybe just render a different layer class?
@@ -37,10 +39,10 @@ class ContactTile : NSView {
     }
 
     private func drawAll() {
-        // base overall layout on our frame.
-        let avatarLength = frame.height - 2;
+        // base overall layout on our size.
+        let avatarLength = self.size.height - 2;
         let avatarHalf = avatarLength / 2;
-        let origin = CGPoint(x: frame.width - frame.height + 1, y: 1);
+        let origin = CGPoint(x: self.size.width - self.size.height + 1, y: 1);
 
         // set up avatar layout.
         let avatarSize = CGSize(width: avatarLength, height: avatarLength);
