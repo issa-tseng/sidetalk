@@ -9,8 +9,8 @@ class SignalProxy<T> {
     private let _signal: Signal<T, NoError>;
     private let _observer: Observer<T, NoError>;
 
-    var signal: Signal<T, NoError>! { get { return self._signal; } }
-    var observer: Observer<T, NoError>! { get { return self._observer; } }
+    var signal: Signal<T, NoError> { get { return self._signal; } }
+    var observer: Observer<T, NoError> { get { return self._observer; } }
 
     init() {
         (self._signal, self._observer) = Signal<T, NoError>.pipe();
@@ -30,8 +30,18 @@ class XFStreamDelegateProxy: NSObject, XMPPStreamDelegate {
     @objc internal func xmppStreamDidConnect(sender: XMPPStream!) {
         self._connectProxy.observer.sendNext(true);
     }
+
+    private let _authenticatedProxy = SignalProxy<Bool>();
+    var authenticatedSignal: Signal<Bool, NoError> { get { return self._authenticatedProxy.signal; } }
+    @objc internal func xmppStreamDidAuthenticate(sender: XMPPStream!) {
+        self._authenticatedProxy.observer.sendNext(true);
+    }
+
+    // on disconnect, we are both unconnected and unauthenticated.
+    // TODO: error?
     @objc internal func xmppStreamDidDisconnect(sender: XMPPStream!, withError error: NSError!) {
-        self._connectProxy.observer.sendNext(false); // TODO: error?
+        self._connectProxy.observer.sendNext(false);
+        self._authenticatedProxy.observer.sendNext(false);
     }
 }
 
@@ -42,20 +52,25 @@ class XFRosterDelegateProxy: NSObject, XMPPRosterDelegate {
         roster.addDelegate(self, delegateQueue: self._xmppQueue);
     }
 
-    private let _usersProxy = SignalProxy<[XMPPUser]!>();
-    var usersSignal: Signal<[XMPPUser]!, NoError> { get { return self._usersProxy.signal; } }
+    private let _usersProxy = SignalProxy<[XMPPUser]>();
+    var usersSignal: Signal<[XMPPUser], NoError> { get { return self._usersProxy.signal; } }
     @objc internal func xmppRosterDidPopulate(sender: XMPPRosterMemoryStorage!) {
         self._usersProxy.observer.sendNext(sender.sortedUsersByName() as! [XMPPUser]!);
     }
     @objc internal func xmppRosterDidChange(sender: XMPPRosterMemoryStorage!) {
         self._usersProxy.observer.sendNext(sender.sortedUsersByName() as! [XMPPUser]!);
     }
+
+    /*@objc internal func didUpdateResource(resource: XMPPResourceMemoryStorageObject!, withUser: XMPPResourceMemoryStorageObject!) {
+        NSLog("resource updated");
+    }*/
 }
 
 class Connection {
     internal let stream: XMPPStream;
     internal let rosterStorage: XMPPRosterMemoryStorage;
     internal let roster: XMPPRoster;
+    internal let reconnect: XMPPReconnect;
 
     private let _streamDelegateProxy: XFStreamDelegateProxy;
     private let _rosterDelegateProxy: XFRosterDelegateProxy;
@@ -67,6 +82,7 @@ class Connection {
         // setup
         self.rosterStorage = XMPPRosterMemoryStorage();
         self.roster = XMPPRoster.init(rosterStorage: self.rosterStorage);
+        self.reconnect = XMPPReconnect();
 
         self.stream = XMPPStream();
         self.stream.myJID = XMPPJID.jidWithString("clint@dontexplain.com");
@@ -79,21 +95,43 @@ class Connection {
         // connect
         self.prepare();
         self.roster.activate(self.stream);
+        self.reconnect.activate(self.stream);
         try! stream.connectWithTimeout(NSTimeInterval(10));
+
+        /*let vcardAvatar = XMPPvCardAvatarModule();
+        vcardAvatar.photoDataForJID(<#T##jid: XMPPJID!##XMPPJID!#>)*/
     }
 
     // plumb through proxies
-    var connected: Signal<Bool, NoError> { get { return self._streamDelegateProxy.connectSignal; } }
-    var users: Signal<[XMPPUser]!, NoError> { get { return self._rosterDelegateProxy.usersSignal; } }
+    var connected: Signal<Bool, NoError> { get { return self._streamDelegateProxy.connectSignal; } };
+    var authenticated: Signal<Bool, NoError> { get { return self._streamDelegateProxy.authenticatedSignal; } };
+    var users: Signal<[XMPPUser], NoError> { get { return self._rosterDelegateProxy.usersSignal.throttle(NSTimeInterval(0.15), onScheduler: QueueScheduler.mainQueueScheduler); } };
+
+    // managed contacts (impl in prepare())
+    private var _contactsCache = QuickCache<XMPPJID, Contact>();
+    private var _contactsSignal: Signal<[Contact], NoError>?;
+    var contacts: Signal<[Contact], NoError> { get { return self._contactsSignal!; } };
 
     // sets up our own reactions to basic xmpp things
     private func prepare() {
         // if we are xmpp-connected, authenticate
-        self.connected.observeNext { next in
-            if next == true {
+        self.connected.observeNext { connected in
+            if connected == true {
                 let creds = SSKeychain.passwordForService("Sidetalk", account: "clint@dontexplain.com");
                 try! self.stream.authenticateWithPassword(creds);
             }
+        }
+
+        // if we are authenticated, send initial status (TODO: actually have status)
+        self.authenticated.observeNext { authenticated in
+            if authenticated == true {
+                self.stream.sendElement(XMPPPresence(name: "presence")); // TODO: this init is silly. this is just the NSXML init.
+            }
+        }
+
+        // create managed contacts
+        self._contactsSignal = self.users.map { users in
+            users.map { user in self._contactsCache.get(user.jid(), update: { contact in contact.update(user); }, orElse: { Contact(xmppUser: user); }); };
         }
     }
 }

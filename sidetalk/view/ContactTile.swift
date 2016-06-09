@@ -14,6 +14,29 @@ class ContactTile : NSView {
         // save contact.
         self.contact = contact;
 
+        // create layers.
+        self.avatarLayer = CAAvatarLayer(); // TODO: maybe just render a different layer class?
+        self.outlineLayer = CAShapeLayer();
+        self.textLayer = CATextLayer();
+        self.textboxLayer = CAShapeLayer();
+
+        // actually init.
+        super.init(frame: frame);
+        self.wantsLayer = true;
+
+        // now draw everything, and add the layers.
+        dispatch_async(dispatch_get_main_queue(), {
+            self.drawAll();
+
+            let layer = self.layer!
+            layer.addSublayer(self.avatarLayer);
+            layer.addSublayer(self.outlineLayer);
+            layer.addSublayer(self.textboxLayer);
+            layer.addSublayer(self.textLayer);
+        });
+    }
+
+    private func drawAll() {
         // base overall layout on our frame.
         let avatarLength = frame.height - 2;
         let avatarHalf = avatarLength / 2;
@@ -24,7 +47,6 @@ class ContactTile : NSView {
         let avatarBounds = CGRect(origin: origin, size: avatarSize);
 
         // set up avatar.
-        self.avatarLayer = CAAvatarLayer(); // TODO: maybe just render a different layer class?
         if self.contact.avatarSource == nil {
             // render backup.
         } else {
@@ -35,7 +57,6 @@ class ContactTile : NSView {
 
         // set up status ring.
         let outlinePath = NSBezierPath(roundedRect: avatarBounds, xRadius: avatarHalf, yRadius: avatarHalf);
-        self.outlineLayer = CAShapeLayer();
         self.outlineLayer.path = outlinePath.CGPath;
         self.outlineLayer.fillColor = NSColor.clearColor().CGColor;
         self.outlineLayer.strokeColor = NSColor.init(red: 0.027, green: 0.785, blue: 0.746, alpha: 0.95).CGColor;
@@ -48,7 +69,6 @@ class ContactTile : NSView {
         let textBounds = NSRect(origin: textOrigin, size: textSize);
 
         // set up text.
-        self.textLayer = CATextLayer();
         self.textLayer.position = textOrigin;
         self.textLayer.frame = textBounds;
         self.textLayer.contentsScale = NSScreen.mainScreen()!.backingScaleFactor;
@@ -57,21 +77,8 @@ class ContactTile : NSView {
         // set up textbox.
         let textboxRadius = CGFloat(3);
         let textboxPath = NSBezierPath(roundedRect: textBounds.insetBy(dx: -6, dy: -2), xRadius: textboxRadius, yRadius: textboxRadius);
-        self.textboxLayer = CAShapeLayer();
         self.textboxLayer.path = textboxPath.CGPath;
         self.textboxLayer.fillColor = NSColor.blackColor().colorWithAlphaComponent(0.2).CGColor;
-
-        // actually init.
-        NSLog("init \(self.contact.displayName)");
-        super.init(frame: frame);
-        self.wantsLayer = true;
-
-        // now add the layers.
-        let layer = self.layer!
-        layer.addSublayer(self.avatarLayer);
-        layer.addSublayer(self.outlineLayer);
-        layer.addSublayer(self.textboxLayer);
-        layer.addSublayer(self.textLayer);
     }
 
     required init(coder: NSCoder) {
