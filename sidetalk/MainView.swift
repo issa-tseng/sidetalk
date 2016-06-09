@@ -59,13 +59,10 @@ class MainView: NSView {
                 let this = thisOrder[tile.contact];
                 let last = lastOrder[tile.contact];
 
-                NSLog("\(tile.contact.displayName): \(last) -> \(this)");
-
                 // bail early if nothing is to be done
                 if this == last {
-                    if this == nil {
-                        tile.layer!.position = NSPoint(x: 0, y: -900);
-                    }
+                    // make sure we're offscreen if we're not to be shown
+                    if this == nil { tile.layer!.position = NSPoint(x: 0, y: -900); }
                     continue;
                 }
 

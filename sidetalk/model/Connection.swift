@@ -5,33 +5,31 @@ import SSKeychain
 import ReactiveCocoa
 import enum Result.NoError
 
-class SignalProxy<T> {
-    private let _signal: Signal<T, NoError>;
-    private let _observer: Observer<T, NoError>;
-
-    var signal: Signal<T, NoError> { get { return self._signal; } }
-    var observer: Observer<T, NoError> { get { return self._observer; } }
-
-    init() {
-        (self._signal, self._observer) = Signal<T, NoError>.pipe();
+class XFDelegateModuleProxy: NSObject {
+    private let _xmppQueue = dispatch_queue_create("xmppq-\(NSUUID().UUIDString)", nil);
+    init(module: XMPPModule) {
+        super.init();
+        module.addDelegate(self, delegateQueue: self._xmppQueue);
     }
+    deinit { } // TODO: do i have to release the dispatch queue?
 }
 
 class XFStreamDelegateProxy: NSObject, XMPPStreamDelegate {
+    // because of XMPPFramework's haphazard design, there isn't a protocol
+    // that consistently represents addDelegate. so we have to do this all over again.
     private let _xmppQueue = dispatch_queue_create("xmppq-stream", nil);
     init(stream: XMPPStream) {
         super.init();
         stream.addDelegate(self, delegateQueue: self._xmppQueue);
     }
-    deinit { } // TODO: do i have to release the dispatch queue?
 
-    private let _connectProxy = SignalProxy<Bool>();
+    private let _connectProxy = ManagedSignal<Bool>();
     var connectSignal: Signal<Bool, NoError> { get { return self._connectProxy.signal; } }
     @objc internal func xmppStreamDidConnect(sender: XMPPStream!) {
         self._connectProxy.observer.sendNext(true);
     }
 
-    private let _authenticatedProxy = SignalProxy<Bool>();
+    private let _authenticatedProxy = ManagedSignal<Bool>();
     var authenticatedSignal: Signal<Bool, NoError> { get { return self._authenticatedProxy.signal; } }
     @objc internal func xmppStreamDidAuthenticate(sender: XMPPStream!) {
         self._authenticatedProxy.observer.sendNext(true);
@@ -45,14 +43,8 @@ class XFStreamDelegateProxy: NSObject, XMPPStreamDelegate {
     }
 }
 
-class XFRosterDelegateProxy: NSObject, XMPPRosterDelegate {
-    private let _xmppQueue = dispatch_queue_create("xmppq-roster", nil);
-    init(roster: XMPPRoster) {
-        super.init();
-        roster.addDelegate(self, delegateQueue: self._xmppQueue);
-    }
-
-    private let _usersProxy = SignalProxy<[XMPPUser]>();
+class XFRosterDelegateProxy: XFDelegateModuleProxy, XMPPRosterDelegate {
+    private let _usersProxy = ManagedSignal<[XMPPUser]>();
     var usersSignal: Signal<[XMPPUser], NoError> { get { return self._usersProxy.signal; } }
     @objc internal func xmppRosterDidPopulate(sender: XMPPRosterMemoryStorage!) {
         self._usersProxy.observer.sendNext(sender.sortedUsersByName() as! [XMPPUser]!);
@@ -90,7 +82,7 @@ class Connection {
 
         // init proxies
         self._streamDelegateProxy = XFStreamDelegateProxy(stream: self.stream);
-        self._rosterDelegateProxy = XFRosterDelegateProxy(roster: self.roster);
+        self._rosterDelegateProxy = XFRosterDelegateProxy(module: self.roster);
 
         // connect
         self.prepare();
