@@ -123,7 +123,9 @@ class Connection {
 
         // create managed contacts
         self._contactsSignal = self.users.map { users in
-            users.map { user in self._contactsCache.get(user.jid(), update: { contact in contact.update(user); }, orElse: { Contact(xmppUser: user); }); };
+            users.map { user in
+                self._contactsCache.get(user.jid(), update: { contact in contact.update(user); }, orElse: { Contact(xmppUser: user, xmppStream: self.stream); });
+            };
         }
     }
 }

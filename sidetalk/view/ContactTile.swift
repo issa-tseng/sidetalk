@@ -52,13 +52,7 @@ class ContactTile : NSView {
         let avatarBounds = CGRect(origin: origin, size: avatarSize);
 
         // set up avatar.
-        if self.contact.avatarSource == nil {
-            // render backup.
-        } else {
-            let image = NSImage.init(byReferencingFile: contact.avatarSource!)! // TODO: maybe let it handle the source?
-            self.avatarLayer.frame = NSRect(origin: origin, size: NSSize(width: avatarLength, height: avatarLength))
-            self.avatarLayer.image = image;
-        }
+        self.avatarLayer.frame = NSRect(origin: origin, size: NSSize(width: avatarLength, height: avatarLength));
 
         // set up status ring.
         let outlinePath = NSBezierPath(roundedRect: avatarBounds, xRadius: avatarHalf, yRadius: avatarHalf);
@@ -87,6 +81,7 @@ class ContactTile : NSView {
     }
 
     private func prepare() {
+        // adjust avatar opacity based on composite presence
         self.contact.online.combineLatestWith(self.contact.presence).observeNext { (online, presence) in
             dispatch_async(dispatch_get_main_queue(), {
                 if online {
@@ -100,6 +95,9 @@ class ContactTile : NSView {
                 }
             });
         }
+
+        // load avatar
+        self.contact.avatar.startWithNext { image in dispatch_async(dispatch_get_main_queue(), { self.avatarLayer.image = image; }); }
     }
 
     required init(coder: NSCoder) {
