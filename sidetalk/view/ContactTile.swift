@@ -36,6 +36,9 @@ class ContactTile : NSView {
             layer.addSublayer(self.textboxLayer);
             layer.addSublayer(self.textLayer);
         });
+
+        // prep future states
+        self.prepare();
     }
 
     private func drawAll() {
@@ -61,7 +64,7 @@ class ContactTile : NSView {
         let outlinePath = NSBezierPath(roundedRect: avatarBounds, xRadius: avatarHalf, yRadius: avatarHalf);
         self.outlineLayer.path = outlinePath.CGPath;
         self.outlineLayer.fillColor = NSColor.clearColor().CGColor;
-        self.outlineLayer.strokeColor = NSColor.init(red: 0.027, green: 0.785, blue: 0.746, alpha: 0.95).CGColor;
+        self.outlineLayer.strokeColor = NSColor.init(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.2).CGColor; //NSColor.init(red: 0.027, green: 0.785, blue: 0.746, alpha: 0.95).CGColor;
         self.outlineLayer.lineWidth = 2;
 
         // set up text layout.
@@ -81,6 +84,22 @@ class ContactTile : NSView {
         let textboxPath = NSBezierPath(roundedRect: textBounds.insetBy(dx: -6, dy: -2), xRadius: textboxRadius, yRadius: textboxRadius);
         self.textboxLayer.path = textboxPath.CGPath;
         self.textboxLayer.fillColor = NSColor.blackColor().colorWithAlphaComponent(0.2).CGColor;
+    }
+
+    private func prepare() {
+        self.contact.online.combineLatestWith(self.contact.presence).observeNext { (online, presence) in
+            dispatch_async(dispatch_get_main_queue(), {
+                if online {
+                    if presence == nil {
+                        self.avatarLayer.opacity = 0.9;
+                    } else {
+                        self.avatarLayer.opacity = 0.5;
+                    }
+                } else {
+                    self.avatarLayer.opacity = 0.1;
+                }
+            });
+        }
     }
 
     required init(coder: NSCoder) {

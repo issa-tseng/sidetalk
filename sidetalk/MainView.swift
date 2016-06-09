@@ -27,8 +27,8 @@ class MainView: NSView {
 
         // relayout contacts as required.
         self.connection.contacts.map({ contacts -> Dictionary<Contact, Int> in
-            let availableContacts = contacts.filter({ contact in contact.online && contact.presence != "away" });
-            let awayContacts = contacts.filter { contact in contact.online && contact.presence == "away" };
+            let availableContacts = contacts.filter({ contact in contact.onlineOnce && contact.presenceOnce == nil });
+            let awayContacts = contacts.filter { contact in contact.onlineOnce && contact.presenceOnce != nil };
 
             let sorted = availableContacts + awayContacts;
             var result = Dictionary<Contact, Int>();
@@ -68,7 +68,7 @@ class MainView: NSView {
 
                 if this != nil {
                     // we are animating to a real position
-                    let x = self.frame.width - self.tileSize.width;
+                    let x = self.frame.width - self.tileSize.width + (self.tileSize.height * 0.65);
                     let y = self.frame.height - ((self.tileSize.height + self.tilePadding) * CGFloat((this!) + 1));
 
                     if last != nil {
