@@ -35,6 +35,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         );
         window.setFrame(frame, display: true);
 
+        // appear on all spaces.
+        window.collectionBehavior = NSWindowCollectionBehavior.init(rawValue:
+            window.collectionBehavior.rawValue | NSWindowCollectionBehavior.CanJoinAllSpaces.rawValue);
+
         // set our primary view
         self.mainView = MainView(frame: frame, connection: self.connection);
         self.mainView!.frame = window.contentView!.bounds;
