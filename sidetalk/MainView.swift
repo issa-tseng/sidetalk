@@ -1,6 +1,7 @@
 
 import Foundation
 import Cocoa
+import ReactiveCocoa
 
 // TODO: split into V/VM?
 class MainView: NSView {
@@ -26,8 +27,8 @@ class MainView: NSView {
             contacts.map { contact in self._contactTiles.get(contact, orElse: { self.drawOne(contact); }); };
         });
 
-        // relayout contacts as required.
-        self.connection.contacts.map({ contacts -> Dictionary<Contact, Int> in
+        // calculate the correct sort of all contacts.
+        let sort = self.connection.contacts.map({ contacts -> Dictionary<Contact, Int> in
             let availableContacts = contacts.filter({ contact in contact.onlineOnce && contact.presenceOnce == nil });
             let awayContacts = contacts.filter { contact in contact.onlineOnce && contact.presenceOnce != nil };
 
@@ -37,7 +38,19 @@ class MainView: NSView {
                 result[contact] = idx;
             }
             return result;
-        }).combinePrevious([:]).combineLatestWith(tiles).observeNext { orders, tiles in self.layout(orders.1, lastOrder: orders.0) }
+        });
+
+        // relayout as required.
+        sort.combinePrevious([:]) // (Order, Order)
+            .combineLatestWith(tiles).map { orders, _ in orders } // (Order, Order)
+            .combineWithDefault(GlobalInteraction.sharedInstance.activated, defaultValue: false) // ((Order, Order), Bool)
+            .observeNext { orders, activated in self.layout(orders, activated) }
+
+        // if we are active, claim window focus. vice versa.
+        GlobalInteraction.sharedInstance.activated.observeNext { activated in
+            if activated { NSApplication.sharedApplication().activateIgnoringOtherApps(true); }
+            else         { GlobalInteraction.sharedInstance.lastApp?.activateWithOptions(NSApplicationActivationOptions.ActivateIgnoringOtherApps); }
+        }
     }
 
     private func drawOne(contact: Contact) -> ContactTile {
@@ -50,26 +63,22 @@ class MainView: NSView {
         return newTile;
     }
 
-    private func layout(thisOrder: Dictionary<Contact, Int>, lastOrder: Dictionary<Contact, Int>) {
+    private func layout(orders: (Dictionary<Contact, Int>, Dictionary<Contact, Int>), _ activated: Bool) {
         NSLog("relayout");
         dispatch_async(dispatch_get_main_queue(), {
             for tile in self._contactTiles.all() {
                 let anim = CABasicAnimation.init(keyPath: "position");
                 var to: NSPoint; // TODO: mutable. gross.
 
-                let this = thisOrder[tile.contact];
-                let last = lastOrder[tile.contact];
+                let last = orders.0[tile.contact];
+                let this = orders.1[tile.contact];
 
-                // bail early if nothing is to be done
-                if this == last {
-                    // make sure we're offscreen if we're not to be shown
-                    if this == nil { tile.layer!.position = NSPoint(x: 0, y: -900); }
-                    continue;
-                }
+                // make sure we're offscreen if we're not to be shown
+                if last == nil && this == nil { tile.layer!.position = NSPoint(x: 0, y: -900); }
 
                 if this != nil {
                     // we are animating to a real position
-                    let x = self.frame.width - self.tileSize.width + (self.tileSize.height * 0.55);
+                    let x = self.frame.width - self.tileSize.width + (activated ? -(self.tilePadding) : (self.tileSize.height * 0.55));
                     let y = self.frame.height - self.listPadding - ((self.tileSize.height + self.tilePadding) * CGFloat((this!) + 1));
 
                     if last != nil {
@@ -85,7 +94,8 @@ class MainView: NSView {
                 }
 
                 anim.toValue = NSValue.init(point: to);
-                anim.duration = NSTimeInterval(0.2 + (0.02 * Double(this ?? 0)));
+                // TODO: different durations depending on _type of change_ rather than state?
+                anim.duration = NSTimeInterval((activated ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
                 tile.layer!.removeAnimationForKey("contacttile-layout");
                 tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
                 tile.layer!.position = to;

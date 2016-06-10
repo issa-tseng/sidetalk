@@ -7,4 +7,5 @@ target 'sidetalk' do
   pod 'XMPPFramework', :git => 'https://github.com/farion/XMPPFramework'
   pod 'SSKeychain', '~>1.4.0'
   pod 'ReactiveCocoa', '~>4.1.0'
+  pod 'MASShortcut', '~>2.3'
 end

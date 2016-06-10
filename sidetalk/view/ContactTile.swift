@@ -97,7 +97,7 @@ class ContactTile : NSView {
         }
 
         // load avatar
-        self.contact.avatar.startWithNext { image in dispatch_async(dispatch_get_main_queue(), { self.avatarLayer.image = image; }); }
+        self.contact.avatar.startWithNext { image in dispatch_async(dispatch_get_main_queue(), { self.avatarLayer.image = image; }); };
     }
 
     required init(coder: NSCoder) {

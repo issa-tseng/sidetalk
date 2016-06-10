@@ -17,6 +17,8 @@
 		454DBB9A1D0935190065DA1B /* ManagedSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 454DBB991D0935190065DA1B /* ManagedSignal.swift */; };
 		458A73401D0A423C0061FAFD /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458A733E1D0A423C0061FAFD /* Connection.swift */; };
 		458A73411D0A423C0061FAFD /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458A733F1D0A423C0061FAFD /* Contact.swift */; };
+		458A73431D0A43FB0061FAFD /* GlobalInteraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458A73421D0A43FB0061FAFD /* GlobalInteraction.swift */; };
+		458A73451D0A51E20061FAFD /* SignalExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458A73441D0A51E20061FAFD /* SignalExtensions.swift */; };
 		45AEC0051CFD1F6700203967 /* XUIBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFED1CFD1F6700203967 /* XUIBase.m */; };
 		45AEC0061CFD1F6700203967 /* XUIBezierPathAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFEF1CFD1F6700203967 /* XUIBezierPathAdditions.m */; };
 		45AEC0071CFD1F6700203967 /* XUIColorAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFF11CFD1F6700203967 /* XUIColorAdditions.m */; };
@@ -68,6 +70,8 @@
 		454DBB991D0935190065DA1B /* ManagedSignal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ManagedSignal.swift; path = util/ManagedSignal.swift; sourceTree = "<group>"; };
 		458A733E1D0A423C0061FAFD /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Connection.swift; path = viewmodel/Connection.swift; sourceTree = "<group>"; };
 		458A733F1D0A423C0061FAFD /* Contact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Contact.swift; path = viewmodel/Contact.swift; sourceTree = "<group>"; };
+		458A73421D0A43FB0061FAFD /* GlobalInteraction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = GlobalInteraction.swift; path = viewmodel/GlobalInteraction.swift; sourceTree = "<group>"; };
+		458A73441D0A51E20061FAFD /* SignalExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SignalExtensions.swift; path = util/SignalExtensions.swift; sourceTree = "<group>"; };
 		45AEBFEC1CFD1F6700203967 /* XUIBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIBase.h; path = XUIKit/XUIBase.h; sourceTree = "<group>"; };
 		45AEBFED1CFD1F6700203967 /* XUIBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIBase.m; path = XUIKit/XUIBase.m; sourceTree = "<group>"; };
 		45AEBFEE1CFD1F6700203967 /* XUIBezierPathAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIBezierPathAdditions.h; path = XUIKit/XUIBezierPathAdditions.h; sourceTree = "<group>"; };
@@ -199,6 +203,7 @@
 			children = (
 				454DBB971D08E4C30065DA1B /* QuickCache.swift */,
 				454DBB991D0935190065DA1B /* ManagedSignal.swift */,
+				458A73441D0A51E20061FAFD /* SignalExtensions.swift */,
 			);
 			name = util;
 			sourceTree = "<group>";
@@ -240,6 +245,7 @@
 			children = (
 				458A733E1D0A423C0061FAFD /* Connection.swift */,
 				458A733F1D0A423C0061FAFD /* Contact.swift */,
+				458A73421D0A43FB0061FAFD /* GlobalInteraction.swift */,
 			);
 			name = viewmodel;
 			sourceTree = "<group>";
@@ -446,6 +452,7 @@
 				45AEC0181CFD592600203967 /* Common.swift in Sources */,
 				454DBB9A1D0935190065DA1B /* ManagedSignal.swift in Sources */,
 				454DBB981D08E4C30065DA1B /* QuickCache.swift in Sources */,
+				458A73451D0A51E20061FAFD /* SignalExtensions.swift in Sources */,
 				45AEC00E1CFD1F6700203967 /* XUIView.m in Sources */,
 				45AEC00D1CFD1F6700203967 /* XUIValueAdditions.m in Sources */,
 				451282661CFA6F100088DEDE /* MainView.swift in Sources */,
@@ -458,6 +465,7 @@
 				458A73411D0A423C0061FAFD /* Contact.swift in Sources */,
 				45AEC0061CFD1F6700203967 /* XUIBezierPathAdditions.m in Sources */,
 				45AEC0081CFD1F6700203967 /* XUIFontAdditions.m in Sources */,
+				458A73431D0A43FB0061FAFD /* GlobalInteraction.swift in Sources */,
 				45AEC00C1CFD1F6700203967 /* XUIIndexPathAdditions.m in Sources */,
 				45AEC00B1CFD1F6700203967 /* XUIImageAdditions.m in Sources */,
 				45AEC0071CFD1F6700203967 /* XUIColorAdditions.m in Sources */,
