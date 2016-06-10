@@ -23,6 +23,19 @@ class Contact: Hashable {
 
     var displayName: String { get { return self.inner.nickname() ?? self.inner.jid().bare(); } };
 
+    var initials: String { get {
+        let full = self.displayName;
+        let initialsRegex = try! NSRegularExpression(pattern: "^(.)[^ ._-]*[ ._-](.)", options: .UseUnicodeWordBoundaries);
+        let initials = initialsRegex.matchesInString(full, options: NSMatchingOptions(), range: NSRange());
+
+        if initials.count > 1 {
+            let nsFull = full as NSString;
+            return initials.map({ result in nsFull.substringWithRange(result.range); }).joinWithSeparator("");
+        } else {
+            return full.substringToIndex(full.startIndex.advancedBy(2));
+        }
+    } };
+
     private var _onlineSignal = ManagedSignal<Bool>();
     var online: Signal<Bool, NoError> { get { return self._onlineSignal.signal; } };
     var onlineOnce: Bool { get { return self.inner.isOnline(); } };

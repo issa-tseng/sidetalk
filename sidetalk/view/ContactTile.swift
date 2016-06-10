@@ -30,10 +30,13 @@ class ContactTile : NSView {
         self.size = size;
 
         // create layers.
-        self.avatarLayer = CAAvatarLayer(); // TODO: maybe just render a different layer class?
+        self.avatarLayer = CAAvatarLayer();
         self.outlineLayer = CAShapeLayer();
         self.textLayer = CATextLayer();
         self.textboxLayer = CAShapeLayer();
+
+        // set up layers.
+        self.avatarLayer.contact = self.contact;
 
         // actually init.
         super.init(frame: frame);
@@ -123,9 +126,6 @@ class ContactTile : NSView {
                 }
             });
         }
-
-        // load avatar
-        self.contact.avatar.startWithNext { image in dispatch_async(dispatch_get_main_queue(), { self.avatarLayer.image = image; }); };
     }
 
     required init(coder: NSCoder) {
