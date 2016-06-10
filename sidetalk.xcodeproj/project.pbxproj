@@ -13,6 +13,10 @@
 		4512824D1CF9295C0088DEDE /* sidetalkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4512824C1CF9295C0088DEDE /* sidetalkTests.swift */; };
 		451282581CF9295C0088DEDE /* sidetalkUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451282571CF9295C0088DEDE /* sidetalkUITests.swift */; };
 		451282661CFA6F100088DEDE /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451282651CFA6F100088DEDE /* MainView.swift */; };
+		454DBB981D08E4C30065DA1B /* QuickCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 454DBB971D08E4C30065DA1B /* QuickCache.swift */; };
+		454DBB9A1D0935190065DA1B /* ManagedSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 454DBB991D0935190065DA1B /* ManagedSignal.swift */; };
+		458A73401D0A423C0061FAFD /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458A733E1D0A423C0061FAFD /* Connection.swift */; };
+		458A73411D0A423C0061FAFD /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458A733F1D0A423C0061FAFD /* Contact.swift */; };
 		45AEC0051CFD1F6700203967 /* XUIBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFED1CFD1F6700203967 /* XUIBase.m */; };
 		45AEC0061CFD1F6700203967 /* XUIBezierPathAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFEF1CFD1F6700203967 /* XUIBezierPathAdditions.m */; };
 		45AEC0071CFD1F6700203967 /* XUIColorAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEBFF11CFD1F6700203967 /* XUIColorAdditions.m */; };
@@ -24,11 +28,9 @@
 		45AEC00D1CFD1F6700203967 /* XUIValueAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0001CFD1F6700203967 /* XUIValueAdditions.m */; };
 		45AEC00E1CFD1F6700203967 /* XUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0021CFD1F6700203967 /* XUIView.m */; };
 		45AEC00F1CFD1F6700203967 /* XUIViewAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0041CFD1F6700203967 /* XUIViewAdditions.m */; };
-		45AEC0131CFD57E500203967 /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0121CFD57E500203967 /* Contact.swift */; };
 		45AEC0161CFD58AA00203967 /* ContactTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0151CFD58AA00203967 /* ContactTile.swift */; };
 		45AEC0181CFD592600203967 /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0171CFD592600203967 /* Common.swift */; };
 		45AEC01A1CFD59CF00203967 /* AvatarLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0191CFD59CF00203967 /* AvatarLayer.swift */; };
-		45AEC01C1CFD5D7A00203967 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC01B1CFD5D7A00203967 /* Connection.swift */; };
 		90AA672577DACDA911E88D99 /* Pods_sidetalk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8D154A4621A69E3A2385A355 /* Pods_sidetalk.framework */; };
 /* End PBXBuildFile section */
 
@@ -62,6 +64,10 @@
 		451282571CF9295C0088DEDE /* sidetalkUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sidetalkUITests.swift; sourceTree = "<group>"; };
 		451282591CF9295C0088DEDE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		451282651CFA6F100088DEDE /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		454DBB971D08E4C30065DA1B /* QuickCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QuickCache.swift; path = util/QuickCache.swift; sourceTree = "<group>"; };
+		454DBB991D0935190065DA1B /* ManagedSignal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ManagedSignal.swift; path = util/ManagedSignal.swift; sourceTree = "<group>"; };
+		458A733E1D0A423C0061FAFD /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Connection.swift; path = viewmodel/Connection.swift; sourceTree = "<group>"; };
+		458A733F1D0A423C0061FAFD /* Contact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Contact.swift; path = viewmodel/Contact.swift; sourceTree = "<group>"; };
 		45AEBFEC1CFD1F6700203967 /* XUIBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIBase.h; path = XUIKit/XUIBase.h; sourceTree = "<group>"; };
 		45AEBFED1CFD1F6700203967 /* XUIBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIBase.m; path = XUIKit/XUIBase.m; sourceTree = "<group>"; };
 		45AEBFEE1CFD1F6700203967 /* XUIBezierPathAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIBezierPathAdditions.h; path = XUIKit/XUIBezierPathAdditions.h; sourceTree = "<group>"; };
@@ -88,11 +94,9 @@
 		45AEC0031CFD1F6700203967 /* XUIViewAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XUIViewAdditions.h; path = XUIKit/XUIViewAdditions.h; sourceTree = "<group>"; };
 		45AEC0041CFD1F6700203967 /* XUIViewAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIViewAdditions.m; path = XUIKit/XUIViewAdditions.m; sourceTree = "<group>"; };
 		45AEC0101CFD1FBB00203967 /* sidetalk-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sidetalk-Bridging-Header.h"; sourceTree = "<group>"; };
-		45AEC0121CFD57E500203967 /* Contact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Contact.swift; path = model/Contact.swift; sourceTree = "<group>"; };
 		45AEC0151CFD58AA00203967 /* ContactTile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContactTile.swift; path = view/ContactTile.swift; sourceTree = "<group>"; };
 		45AEC0171CFD592600203967 /* Common.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
 		45AEC0191CFD59CF00203967 /* AvatarLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AvatarLayer.swift; path = view/AvatarLayer.swift; sourceTree = "<group>"; };
-		45AEC01B1CFD5D7A00203967 /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Connection.swift; path = model/Connection.swift; sourceTree = "<group>"; };
 		5ABBCA9B60EDB56B8AD71D06 /* Pods-sidetalk.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sidetalk.debug.xcconfig"; path = "Pods/Target Support Files/Pods-sidetalk/Pods-sidetalk.debug.xcconfig"; sourceTree = "<group>"; };
 		8D154A4621A69E3A2385A355 /* Pods_sidetalk.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_sidetalk.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FCAD5AE797180E70F2B7A50D /* Pods-sidetalk.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sidetalk.release.xcconfig"; path = "Pods/Target Support Files/Pods-sidetalk/Pods-sidetalk.release.xcconfig"; sourceTree = "<group>"; };
@@ -159,8 +163,9 @@
 		4512823B1CF9295C0088DEDE /* sidetalk */ = {
 			isa = PBXGroup;
 			children = (
+				454DBB961D08E47F0065DA1B /* util */,
 				45AEC0141CFD589600203967 /* view */,
-				45AEC0111CFD57C800203967 /* model */,
+				45AEC0111CFD57C800203967 /* viewmodel */,
 				45AEC0101CFD1FBB00203967 /* sidetalk-Bridging-Header.h */,
 				4512823C1CF9295C0088DEDE /* AppDelegate.swift */,
 				4512823E1CF9295C0088DEDE /* Assets.xcassets */,
@@ -187,6 +192,15 @@
 				451282591CF9295C0088DEDE /* Info.plist */,
 			);
 			path = sidetalkUITests;
+			sourceTree = "<group>";
+		};
+		454DBB961D08E47F0065DA1B /* util */ = {
+			isa = PBXGroup;
+			children = (
+				454DBB971D08E4C30065DA1B /* QuickCache.swift */,
+				454DBB991D0935190065DA1B /* ManagedSignal.swift */,
+			);
+			name = util;
 			sourceTree = "<group>";
 		};
 		45AEBFC41CFACECE00203967 /* XUIKit */ = {
@@ -221,13 +235,13 @@
 			name = XUIKit;
 			sourceTree = "<group>";
 		};
-		45AEC0111CFD57C800203967 /* model */ = {
+		45AEC0111CFD57C800203967 /* viewmodel */ = {
 			isa = PBXGroup;
 			children = (
-				45AEC0121CFD57E500203967 /* Contact.swift */,
-				45AEC01B1CFD5D7A00203967 /* Connection.swift */,
+				458A733E1D0A423C0061FAFD /* Connection.swift */,
+				458A733F1D0A423C0061FAFD /* Contact.swift */,
 			);
-			name = model;
+			name = viewmodel;
 			sourceTree = "<group>";
 		};
 		45AEC0141CFD589600203967 /* view */ = {
@@ -430,7 +444,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				45AEC0181CFD592600203967 /* Common.swift in Sources */,
-				45AEC01C1CFD5D7A00203967 /* Connection.swift in Sources */,
+				454DBB9A1D0935190065DA1B /* ManagedSignal.swift in Sources */,
+				454DBB981D08E4C30065DA1B /* QuickCache.swift in Sources */,
 				45AEC00E1CFD1F6700203967 /* XUIView.m in Sources */,
 				45AEC00D1CFD1F6700203967 /* XUIValueAdditions.m in Sources */,
 				451282661CFA6F100088DEDE /* MainView.swift in Sources */,
@@ -439,12 +454,13 @@
 				45AEC01A1CFD59CF00203967 /* AvatarLayer.swift in Sources */,
 				45AEC0091CFD1F6700203967 /* XUIGeometry.m in Sources */,
 				45AEC0161CFD58AA00203967 /* ContactTile.swift in Sources */,
+				458A73401D0A423C0061FAFD /* Connection.swift in Sources */,
+				458A73411D0A423C0061FAFD /* Contact.swift in Sources */,
 				45AEC0061CFD1F6700203967 /* XUIBezierPathAdditions.m in Sources */,
 				45AEC0081CFD1F6700203967 /* XUIFontAdditions.m in Sources */,
 				45AEC00C1CFD1F6700203967 /* XUIIndexPathAdditions.m in Sources */,
 				45AEC00B1CFD1F6700203967 /* XUIImageAdditions.m in Sources */,
 				45AEC0071CFD1F6700203967 /* XUIColorAdditions.m in Sources */,
-				45AEC0131CFD57E500203967 /* Contact.swift in Sources */,
 				4512823D1CF9295C0088DEDE /* AppDelegate.swift in Sources */,
 				45AEC00A1CFD1F6700203967 /* XUIGraphics.m in Sources */,
 			);

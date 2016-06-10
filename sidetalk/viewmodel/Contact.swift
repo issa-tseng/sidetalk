@@ -66,12 +66,12 @@ class Contact: Hashable {
                 let vcardTemp = XMPPvCardTempModule(vCardStorage: XMPPvCardCoreDataStorage.sharedInstance());
                 let vcardAvatar = XMPPvCardAvatarModule(vCardTempModule: vcardTemp);
 
-                vcardTemp.activate(self.stream);
-                vcardAvatar.activate(self.stream);
-
                 let photoData = vcardAvatar.photoDataForJID(self.inner.jid());
                 if photoData == nil {
                     // we don't have it already cached, so go fetch it
+                    vcardTemp.activate(self.stream);
+                    vcardAvatar.activate(self.stream);
+
                     let delegate = AvatarDelegate(withResult: { image in observer.sendNext(image); });
                     vcardAvatar.addDelegate(delegate, delegateQueue: backgroundThread)
                     vcardTemp.fetchvCardTempForJID(self.inner.jid(), ignoreStorage: true);

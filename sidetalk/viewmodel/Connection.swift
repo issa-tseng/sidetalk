@@ -89,9 +89,6 @@ class Connection {
         self.roster.activate(self.stream);
         self.reconnect.activate(self.stream);
         try! stream.connectWithTimeout(NSTimeInterval(10));
-
-        /*let vcardAvatar = XMPPvCardAvatarModule();
-        vcardAvatar.photoDataForJID(<#T##jid: XMPPJID!##XMPPJID!#>)*/
     }
 
     // plumb through proxies
