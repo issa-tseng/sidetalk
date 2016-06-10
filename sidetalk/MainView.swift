@@ -8,6 +8,7 @@ class MainView: NSView {
     private var _contactTiles = QuickCache<Contact, ContactTile>();
 
     // drawing ks. should these go elsewhere?
+    let listPadding = CGFloat(50);
     let tileSize = NSSize(width: 200, height: 50);
     let tilePadding = CGFloat(4);
 
@@ -68,8 +69,8 @@ class MainView: NSView {
 
                 if this != nil {
                     // we are animating to a real position
-                    let x = self.frame.width - self.tileSize.width + (self.tileSize.height * 0.65);
-                    let y = self.frame.height - ((self.tileSize.height + self.tilePadding) * CGFloat((this!) + 1));
+                    let x = self.frame.width - self.tileSize.width + (self.tileSize.height * 0.55);
+                    let y = self.frame.height - self.listPadding - ((self.tileSize.height + self.tilePadding) * CGFloat((this!) + 1));
 
                     if last != nil {
                         anim.fromValue = NSValue.init(point: tile.layer!.position);
