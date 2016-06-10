@@ -1,10 +1,23 @@
 
 import Foundation
 import Cocoa
+import ReactiveCocoa
+import enum Result.NoError
 
 class ContactTile : NSView {
     let contact: Contact;
     let size: CGSize;
+
+    private let _showLabelSignal = ManagedSignal<Bool>();
+    private var _showLabel: Bool = false;
+    var showLabelSignal: Signal<Bool, NoError> { get { return self._showLabelSignal.signal; } };
+    var showLabel: Bool {
+        get { return self._showLabel; }
+        set {
+            self._showLabelSignal.observer.sendNext(newValue);
+            self._showLabel = newValue;
+        }
+    };
 
     let avatarLayer: CAAvatarLayer
     let outlineLayer: CAShapeLayer
@@ -72,15 +85,30 @@ class ContactTile : NSView {
         self.textLayer.frame = textBounds;
         self.textLayer.contentsScale = NSScreen.mainScreen()!.backingScaleFactor;
         self.textLayer.string = text;
+        self.textLayer.opacity = 0.0;
 
         // set up textbox.
         let textboxRadius = CGFloat(3);
         let textboxPath = NSBezierPath(roundedRect: textBounds.insetBy(dx: -6, dy: -2), xRadius: textboxRadius, yRadius: textboxRadius);
         self.textboxLayer.path = textboxPath.CGPath;
         self.textboxLayer.fillColor = NSColor.blackColor().colorWithAlphaComponent(0.2).CGColor;
+        self.textboxLayer.opacity = 0.0;
     }
 
     private func prepare() {
+        // adjust label opacity based on whether we're being asked to show them
+        self.showLabelSignal.observeNext { show in
+            dispatch_async(dispatch_get_main_queue(), {
+                if show {
+                    self.textLayer.opacity = 1.0;
+                    self.textboxLayer.opacity = 1.0;
+                } else {
+                    self.textLayer.opacity = 0.0;
+                    self.textboxLayer.opacity = 0.0;
+                }
+            });
+        }
+
         // adjust avatar opacity based on composite presence
         self.contact.online.combineLatestWith(self.contact.presence).observeNext { (online, presence) in
             dispatch_async(dispatch_get_main_queue(), {

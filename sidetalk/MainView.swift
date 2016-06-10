@@ -46,6 +46,10 @@ class MainView: NSView {
             .combineWithDefault(GlobalInteraction.sharedInstance.activated, defaultValue: false) // ((Order, Order), Bool)
             .observeNext { orders, activated in self.layout(orders, activated) }
 
+        // if we are active, show all contact labels.
+        tiles.combineLatestWith(GlobalInteraction.sharedInstance.activated)
+            .observeNext { (tiles, activated) in tiles.forEach { tile in tile.showLabel = activated; } };
+
         // if we are active, claim window focus. vice versa.
         GlobalInteraction.sharedInstance.activated.observeNext { activated in
             if activated { NSApplication.sharedApplication().activateIgnoringOtherApps(true); }
