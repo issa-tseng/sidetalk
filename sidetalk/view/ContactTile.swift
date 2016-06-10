@@ -94,7 +94,7 @@ class ContactTile : NSView {
         let textboxRadius = CGFloat(3);
         let textboxPath = NSBezierPath(roundedRect: textBounds.insetBy(dx: -6, dy: -2), xRadius: textboxRadius, yRadius: textboxRadius);
         self.textboxLayer.path = textboxPath.CGPath;
-        self.textboxLayer.fillColor = NSColor.blackColor().colorWithAlphaComponent(0.2).CGColor;
+        self.textboxLayer.fillColor = NSColor.blackColor().colorWithAlphaComponent(0.5).CGColor;
         self.textboxLayer.opacity = 0.0;
     }
 
