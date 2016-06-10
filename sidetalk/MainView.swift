@@ -3,6 +3,11 @@ import Foundation
 import Cocoa
 import ReactiveCocoa
 
+struct LayoutState {
+    let order: [ Contact : Int ];
+    let activated: Bool;
+}
+
 // TODO: split into V/VM?
 class MainView: NSView {
     internal let connection: Connection;
@@ -41,10 +46,11 @@ class MainView: NSView {
         });
 
         // relayout as required.
-        sort.combinePrevious([:]) // (Order, Order)
-            .combineLatestWith(tiles).map { orders, _ in orders } // (Order, Order)
-            .combineWithDefault(GlobalInteraction.sharedInstance.activated, defaultValue: false) // ((Order, Order), Bool)
-            .observeNext { orders, activated in self.layout(orders, activated) }
+        sort.combineLatestWith(tiles).map { order, _ in order } // (Order)
+            .combineWithDefault(GlobalInteraction.sharedInstance.activated, defaultValue: false) // (Order, Bool)
+            .map({ order, activated in LayoutState(order: order, activated: activated); })
+            .combinePrevious(LayoutState(order: [:], activated: false))
+            .observeNext { last, this in self.layout(last, this) }
 
         // if we are active, show all contact labels.
         tiles.combineLatestWith(GlobalInteraction.sharedInstance.activated)
@@ -67,22 +73,22 @@ class MainView: NSView {
         return newTile;
     }
 
-    private func layout(orders: (Dictionary<Contact, Int>, Dictionary<Contact, Int>), _ activated: Bool) {
+    private func layout(lastState: LayoutState, _ thisState: LayoutState) {
         NSLog("relayout");
         dispatch_async(dispatch_get_main_queue(), {
             for tile in self._contactTiles.all() {
                 let anim = CABasicAnimation.init(keyPath: "position");
                 var to: NSPoint; // TODO: mutable. gross.
 
-                let last = orders.0[tile.contact];
-                let this = orders.1[tile.contact];
+                let last = lastState.order[tile.contact];
+                let this = thisState.order[tile.contact];
 
                 // make sure we're offscreen if we're not to be shown
                 if last == nil && this == nil { tile.layer!.position = NSPoint(x: 0, y: -900); }
 
                 if this != nil {
                     // we are animating to a real position
-                    let x = self.frame.width - self.tileSize.width + (activated ? -(self.tilePadding) : (self.tileSize.height * 0.55));
+                    let x = self.frame.width - self.tileSize.width + (thisState.activated ? -(self.tilePadding) : (self.tileSize.height * 0.55));
                     let y = self.frame.height - self.listPadding - ((self.tileSize.height + self.tilePadding) * CGFloat((this!) + 1));
 
                     if last != nil {
@@ -99,7 +105,7 @@ class MainView: NSView {
 
                 anim.toValue = NSValue.init(point: to);
                 // TODO: different durations depending on _type of change_ rather than state?
-                anim.duration = NSTimeInterval((activated ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
+                anim.duration = NSTimeInterval((thisState.activated ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
                 tile.layer!.removeAnimationForKey("contacttile-layout");
                 tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
                 tile.layer!.position = to;
