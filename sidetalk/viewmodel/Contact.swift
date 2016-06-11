@@ -85,8 +85,7 @@ class Contact: Hashable {
                     vcardTemp.activate(self.stream);
                     vcardAvatar.activate(self.stream);
 
-                    let delegate = AvatarDelegate(withResult: { image in observer.sendNext(image); });
-                    vcardAvatar.addDelegate(delegate, delegateQueue: backgroundThread)
+                    vcardAvatar.addDelegate(AvatarDelegate(withResult: { image in observer.sendNext(image); }), delegateQueue: backgroundThread);
                     vcardTemp.fetchvCardTempForJID(self.inner.jid(), ignoreStorage: true);
                 } else {
                     observer.sendNext(NSImage.init(data: photoData));

@@ -40,7 +40,11 @@ class ContactTile : NSView {
 
         // actually init.
         super.init(frame: frame);
+    }
+
+    override func viewWillMoveToSuperview(newSuperview: NSView?) {
         self.wantsLayer = true;
+        super.viewWillMoveToSuperview(newSuperview);
 
         // now draw everything, and add the layers.
         dispatch_async(dispatch_get_main_queue(), {
@@ -119,7 +123,7 @@ class ContactTile : NSView {
                     if presence == nil {
                         self.avatarLayer.opacity = 0.9;
                     } else {
-                        self.avatarLayer.opacity = 0.5;
+                        self.avatarLayer.opacity = 0.4;
                     }
                 } else {
                     self.avatarLayer.opacity = 0.1;

@@ -5,6 +5,7 @@ import ReactiveCocoa
 
 struct LayoutState {
     let order: [ Contact : Int ];
+    let myTile: ContactTile?;
     let activated: Bool;
 }
 
@@ -33,7 +34,7 @@ class MainView: NSView {
         });
 
         // calculate the correct sort of all contacts.
-        let sort = self.connection.contacts.map({ contacts -> Dictionary<Contact, Int> in
+        let sort = self.connection.contacts.map({ contacts -> [ Contact : Int ] in
             let availableContacts = contacts.filter({ contact in contact.onlineOnce && contact.presenceOnce == nil });
             let awayContacts = contacts.filter { contact in contact.onlineOnce && contact.presenceOnce != nil };
 
@@ -45,11 +46,28 @@ class MainView: NSView {
             return result;
         });
 
+        // also grab our own info.
+        let myContact = self.connection.myself
+            .filter({ user in user != nil })
+            .map({ user in Contact(xmppUser: user!, xmppStream: self.connection.stream); });
+        let myContactTile = myContact.map { contact in self.drawOne(contact) };
+
+        // clean up old tiles.
+        myContactTile
+            .map({ tile in tile as ContactTile? }) // TODO: is there a cleaner way to do this?
+            .combinePrevious(nil)
+            .observeNext { last, _ in
+                if last != nil {
+                    dispatch_async(dispatch_get_main_queue(), { last!.removeFromSuperview(); } );
+                }
+            }
+
         // relayout as required.
         sort.combineLatestWith(tiles).map { order, _ in order } // (Order)
-            .combineWithDefault(GlobalInteraction.sharedInstance.activated, defaultValue: false) // (Order, Bool)
-            .map({ order, activated in LayoutState(order: order, activated: activated); })
-            .combinePrevious(LayoutState(order: [:], activated: false))
+            .combineLatestWith(myContactTile) // (Order, ContactTile?)
+            .combineWithDefault(GlobalInteraction.sharedInstance.activated, defaultValue: false) // ((Order, ContactTile?), Bool)
+            .map({ orderTile, activated in LayoutState(order: orderTile.0, myTile: orderTile.1, activated: activated); })
+            .combinePrevious(LayoutState(order: [:], myTile: nil, activated: false))
             .observeNext { last, this in self.layout(last, this) }
 
         // if we are active, show all contact labels.
@@ -76,6 +94,36 @@ class MainView: NSView {
     private func layout(lastState: LayoutState, _ thisState: LayoutState) {
         NSLog("relayout");
         dispatch_async(dispatch_get_main_queue(), {
+            // deal with self
+            if thisState.myTile != nil {
+                if (lastState.myTile == nil) || (lastState.activated != thisState.activated) {
+                    let tile = thisState.myTile!;
+                    let anim = CABasicAnimation.init(keyPath: "position");
+
+                    let y = self.frame.height - self.listPadding * 1.5;
+                    let off = NSPoint(x: self.frame.width - self.tileSize.width + (self.tileSize.height * 0.55), y: y);
+                    let on =  NSPoint(x: self.frame.width - self.tileSize.width - self.tilePadding, y: y);
+
+                    if (thisState.activated) {
+                        anim.fromValue = NSValue.init(point: off);
+                        anim.toValue = NSValue.init(point: on);
+                    } else {
+                        anim.fromValue = NSValue.init(point: on);
+                        anim.toValue = NSValue.init(point: off);
+                    }
+
+                    if (lastState.myTile == nil) {
+                        anim.fromValue = NSValue.init(point: NSPoint(x: self.frame.width, y: y));
+                    }
+
+                    anim.duration = thisState.activated ? 0.03 : 0.4;
+                    tile.layer!.removeAnimationForKey("contacttile-layout");
+                    tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
+                    tile.layer!.position = thisState.activated ? on : off;
+                }
+            }
+
+            // deal with actual contacts
             for tile in self._contactTiles.all() {
                 let anim = CABasicAnimation.init(keyPath: "position");
                 var to: NSPoint; // TODO: mutable. gross.
@@ -89,7 +137,7 @@ class MainView: NSView {
                 if this != nil {
                     // we are animating to a real position
                     let x = self.frame.width - self.tileSize.width + (thisState.activated ? -(self.tilePadding) : (self.tileSize.height * 0.55));
-                    let y = self.frame.height - self.listPadding - ((self.tileSize.height + self.tilePadding) * CGFloat((this!) + 1));
+                    let y = self.frame.height - (self.listPadding * 2) - ((self.tileSize.height + self.tilePadding) * CGFloat((this!) + 1));
 
                     if last != nil {
                         anim.fromValue = NSValue.init(point: tile.layer!.position);
@@ -104,8 +152,7 @@ class MainView: NSView {
                 }
 
                 anim.toValue = NSValue.init(point: to);
-                // TODO: different durations depending on _type of change_ rather than state?
-                anim.duration = NSTimeInterval((thisState.activated ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
+                anim.duration = NSTimeInterval((!lastState.activated && thisState.activated ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
                 tile.layer!.removeAnimationForKey("contacttile-layout");
                 tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
                 tile.layer!.position = to;

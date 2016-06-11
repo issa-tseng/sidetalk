@@ -96,6 +96,10 @@ class Connection {
     var authenticated: Signal<Bool, NoError> { get { return self._streamDelegateProxy.authenticatedSignal; } };
     var users: Signal<[XMPPUser], NoError> { get { return self._rosterDelegateProxy.usersSignal.throttle(NSTimeInterval(0.15), onScheduler: QueueScheduler.mainQueueScheduler); } };
 
+    // own user
+    private var _myselfSignal = ManagedSignal<XMPPUser?>();
+    var myself: Signal<XMPPUser?, NoError> { get { return self._myselfSignal.signal; } };
+
     // managed contacts (impl in prepare())
     private var _contactsCache = QuickCache<XMPPJID, Contact>();
     private var _contactsSignal: Signal<[Contact], NoError>?;
@@ -111,10 +115,11 @@ class Connection {
             }
         }
 
-        // if we are authenticated, send initial status (TODO: actually have status)
+        // if we are authenticated, send initial status and set some stuff up
         self.authenticated.observeNext { authenticated in
             if authenticated == true {
                 self.stream.sendElement(XMPPPresence(name: "presence")); // TODO: this init is silly. this is just the NSXML init.
+                self._myselfSignal.observer.sendNext(XMPPUserMemoryStorageObject.init(JID: self.stream.myJID));
             }
         }
 
