@@ -2,6 +2,7 @@
 import Foundation
 import Cocoa
 import ReactiveCocoa
+import FuzzySearch
 
 struct LayoutState {
     let order: [ Contact : Int ];
@@ -43,17 +44,32 @@ class MainView: NSView {
         });
 
         // calculate the correct sort of all contacts.
-        let sort = self.connection.contacts.map({ contacts -> [ Contact : Int ] in
-            let availableContacts = contacts.filter({ contact in contact.onlineOnce && contact.presenceOnce == nil });
-            let awayContacts = contacts.filter { contact in contact.onlineOnce && contact.presenceOnce != nil };
+        let sort = self.connection.contacts
+            .combineWithDefault(self._statusTile.searchText, defaultValue: "")
+            .map({ contacts, search -> [ Contact : Int ] in
+                let availableContacts = contacts.filter({ contact in contact.onlineOnce && contact.presenceOnce == nil });
+                let awayContacts = contacts.filter { contact in contact.onlineOnce && contact.presenceOnce != nil };
 
-            let sorted = availableContacts + awayContacts;
-            var result = Dictionary<Contact, Int>();
-            for (idx, contact) in sorted.enumerate() {
-                result[contact] = idx;
-            }
-            return result;
-        });
+                var sorted: [Contact]; // HACK: mutable. gross.
+
+                if search == "" {
+                    sorted = availableContacts + awayContacts;
+                } else {
+                    let offlineContacts = contacts.filter { contact in !contact.onlineOnce };
+                    let scores = (availableContacts + awayContacts + offlineContacts).map { contact in
+                        (contact, FuzzySearch.score(originalString: contact.displayName, stringToMatch: search, fuzziness: 0.5));
+                    };
+
+                    let maxScore = scores.map({ (_, score) in score }).maxElement();
+                    sorted = scores.filter({ (_, score) in score > maxScore! - 0.2 }).map({ (contact, _) in contact });
+                }
+
+                var result = Dictionary<Contact, Int>();
+                for (idx, contact) in sorted.enumerate() {
+                    result[contact] = idx;
+                }
+                return result;
+            });
 
         // relayout as required.
         sort.combineLatestWith(tiles).map { order, _ in order } // (Order)

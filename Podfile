@@ -8,4 +8,5 @@ target 'sidetalk' do
   pod 'SSKeychain', '~>1.4.0'
   pod 'ReactiveCocoa', '~>4.1.0'
   pod 'MASShortcut', '~>2.3'
+  pod 'FuzzySearch', :git => 'https://github.com/rahulnadella/FuzzySearch'
 end
