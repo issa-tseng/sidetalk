@@ -64,7 +64,8 @@ class MainView: NSView {
 
         // if we are active, show all contact labels.
         tiles.combineLatestWith(GlobalInteraction.sharedInstance.activated)
-            .observeNext { (tiles, activated) in tiles.forEach { tile in tile.showLabel = activated; } };
+            .combineLatestWith(sort).map{ ($0.0, $0.1, $1) } // ghetto flatten
+            .observeNext { (tiles, activated, sort) in tiles.forEach { tile in tile.showLabel = activated && sort[tile.contact] != nil; } };
 
         // if we are active, claim window focus. vice versa.
         GlobalInteraction.sharedInstance.activated.observeNext { activated in
@@ -111,31 +112,36 @@ class MainView: NSView {
             // deal with actual contacts
             for tile in self._contactTiles.all() {
                 let anim = CABasicAnimation.init(keyPath: "position");
-                var to: NSPoint; // TODO: mutable. gross.
 
                 let last = lastState.order[tile.contact];
                 let this = thisState.order[tile.contact];
 
                 // make sure we're offscreen if we're not to be shown
-                if last == nil && this == nil { tile.layer!.position = NSPoint(x: 0, y: -900); }
-
-                if this != nil {
-                    // we are animating to a real position
-                    let x = self.frame.width - self.tileSize.width + (thisState.activated ? -(self.tilePadding) : (self.tileSize.height * 0.55));
-                    let y = self.frame.height - self.allPadding - self.listPadding - ((self.tileSize.height + self.tilePadding) * CGFloat((this!) + 1));
-
-                    if last != nil {
-                        anim.fromValue = NSValue.init(point: tile.layer!.position);
-                    } else {
-                        anim.fromValue = NSValue.init(point: NSPoint(x: x + self.tileSize.height, y: y));
-                    }
-                    to = NSPoint(x: x, y: y);
-                } else {
-                    // we are animating offscreen
-                    anim.fromValue = NSValue.init(point: tile.layer!.position);
-                    to = NSPoint(x: tile.layer!.position.x + self.tileSize.height, y: tile.layer!.position.y);
+                if last == nil && this == nil {
+                    tile.layer!.position = NSPoint(x: 0, y: -900);
+                    continue;
                 }
 
+                // calculate positions. TODO: mutable. gross.
+                var from: NSPoint;
+                var to: NSPoint;
+
+                let xOn = self.frame.width - self.tileSize.width - self.tilePadding;
+                let xHalf = self.frame.width - self.tileSize.width + (self.tileSize.height * 0.55);
+                let xOff = self.frame.width - self.tileSize.width + self.tileSize.height;
+
+                let yLast = self.frame.height - self.allPadding - self.listPadding - ((self.tileSize.height + self.tilePadding) * CGFloat((last ?? 0) + 1));
+                let yThis = self.frame.height - self.allPadding - self.listPadding - ((self.tileSize.height + self.tilePadding) * CGFloat((this ?? 0) + 1));
+
+                if last == nil { from = NSPoint(x: xOff, y: yThis); }
+                else if lastState.activated { from = NSPoint(x: xOn, y: yLast); }
+                else { from = NSPoint(x: xHalf, y: yLast); }
+
+                if this == nil { to = NSPoint(x: xOff, y: yLast); }
+                else if thisState.activated { to = NSPoint(x: xOn, y: yThis); }
+                else { to = NSPoint(x: xHalf, y: yThis); }
+
+                anim.fromValue = NSValue.init(point: from);
                 anim.toValue = NSValue.init(point: to);
                 anim.duration = NSTimeInterval((!lastState.activated && thisState.activated ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
                 tile.layer!.removeAnimationForKey("contacttile-layout");
