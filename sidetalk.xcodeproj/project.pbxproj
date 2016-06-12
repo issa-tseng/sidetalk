@@ -15,6 +15,7 @@
 		451282661CFA6F100088DEDE /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451282651CFA6F100088DEDE /* MainView.swift */; };
 		454DBB981D08E4C30065DA1B /* QuickCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 454DBB971D08E4C30065DA1B /* QuickCache.swift */; };
 		454DBB9A1D0935190065DA1B /* ManagedSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 454DBB991D0935190065DA1B /* ManagedSignal.swift */; };
+		457DF9801D0CB0C4008BE043 /* StatusTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457DF97F1D0CB0C4008BE043 /* StatusTile.swift */; };
 		458A73401D0A423C0061FAFD /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458A733E1D0A423C0061FAFD /* Connection.swift */; };
 		458A73411D0A423C0061FAFD /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458A733F1D0A423C0061FAFD /* Contact.swift */; };
 		458A73431D0A43FB0061FAFD /* GlobalInteraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458A73421D0A43FB0061FAFD /* GlobalInteraction.swift */; };
@@ -68,6 +69,7 @@
 		451282651CFA6F100088DEDE /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		454DBB971D08E4C30065DA1B /* QuickCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QuickCache.swift; path = util/QuickCache.swift; sourceTree = "<group>"; };
 		454DBB991D0935190065DA1B /* ManagedSignal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ManagedSignal.swift; path = util/ManagedSignal.swift; sourceTree = "<group>"; };
+		457DF97F1D0CB0C4008BE043 /* StatusTile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = StatusTile.swift; path = view/StatusTile.swift; sourceTree = "<group>"; };
 		458A733E1D0A423C0061FAFD /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Connection.swift; path = viewmodel/Connection.swift; sourceTree = "<group>"; };
 		458A733F1D0A423C0061FAFD /* Contact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Contact.swift; path = viewmodel/Contact.swift; sourceTree = "<group>"; };
 		458A73421D0A43FB0061FAFD /* GlobalInteraction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = GlobalInteraction.swift; path = viewmodel/GlobalInteraction.swift; sourceTree = "<group>"; };
@@ -256,6 +258,7 @@
 				45AEC0191CFD59CF00203967 /* AvatarLayer.swift */,
 				45AEC0151CFD58AA00203967 /* ContactTile.swift */,
 				45AEC0171CFD592600203967 /* Common.swift */,
+				457DF97F1D0CB0C4008BE043 /* StatusTile.swift */,
 			);
 			name = view;
 			sourceTree = "<group>";
@@ -464,6 +467,7 @@
 				458A73401D0A423C0061FAFD /* Connection.swift in Sources */,
 				458A73411D0A423C0061FAFD /* Contact.swift in Sources */,
 				45AEC0061CFD1F6700203967 /* XUIBezierPathAdditions.m in Sources */,
+				457DF9801D0CB0C4008BE043 /* StatusTile.swift in Sources */,
 				45AEC0081CFD1F6700203967 /* XUIFontAdditions.m in Sources */,
 				458A73431D0A43FB0061FAFD /* GlobalInteraction.swift in Sources */,
 				45AEC00C1CFD1F6700203967 /* XUIIndexPathAdditions.m in Sources */,

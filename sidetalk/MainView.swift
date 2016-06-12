@@ -5,25 +5,34 @@ import ReactiveCocoa
 
 struct LayoutState {
     let order: [ Contact : Int ];
-    let myTile: ContactTile?;
     let activated: Bool;
 }
 
 // TODO: split into V/VM?
 class MainView: NSView {
     internal let connection: Connection;
+
+    private let _statusTile: StatusTile;
     private var _contactTiles = QuickCache<Contact, ContactTile>();
 
     // drawing ks. should these go elsewhere?
-    let listPadding = CGFloat(50);
-    let tileSize = NSSize(width: 200, height: 50);
+    let allPadding = CGFloat(150);
+    let listPadding = CGFloat(35);
+    let tileSize = NSSize(width: 300, height: 50);
     let tilePadding = CGFloat(4);
 
     init(frame: CGRect, connection: Connection) {
         self.connection = connection;
+        self._statusTile = StatusTile(connection: connection, frame: NSRect(origin: NSPoint.zero, size: frame.size));
+
         super.init(frame: frame);
 
-        // render stuff (TODO: should this be called in eg viewDidLoad?)
+        self.addSubview(self._statusTile);
+        self._statusTile.frame.origin = NSPoint(
+            x: frame.width - self.tileSize.width - self.tilePadding + (self.tileSize.height * 0.55),
+            y: frame.height - self.allPadding
+        );
+
         self.prepare();
     }
 
@@ -46,28 +55,11 @@ class MainView: NSView {
             return result;
         });
 
-        // also grab our own info.
-        let myContact = self.connection.myself
-            .filter({ user in user != nil })
-            .map({ user in Contact(xmppUser: user!, xmppStream: self.connection.stream); });
-        let myContactTile = myContact.map { contact in self.drawOne(contact) };
-
-        // clean up old tiles.
-        myContactTile
-            .map({ tile in tile as ContactTile? }) // TODO: is there a cleaner way to do this?
-            .combinePrevious(nil)
-            .observeNext { last, _ in
-                if last != nil {
-                    dispatch_async(dispatch_get_main_queue(), { last!.removeFromSuperview(); } );
-                }
-            }
-
         // relayout as required.
         sort.combineLatestWith(tiles).map { order, _ in order } // (Order)
-            .combineLatestWith(myContactTile) // (Order, ContactTile?)
             .combineWithDefault(GlobalInteraction.sharedInstance.activated, defaultValue: false) // ((Order, ContactTile?), Bool)
-            .map({ orderTile, activated in LayoutState(order: orderTile.0, myTile: orderTile.1, activated: activated); })
-            .combinePrevious(LayoutState(order: [:], myTile: nil, activated: false))
+            .map({ order, activated in LayoutState(order: order, activated: activated); })
+            .combinePrevious(LayoutState(order: [:], activated: false))
             .observeNext { last, this in self.layout(last, this) }
 
         // if we are active, show all contact labels.
@@ -95,32 +87,25 @@ class MainView: NSView {
         NSLog("relayout");
         dispatch_async(dispatch_get_main_queue(), {
             // deal with self
-            if thisState.myTile != nil {
-                if (lastState.myTile == nil) || (lastState.activated != thisState.activated) {
-                    let tile = thisState.myTile!;
-                    let anim = CABasicAnimation.init(keyPath: "position");
+            if lastState.activated != thisState.activated {
+                let tile = self._statusTile;
+                let anim = CABasicAnimation.init(keyPath: "position");
 
-                    let y = self.frame.height - self.listPadding * 1.5;
-                    let off = NSPoint(x: self.frame.width - self.tileSize.width + (self.tileSize.height * 0.55), y: y);
-                    let on =  NSPoint(x: self.frame.width - self.tileSize.width - self.tilePadding, y: y);
+                let off = NSPoint.zero;
+                let on =  NSPoint(x: self.tileSize.height * -0.55, y: 0);
 
-                    if (thisState.activated) {
-                        anim.fromValue = NSValue.init(point: off);
-                        anim.toValue = NSValue.init(point: on);
-                    } else {
-                        anim.fromValue = NSValue.init(point: on);
-                        anim.toValue = NSValue.init(point: off);
-                    }
-
-                    if (lastState.myTile == nil) {
-                        anim.fromValue = NSValue.init(point: NSPoint(x: self.frame.width, y: y));
-                    }
-
-                    anim.duration = thisState.activated ? 0.03 : 0.4;
-                    tile.layer!.removeAnimationForKey("contacttile-layout");
-                    tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
-                    tile.layer!.position = thisState.activated ? on : off;
+                if (thisState.activated) {
+                    anim.fromValue = NSValue.init(point: off);
+                    anim.toValue = NSValue.init(point: on);
+                } else {
+                    anim.fromValue = NSValue.init(point: on);
+                    anim.toValue = NSValue.init(point: off);
                 }
+
+                anim.duration = thisState.activated ? 0.03 : 0.15;
+                tile.layer!.removeAnimationForKey("contacttile-layout");
+                tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
+                tile.layer!.position = thisState.activated ? on : off;
             }
 
             // deal with actual contacts
@@ -137,7 +122,7 @@ class MainView: NSView {
                 if this != nil {
                     // we are animating to a real position
                     let x = self.frame.width - self.tileSize.width + (thisState.activated ? -(self.tilePadding) : (self.tileSize.height * 0.55));
-                    let y = self.frame.height - (self.listPadding * 2) - ((self.tileSize.height + self.tilePadding) * CGFloat((this!) + 1));
+                    let y = self.frame.height - self.allPadding - self.listPadding - ((self.tileSize.height + self.tilePadding) * CGFloat((this!) + 1));
 
                     if last != nil {
                         anim.fromValue = NSValue.init(point: tile.layer!.position);
