@@ -3,12 +3,37 @@ import Foundation
 import ReactiveCocoa
 import enum Result.NoError
 
-class NSTextFieldDelegateProxy: NSObject, NSTextFieldDelegate {
+private var _stringValueContext = 0;
+class StringValueLeecher: NSObject, NSTextFieldDelegate {
+    private let _field: NSTextField;
+
+    init(field: NSTextField) {
+        self._field = field;
+        super.init();
+
+        field.addObserver(self, forKeyPath: "stringValue", options: NSKeyValueObservingOptions(), context: &_stringValueContext);
+        field.delegate = self;
+    }
+    deinit {
+        self._field.removeObserver(self, forKeyPath: "stringValue", context: &_stringValueContext);
+    }
+
     private let _searchContents = ManagedSignal<String>();
     var searchContentsSignal: Signal<String, NoError> { get { return self._searchContents.signal; } }
+    @objc override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+        if context != &_stringValueContext {
+            super.observeValueForKeyPath(keyPath, ofObject: object, change: change, context: context);
+            return;
+        }
+
+        if ((object as? NSTextField) == self._field) && (keyPath ?? "") == "stringValue" {
+            self._searchContents.observer.sendNext(self._field.stringValue);
+        }
+    }
     @objc override func controlTextDidChange(obj: NSNotification) {
-        let field = obj.userInfo!["NSFieldEditor"] as! NSTextView;
-        self._searchContents.observer.sendNext(field.string ?? "");
+        if let field = obj.object as? NSTextField {
+            self._searchContents.observer.sendNext(field.stringValue ?? "");
+        }
     }
 }
 
@@ -55,7 +80,6 @@ class SearchIconLayer: CALayer {
             fromRect: CGRect.init(origin: CGPoint.zero, size: image.size),
             operation: .CompositeSourceOver,
             fraction: 0.98);
-        NSLog("actually drawing");
 
         XUIGraphicsPopContext();
     }
@@ -67,8 +91,8 @@ class StatusTile: NSView {
     private let _searchField: NSTextField;
     private let _searchIcon: SearchIconView;
 
-    private let _searchDelegateProxy = NSTextFieldDelegateProxy();
-    var searchText: Signal<String, NoError> { get { return self._searchDelegateProxy.searchContentsSignal; } };
+    private let _searchLeecher: StringValueLeecher;
+    var searchText: Signal<String, NoError> { get { return self._searchLeecher.searchContentsSignal; } };
 
     let tileSize = NSSize(width: 300, height: 50);
     let searchFrame = NSRect(origin: NSPoint(x: 30, y: 8), size: NSSize(width: 212, height: 30));
@@ -80,11 +104,12 @@ class StatusTile: NSView {
         self._searchField.backgroundColor = NSColor.clearColor();
         self._searchField.bezeled = false;
         self._searchField.focusRingType = NSFocusRingType.None;
-        self._searchField.alignment = NSTextAlignment.Right;
-        self._searchField.font = NSFont.systemFontOfSize(20);
         self._searchField.textColor = NSColor.whiteColor();
+        self._searchField.font = NSFont.systemFontOfSize(20);
+        self._searchField.alignment = NSTextAlignment.Right;
+        self._searchField.lineBreakMode = .ByClipping;
         self._searchField.alphaValue = 0.0;
-        self._searchField.delegate = self._searchDelegateProxy;
+        self._searchLeecher = StringValueLeecher(field: self._searchField);
 
         self._searchIcon = SearchIconView();
         self._searchIcon.frame = NSRect(origin: NSPoint(x: tileSize.width - tileSize.height, y: 0), size: NSSize(width: tileSize.height, height: tileSize.height));
@@ -131,7 +156,6 @@ class StatusTile: NSView {
                 self._searchField.becomeFirstResponder();
             } else {
                 self._searchField.stringValue = "";
-                self._searchField.alphaValue = 0.0; // TODO/HACK: i don't like that setting stringValue doesn't fire the delegate.
             }
         }
 
