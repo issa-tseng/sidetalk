@@ -102,6 +102,7 @@ class MainView: NSView {
 
     private func layout(lastState: LayoutState, _ thisState: LayoutState) {
         NSLog("relayout");
+        // TODO: figure out the two hacks below ( http://stackoverflow.com/questions/37780431/cocoa-core-animation-everything-jumps-around-upon-becomefirstresponder )
         dispatch_async(dispatch_get_main_queue(), {
             // deal with self
             if lastState.activated != thisState.activated {
@@ -120,6 +121,8 @@ class MainView: NSView {
                 }
 
                 anim.duration = thisState.activated ? 0.03 : 0.15;
+                anim.fillMode = kCAFillModeForwards; // HACK: i don't like this or the next line.
+                anim.removedOnCompletion = false;
                 tile.layer!.removeAnimationForKey("contacttile-layout");
                 tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
                 tile.layer!.position = thisState.activated ? on : off;
@@ -160,6 +163,8 @@ class MainView: NSView {
                 anim.fromValue = NSValue.init(point: from);
                 anim.toValue = NSValue.init(point: to);
                 anim.duration = NSTimeInterval((!lastState.activated && thisState.activated ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
+                anim.fillMode = kCAFillModeForwards; // HACK: i don't like this or the next line.
+                anim.removedOnCompletion = false;
                 tile.layer!.removeAnimationForKey("contacttile-layout");
                 tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
                 tile.layer!.position = to;
