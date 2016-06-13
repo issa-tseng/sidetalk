@@ -57,11 +57,11 @@ class MainView: NSView {
                 } else {
                     let offlineContacts = contacts.filter { contact in !contact.onlineOnce };
                     let scores = (availableContacts + awayContacts + offlineContacts).map { contact in
-                        (contact, FuzzySearch.score(originalString: contact.displayName, stringToMatch: search, fuzziness: 0.5));
+                        (contact, FuzzySearch.score(originalString: contact.displayName, stringToMatch: search, fuzziness: 0.75));
                     };
 
                     let maxScore = scores.map({ (_, score) in score }).maxElement();
-                    sorted = scores.filter({ (_, score) in score > maxScore! - 0.2 }).map({ (contact, _) in contact });
+                    sorted = scores.filter({ (_, score) in score > maxScore! - 0.2 && score > 0.1 }).map({ (contact, _) in contact });
                 }
 
                 var result = Dictionary<Contact, Int>();
