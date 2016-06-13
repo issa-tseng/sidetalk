@@ -153,7 +153,7 @@ class StatusTile: NSView {
         // focus textfield if activated. clear it if deactivated.
         GlobalInteraction.sharedInstance.activated.observeNext { activated in
             if activated {
-                self._searchField.becomeFirstResponder();
+                dispatch_async(dispatch_get_main_queue(), { self.window!.makeFirstResponder(self._searchField); });
             } else {
                 self._searchField.stringValue = "";
             }
