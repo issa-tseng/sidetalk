@@ -35,6 +35,13 @@ class StringValueLeecher: NSObject, NSTextFieldDelegate {
             self._searchContents.observer.sendNext(field.stringValue ?? "");
         }
     }
+
+    // HACK: ugh, this is a different set of functionality than leeching, but we already
+    // have our one delegate for the text field.
+    @objc func control(control: NSControl, textView: NSTextView, completions words: [String], forPartialWordRange charRange: NSRange, indexOfSelectedItem index: UnsafeMutablePointer<Int>) -> [String] {
+        // suppress completion-upon-esc.
+        return [];
+    }
 }
 
 class SearchIconView: NSView {
@@ -116,6 +123,17 @@ class StatusTile: NSView {
         self._searchIcon.iconLayer.opacity = 0.0;
 
         super.init(frame: frame);
+
+        // listen to all key events.
+        NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDownMask, handler: { event in
+            NSLog("%d", event.keyCode);
+            if event.keyCode == 53 && self._searchField.stringValue.characters.count > 0 {
+                self._searchField.stringValue = "";
+                return nil;
+            } else {
+                return event;
+            }
+        })
     }
 
     required init(coder: NSCoder) {
