@@ -39,6 +39,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.collectionBehavior = NSWindowCollectionBehavior.init(rawValue:
             window.collectionBehavior.rawValue | NSWindowCollectionBehavior.CanJoinAllSpaces.rawValue);
 
+        // always on top.
+        window.level = Int(CGWindowLevelForKey(.FloatingWindowLevelKey));
+
         // set our primary view
         self.mainView = MainView(frame: frame, connection: self.connection);
         self.mainView!.frame = window.contentView!.bounds;

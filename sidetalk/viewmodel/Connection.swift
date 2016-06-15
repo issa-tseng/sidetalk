@@ -152,7 +152,7 @@ class Connection {
             } else {
                 let with = self._contactsCache.get(rawMessage.from(), orElse: { Contact(xmppUser: rawWith, xmppStream: self.stream); });
                 let conversation = self._conversationsCache.get(with, orElse: { Conversation(with); });
-                conversation.addMessage(Message(from: with, body: rawMessage.body()));
+                conversation.addMessage(Message(from: with, body: rawMessage.body(), at: NSDate()));
             }
 
             // TODO: don't resignal here if no new conversations created.

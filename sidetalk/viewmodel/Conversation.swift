@@ -7,6 +7,7 @@ import enum Result.NoError
 struct Message {
     let from: Contact;
     let body: String;
+    let at: NSDate;
 }
 
 class Conversation: Hashable {
