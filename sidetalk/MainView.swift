@@ -15,12 +15,15 @@ class MainView: NSView {
 
     private let _statusTile: StatusTile;
     private var _contactTiles = QuickCache<Contact, ContactTile>();
+    private var _conversationViews = QuickCache<Contact, ConversationView>();
 
     // drawing ks. should these go elsewhere?
     let allPadding = CGFloat(150);
     let listPadding = CGFloat(35);
     let tileSize = NSSize(width: 300, height: 50);
     let tilePadding = CGFloat(4);
+    let conversationPadding = CGFloat(8);
+    let conversationWidth = CGFloat(300);
 
     init(frame: CGRect, connection: Connection) {
         self.connection = connection;
@@ -40,10 +43,15 @@ class MainView: NSView {
     private func prepare() {
         // draw new contacts as required.
         let tiles = self.connection.contacts.map({ (contacts) -> [ContactTile] in
-            contacts.map { contact in self._contactTiles.get(contact, orElse: { self.drawOne(contact); }); };
+            contacts.map { contact in self._contactTiles.get(contact, orElse: { self.drawContact(contact); }); };
         });
 
-        // calculate the correct sort of all contacts.
+        // draw new conversations as required.
+        let conversationViews = self.connection.conversations.map { conversations in
+            conversations.map { conversation in self._conversationViews.get(conversation.with, orElse: { self.drawConversation(conversation); }) };
+        }
+
+        // calculate the correct sort (and implicitly visibility) of all contacts.
         let sort = self.connection.contacts
             .combineWithDefault(self._statusTile.searchText, defaultValue: "")
             .map({ contacts, search -> [ Contact : Int ] in
@@ -73,10 +81,11 @@ class MainView: NSView {
 
         // relayout as required.
         sort.combineLatestWith(tiles).map { order, _ in order } // (Order)
+            .combineWithDefault(conversationViews.map({ _ in nil as AnyObject? }), defaultValue: nil).map { order, _ in order } // (Order)
             .combineWithDefault(GlobalInteraction.sharedInstance.activated, defaultValue: false) // ((Order, ContactTile?), Bool)
             .map({ order, activated in LayoutState(order: order, activated: activated); })
             .combinePrevious(LayoutState(order: [:], activated: false))
-            .observeNext { last, this in self.layout(last, this) }
+            .observeNext { last, this in self.relayout(last, this) }
 
         // if we are active, show all contact labels.
         tiles.combineLatestWith(GlobalInteraction.sharedInstance.activated)
@@ -90,7 +99,7 @@ class MainView: NSView {
         }
     }
 
-    private func drawOne(contact: Contact) -> ContactTile {
+    private func drawContact(contact: Contact) -> ContactTile {
         let newTile = ContactTile(
             frame: self.frame,
             size: tileSize,
@@ -100,7 +109,17 @@ class MainView: NSView {
         return newTile;
     }
 
-    private func layout(lastState: LayoutState, _ thisState: LayoutState) {
+    private func drawConversation(conversation: Conversation) -> ConversationView {
+        let newView = ConversationView(
+            frame: self.frame,
+            width: self.conversationWidth,
+            conversation: conversation
+        );
+        dispatch_async(dispatch_get_main_queue(), { self.addSubview(newView); });
+        return newView;
+    }
+
+    private func relayout(lastState: LayoutState, _ thisState: LayoutState) {
         NSLog("relayout");
         // TODO: figure out the two hacks below ( http://stackoverflow.com/questions/37780431/cocoa-core-animation-everything-jumps-around-upon-becomefirstresponder )
         dispatch_async(dispatch_get_main_queue(), {
@@ -137,8 +156,10 @@ class MainView: NSView {
 
                 // make sure we're offscreen if we're not to be shown
                 if last == nil && this == nil {
-                    tile.layer!.position = NSPoint(x: 0, y: -900);
+                    tile.hidden = true;
                     continue;
+                } else {
+                    tile.hidden = false;
                 }
 
                 // calculate positions. TODO: mutable. gross.
@@ -168,6 +189,24 @@ class MainView: NSView {
                 tile.layer!.removeAnimationForKey("contacttile-layout");
                 tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
                 tile.layer!.position = to;
+
+                // if we have a conversation as well, position that appropriately.
+                if let conversationView = self._conversationViews.get(tile.contact) {
+                    let convAnim = CABasicAnimation.init(keyPath: "position");
+                    let convX = self.frame.width - self.tileSize.height - self.tilePadding - self.conversationPadding - self.conversationWidth;
+                    let to = NSPoint(x: convX, y: yThis);
+
+                    convAnim.fromValue = NSValue.init(point: NSPoint(x: convX, y: yLast));
+                    convAnim.toValue = NSValue.init(point: to);
+                    convAnim.duration = anim.duration;
+                    convAnim.fillMode = kCAFillModeForwards; // HACK: i don't like this or the next line.
+                    convAnim.removedOnCompletion = false;
+                    conversationView.layer!.removeAnimationForKey("conversation-layout");
+                    conversationView.layer!.addAnimation(convAnim, forKey: "conversation-layout");
+                    conversationView.layer!.position = to;
+
+                    NSLog("placing conversation at \(to.x), \(to.y)");
+                }
             }
         });
     }

@@ -41,6 +41,14 @@ class XFStreamDelegateProxy: NSObject, XMPPStreamDelegate {
         self._connectProxy.observer.sendNext(false);
         self._authenticatedProxy.observer.sendNext(false);
     }
+
+    private let _messageProxy = ManagedSignal<XMPPMessage>();
+    var messageSignal: Signal<XMPPMessage, NoError> { get { return self._messageProxy.signal; } }
+    @objc internal func xmppStream(sender: XMPPStream!, didReceiveMessage message: XMPPMessage!) {
+        if message.isChatMessageWithBody() {
+            self._messageProxy.observer.sendNext(message);
+        }
+    }
 }
 
 class XFRosterDelegateProxy: XFDelegateModuleProxy, XMPPRosterDelegate {
@@ -105,13 +113,18 @@ class Connection {
     private var _contactsSignal: Signal<[Contact], NoError>?;
     var contacts: Signal<[Contact], NoError> { get { return self._contactsSignal!; } };
 
+    // managed conversations
+    private var _conversationsCache = QuickCache<Contact, Conversation>();
+    private var _conversationsSignal: Signal<[Conversation], NoError>?;
+    var conversations: Signal<[Conversation], NoError> { get { return self._conversationsSignal!; } };
+
     // sets up our own reactions to basic xmpp things
     private func prepare() {
         // if we are xmpp-connected, authenticate
         self.connected.observeNext { connected in
             if connected == true {
                 let creds = SSKeychain.passwordForService("Sidetalk", account: "clint@dontexplain.com");
-                try! self.stream.authenticateWithPassword(creds);
+                do { try self.stream.authenticateWithPassword(creds); } catch _ {} // we don't care if this fails; it'll retry.
             }
         }
 
@@ -128,6 +141,22 @@ class Connection {
             users.map { user in
                 self._contactsCache.get(user.jid(), update: { contact in contact.update(user); }, orElse: { Contact(xmppUser: user, xmppStream: self.stream); });
             };
+        }
+
+        // create managed conversations. add new messages to said conversations.
+        self._conversationsSignal = self._streamDelegateProxy.messageSignal.map { rawMessage in
+            // HACK: side effects in map!
+            let rawWith = self.rosterStorage.userForJID(rawMessage.from());
+            if rawWith == nil {
+                NSLog("unrecognized user \(rawMessage.from().bare())!");
+            } else {
+                let with = self._contactsCache.get(rawMessage.from(), orElse: { Contact(xmppUser: rawWith, xmppStream: self.stream); });
+                let conversation = self._conversationsCache.get(with, orElse: { Conversation(with); });
+                conversation.addMessage(Message(from: with, body: rawMessage.body()));
+            }
+
+            // TODO: don't resignal here if no new conversations created.
+            return self._conversationsCache.all();
         }
     }
 }

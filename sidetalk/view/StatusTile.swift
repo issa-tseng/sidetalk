@@ -126,7 +126,6 @@ class StatusTile: NSView {
 
         // listen to all key events.
         NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDownMask, handler: { event in
-            NSLog("%d", event.keyCode);
             if event.keyCode == 53 && self._searchField.stringValue.characters.count > 0 {
                 self._searchField.stringValue = "";
                 return nil;
