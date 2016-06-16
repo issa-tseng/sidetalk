@@ -115,6 +115,7 @@ class MainView: NSView {
             width: self.conversationWidth,
             conversation: conversation
         );
+        self._contactTiles.get(conversation.with)!.attachConversation(newView);
         dispatch_async(dispatch_get_main_queue(), { self.addSubview(newView); });
         return newView;
     }

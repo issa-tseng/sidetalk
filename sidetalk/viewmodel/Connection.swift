@@ -43,9 +43,9 @@ class XFStreamDelegateProxy: NSObject, XMPPStreamDelegate {
     }
 
     private let _messageProxy = ManagedSignal<XMPPMessage>();
-    var messageSignal: Signal<XMPPMessage, NoError> { get { return self._messageProxy.signal; } }
+    var messageSignal: Signal<XMPPMessage, NoError> { get { return self._messageProxy.signal; } };
     @objc internal func xmppStream(sender: XMPPStream!, didReceiveMessage message: XMPPMessage!) {
-        if message.isChatMessageWithBody() {
+        if message.isChatMessageWithBody() || ChatState.fromMessage(message) != nil {
             self._messageProxy.observer.sendNext(message);
         }
     }
@@ -152,7 +152,12 @@ class Connection {
             } else {
                 let with = self._contactsCache.get(rawMessage.from(), orElse: { Contact(xmppUser: rawWith, xmppStream: self.stream); });
                 let conversation = self._conversationsCache.get(with, orElse: { Conversation(with); });
-                conversation.addMessage(Message(from: with, body: rawMessage.body(), at: NSDate()));
+
+                if rawMessage.isMessageWithBody() {
+                    conversation.addMessage(Message(from: with, body: rawMessage.body(), at: NSDate()));
+                } else if let state = ChatState.fromMessage(rawMessage) {
+                    conversation.setChatState(state);
+                }
             }
 
             // TODO: don't resignal here if no new conversations created.

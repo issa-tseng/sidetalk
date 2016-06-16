@@ -10,6 +10,18 @@ struct Message {
     let at: NSDate;
 }
 
+enum ChatState {
+    case Inactive, Active, Composing, Paused;
+
+    static func fromMessage(it: XMPPMessage) -> ChatState? {
+        if it.hasInactiveChatState() { return .Inactive; }
+        if it.hasActiveChatState() { return .Active; }
+        if it.hasComposingChatState() { return .Composing; }
+        if it.hasPausedChatState() { return .Paused; }
+        return nil;
+    }
+}
+
 class Conversation: Hashable {
     let with: Contact;
 
@@ -19,6 +31,9 @@ class Conversation: Hashable {
 
     private let _latestMessageSignal = ManagedSignal<Message>();
     var latestMessage: Signal<Message, NoError> { get { return self._latestMessageSignal.signal; } };
+
+    private let _chatStateSignal = ManagedSignal<ChatState>();
+    var chatState: Signal<ChatState, NoError> { get { return self._chatStateSignal.signal; } };
 
     init(_ with: Contact) {
         self.with = with;
@@ -35,6 +50,10 @@ class Conversation: Hashable {
         } else {
             return Array(self._messages[range.location..<min(range.length, self._messages.count)]);
         }
+    }
+
+    func setChatState(state: ChatState) {
+        self._chatStateSignal.observer.sendNext(state);
     }
 }
 

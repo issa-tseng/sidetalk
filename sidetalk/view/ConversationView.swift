@@ -102,7 +102,7 @@ struct ConversationState {
 }
 
 class ConversationView: NSView {
-    private let conversation: Conversation;
+    internal let conversation: Conversation;
     private let width: CGFloat;
 
     private let messagePadding = CGFloat(2);
@@ -112,6 +112,9 @@ class ConversationView: NSView {
 
     private let _activeSignal = ManagedSignal<Bool>();
     var active: Signal<Bool, NoError> { get { return self._activeSignal.signal; } };
+
+    private let _lastShownSignal = ManagedSignal<NSDate?>();
+    var lastShown: Signal<NSDate?, NoError> { get { return self._lastShownSignal.signal; } };
 
     init(frame: NSRect, width: CGFloat, conversation: Conversation) {
         self.width = width;
@@ -167,7 +170,10 @@ class ConversationView: NSView {
         return view;
     }
 
-    func activate() { self._activeSignal.observer.sendNext(true); }
+    func activate() {
+        self._lastShownSignal.observer.sendNext(NSDate());
+        self._activeSignal.observer.sendNext(true);
+    }
     func deactivate() { self._activeSignal.observer.sendNext(false); }
 
     // kind of a misnomer; this doesn't lay anything out at all. it just controls visibility.
