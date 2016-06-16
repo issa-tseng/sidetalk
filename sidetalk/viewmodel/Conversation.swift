@@ -25,7 +25,7 @@ enum ChatState {
 class Conversation: Hashable {
     let with: Contact;
 
-    private var _messages = [Message]();
+    var messages = [Message]();
 
     var hashValue: Int { get { return self.with.hashValue; } };
 
@@ -40,15 +40,15 @@ class Conversation: Hashable {
     }
 
     func addMessage(message: Message) {
-        self._messages.append(message);
+        self.messages.append(message);
         self._latestMessageSignal.observer.sendNext(message);
     }
 
     func messages(range: NSRange) -> [Message] {
-        if range.location > self._messages.count {
+        if range.location > self.messages.count {
             return [];
         } else {
-            return Array(self._messages[range.location..<min(range.length, self._messages.count)]);
+            return Array(self.messages[range.location..<min(range.length, self.messages.count)]);
         }
     }
 

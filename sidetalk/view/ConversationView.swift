@@ -115,6 +115,8 @@ class ConversationView: NSView {
 
     private let _lastShownSignal = ManagedSignal<NSDate?>();
     var lastShown: Signal<NSDate?, NoError> { get { return self._lastShownSignal.signal; } };
+    private var _lastShownOnce: NSDate?;
+    var lastShownOnce: NSDate? { get { return self._lastShownOnce; } };
 
     init(frame: NSRect, width: CGFloat, conversation: Conversation) {
         self.width = width;
@@ -135,7 +137,7 @@ class ConversationView: NSView {
             self._messages.insert(self.drawMessage(message), atIndex: 0);
         }
 
-        let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "delayed-messages");
+        let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "delayed-messages-conversationview");
         let delayedMessage = self.conversation.latestMessage.delay(self.messageShown, onScheduler: scheduler);
 
         delayedMessage
@@ -171,7 +173,9 @@ class ConversationView: NSView {
     }
 
     func activate() {
-        self._lastShownSignal.observer.sendNext(NSDate());
+        let now = NSDate();
+        self._lastShownOnce = now;
+        self._lastShownSignal.observer.sendNext(now);
         self._activeSignal.observer.sendNext(true);
     }
     func deactivate() { self._activeSignal.observer.sendNext(false); }

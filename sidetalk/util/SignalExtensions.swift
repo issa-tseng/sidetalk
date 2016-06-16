@@ -12,4 +12,14 @@ extension Signal {
 
         return result;
     }
+
+    // HACK: same problem!
+    func merge(other: Signal<Value, Error>) -> Signal<Value, Error> {
+        let (signal, observer) = Signal<Value, Error>.pipe();
+
+        self.observeNext { value in observer.sendNext(value); }
+        other.observeNext { value in observer.sendNext(value); }
+
+        return signal;
+    }
 }

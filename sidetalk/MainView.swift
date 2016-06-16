@@ -7,6 +7,7 @@ import FuzzySearch
 struct LayoutState {
     let order: [ Contact : Int ];
     let activated: Bool;
+    let notifying: Set<Contact>;
 }
 
 // TODO: split into V/VM?
@@ -22,8 +23,11 @@ class MainView: NSView {
     let listPadding = CGFloat(35);
     let tileSize = NSSize(width: 300, height: 50);
     let tilePadding = CGFloat(4);
-    let conversationPadding = CGFloat(8);
+    let conversationPadding = CGFloat(14);
     let conversationWidth = CGFloat(300);
+    let conversationVOffset = CGFloat(10.0);
+
+    let messageShown = NSTimeInterval(3.0);
 
     init(frame: CGRect, connection: Connection) {
         self.connection = connection;
@@ -41,14 +45,33 @@ class MainView: NSView {
     }
 
     private func prepare() {
+        let conversations = self.connection.conversations;
+
         // draw new contacts as required.
         let tiles = self.connection.contacts.map({ (contacts) -> [ContactTile] in
             contacts.map { contact in self._contactTiles.get(contact, orElse: { self.drawContact(contact); }); };
         });
 
         // draw new conversations as required.
-        let conversationViews = self.connection.conversations.map { conversations in
+        let conversationViews = conversations.map { conversations in
             conversations.map { conversation in self._conversationViews.get(conversation.with, orElse: { self.drawConversation(conversation); }) };
+        }
+
+        // figure out which contacts currently have notification bubbles.
+        let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "delayed-messages-mainview");
+        let notifying = conversations.merge(conversations.delay(self.messageShown, onScheduler: scheduler)).map { _ -> Set<Contact> in
+            let now = NSDate();
+            var result = Set<Contact>();
+
+            // conversation states have changed. let's look at which have recent messages.
+            for conversationView in self._conversationViews.all() {
+                let conversation = conversationView.conversation;
+                if conversation.messages.count > 0 && conversation.messages.last!.at.dateByAddingTimeInterval(self.messageShown).isGreaterThanOrEqualTo(now) {
+                    result.insert(conversation.with);
+                }
+            }
+
+            return result;
         }
 
         // calculate the correct sort (and implicitly visibility) of all contacts.
@@ -82,9 +105,10 @@ class MainView: NSView {
         // relayout as required.
         sort.combineLatestWith(tiles).map { order, _ in order } // (Order)
             .combineWithDefault(conversationViews.map({ _ in nil as AnyObject? }), defaultValue: nil).map { order, _ in order } // (Order)
-            .combineWithDefault(GlobalInteraction.sharedInstance.activated, defaultValue: false) // ((Order, ContactTile?), Bool)
-            .map({ order, activated in LayoutState(order: order, activated: activated); })
-            .combinePrevious(LayoutState(order: [:], activated: false))
+            .combineWithDefault(GlobalInteraction.sharedInstance.activated, defaultValue: false) // (Order, Bool)
+            .combineWithDefault(notifying, defaultValue: Set<Contact>()) // ((Order, Bool), Set[Contact])
+            .map({ orderActivated, notifying in LayoutState(order: orderActivated.0, activated: orderActivated.1, notifying: notifying); })
+            .combinePrevious(LayoutState(order: [:], activated: false, notifying: Set<Contact>()))
             .observeNext { last, this in self.relayout(last, this) }
 
         // if we are active, show all contact labels.
@@ -175,11 +199,11 @@ class MainView: NSView {
                 let yThis = self.frame.height - self.allPadding - self.listPadding - ((self.tileSize.height + self.tilePadding) * CGFloat((this ?? 0) + 1));
 
                 if last == nil { from = NSPoint(x: xOff, y: yThis); }
-                else if lastState.activated { from = NSPoint(x: xOn, y: yLast); }
+                else if lastState.activated || lastState.notifying.contains(tile.contact) { from = NSPoint(x: xOn, y: yLast); }
                 else { from = NSPoint(x: xHalf, y: yLast); }
 
                 if this == nil { to = NSPoint(x: xOff, y: yLast); }
-                else if thisState.activated { to = NSPoint(x: xOn, y: yThis); }
+                else if thisState.activated || thisState.notifying.contains(tile.contact) { to = NSPoint(x: xOn, y: yThis); }
                 else { to = NSPoint(x: xHalf, y: yThis); }
 
                 anim.fromValue = NSValue.init(point: from);
@@ -195,9 +219,9 @@ class MainView: NSView {
                 if let conversationView = self._conversationViews.get(tile.contact) {
                     let convAnim = CABasicAnimation.init(keyPath: "position");
                     let convX = self.frame.width - self.tileSize.height - self.tilePadding - self.conversationPadding - self.conversationWidth;
-                    let to = NSPoint(x: convX, y: yThis);
+                    let to = NSPoint(x: convX, y: yThis + self.conversationVOffset);
 
-                    convAnim.fromValue = NSValue.init(point: NSPoint(x: convX, y: yLast));
+                    convAnim.fromValue = NSValue.init(point: NSPoint(x: convX, y: yLast + self.conversationVOffset));
                     convAnim.toValue = NSValue.init(point: to);
                     convAnim.duration = anim.duration;
                     convAnim.fillMode = kCAFillModeForwards; // HACK: i don't like this or the next line.
