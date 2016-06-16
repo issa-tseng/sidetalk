@@ -111,10 +111,15 @@ class MainView: NSView {
             .combinePrevious(LayoutState(order: [:], activated: false, notifying: Set<Contact>()))
             .observeNext { last, this in self.relayout(last, this) }
 
-        // if we are active, show all contact labels.
+        // if we are active and no notifications are present, show all contact labels.
         tiles.combineLatestWith(GlobalInteraction.sharedInstance.activated)
             .combineLatestWith(sort).map{ ($0.0, $0.1, $1) } // ghetto flatten
-            .observeNext { (tiles, activated, sort) in tiles.forEach { tile in tile.showLabel = activated && sort[tile.contact] != nil; } };
+            .combineLatestWith(notifying).map{ ($0.0, $0.1, $0.2, $1) }
+            .observeNext { (tiles, activated, sort, notifying) in
+                for tile in tiles {
+                    tile.showLabel = activated && (notifying.count == 0) && (sort[tile.contact] != nil);
+                }
+            };
 
         // if we are active, claim window focus. vice versa.
         GlobalInteraction.sharedInstance.activated.observeNext { activated in
@@ -206,29 +211,34 @@ class MainView: NSView {
                 else if thisState.activated || thisState.notifying.contains(tile.contact) { to = NSPoint(x: xOn, y: yThis); }
                 else { to = NSPoint(x: xHalf, y: yThis); }
 
-                anim.fromValue = NSValue.init(point: from);
-                anim.toValue = NSValue.init(point: to);
-                anim.duration = NSTimeInterval((!lastState.activated && thisState.activated ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
-                anim.fillMode = kCAFillModeForwards; // HACK: i don't like this or the next line.
-                anim.removedOnCompletion = false;
-                tile.layer!.removeAnimationForKey("contacttile-layout");
-                tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
-                tile.layer!.position = to;
+                if tile.layer!.position != to {
+                    anim.fromValue = NSValue.init(point: from);
+                    anim.toValue = NSValue.init(point: to);
+                    anim.duration = NSTimeInterval((!lastState.activated && thisState.activated ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
+                    anim.fillMode = kCAFillModeForwards; // HACK: i don't like this or the next line.
+                    anim.removedOnCompletion = false;
+                    tile.layer!.removeAnimationForKey("contacttile-layout");
+                    tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
+                    tile.layer!.position = to;
+                }
 
                 // if we have a conversation as well, position that appropriately.
                 if let conversationView = self._conversationViews.get(tile.contact) {
                     let convAnim = CABasicAnimation.init(keyPath: "position");
                     let convX = self.frame.width - self.tileSize.height - self.tilePadding - self.conversationPadding - self.conversationWidth;
+                    let from = NSPoint(x: convX, y: yLast + self.conversationVOffset);
                     let to = NSPoint(x: convX, y: yThis + self.conversationVOffset);
 
-                    convAnim.fromValue = NSValue.init(point: NSPoint(x: convX, y: yLast + self.conversationVOffset));
-                    convAnim.toValue = NSValue.init(point: to);
-                    convAnim.duration = anim.duration;
-                    convAnim.fillMode = kCAFillModeForwards; // HACK: i don't like this or the next line.
-                    convAnim.removedOnCompletion = false;
-                    conversationView.layer!.removeAnimationForKey("conversation-layout");
-                    conversationView.layer!.addAnimation(convAnim, forKey: "conversation-layout");
-                    conversationView.layer!.position = to;
+                    if conversationView.layer!.position != to {
+                        convAnim.fromValue = NSValue.init(point: from);
+                        convAnim.toValue = NSValue.init(point: to);
+                        convAnim.duration = anim.duration;
+                        convAnim.fillMode = kCAFillModeForwards; // HACK: i don't like this or the next line.
+                        convAnim.removedOnCompletion = false;
+                        conversationView.layer!.removeAnimationForKey("conversation-layout");
+                        conversationView.layer!.addAnimation(convAnim, forKey: "conversation-layout");
+                        conversationView.layer!.position = to;
+                    }
 
                     NSLog("placing conversation at \(to.x), \(to.y)");
                 }
