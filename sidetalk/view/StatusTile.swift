@@ -132,7 +132,7 @@ class StatusTile: NSView {
             } else {
                 return event;
             }
-        })
+        });
     }
 
     required init(coder: NSCoder) {

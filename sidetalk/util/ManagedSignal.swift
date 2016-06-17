@@ -14,4 +14,3 @@ class ManagedSignal<T> {
         (self._signal, self._observer) = Signal<T, NoError>.pipe();
     }
 }
-

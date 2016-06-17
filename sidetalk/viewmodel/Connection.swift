@@ -102,7 +102,7 @@ class Connection {
     // plumb through proxies
     var connected: Signal<Bool, NoError> { get { return self._streamDelegateProxy.connectSignal; } };
     var authenticated: Signal<Bool, NoError> { get { return self._streamDelegateProxy.authenticatedSignal; } };
-    var users: Signal<[XMPPUser], NoError> { get { return self._rosterDelegateProxy.usersSignal.throttle(NSTimeInterval(0.15), onScheduler: QueueScheduler.mainQueueScheduler); } };
+    var users: Signal<[XMPPUser], NoError> { get { return self._rosterDelegateProxy.usersSignal.debounce(NSTimeInterval(0.15), onScheduler: QueueScheduler.mainQueueScheduler); } };
 
     // own user
     private var _myselfSignal = ManagedSignal<XMPPUser?>();

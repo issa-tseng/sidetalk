@@ -1,6 +1,7 @@
 
 import Foundation
 import ReactiveCocoa
+import enum Result.NoError
 
 extension Signal {
     // HACK: this causes observation to happen! careful with use on cold signals.
@@ -22,4 +23,20 @@ extension Signal {
 
         return signal;
     }
+
+    // pulled forward from a future version of RAC. See #2952 on their repo.
+    public func debounce(interval: NSTimeInterval, onScheduler scheduler: DateSchedulerType) -> Signal<Value, Error> {
+        precondition(interval >= 0)
+
+		return self
+			.materialize()
+			.flatMap(.Latest) { event -> SignalProducer<Event<Value, Error>, NoError> in
+				if event.isTerminating {
+					return SignalProducer(value: event).observeOn(scheduler)
+				} else {
+					return SignalProducer(value: event).delay(interval, onScheduler: scheduler)
+				}
+			}
+			.dematerialize()
+	}
 }

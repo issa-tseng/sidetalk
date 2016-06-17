@@ -8,6 +8,11 @@ struct LayoutState {
     let order: [ Contact : Int ];
     let activated: Bool;
     let notifying: Set<Contact>;
+    let selected: Int?;
+}
+
+enum Direction {
+    case Up, Down, None;
 }
 
 // TODO: split into V/VM?
@@ -25,9 +30,11 @@ class MainView: NSView {
     let tilePadding = CGFloat(4);
     let conversationPadding = CGFloat(14);
     let conversationWidth = CGFloat(300);
-    let conversationVOffset = CGFloat(10.0);
+    let conversationVOffset = CGFloat(12.0);
 
     let messageShown = NSTimeInterval(3.0);
+
+    private let _directionalKey = ManagedSignal<Direction>();
 
     init(frame: CGRect, connection: Connection) {
         self.connection = connection;
@@ -46,6 +53,23 @@ class MainView: NSView {
 
     private func prepare() {
         let conversations = self.connection.conversations;
+
+        // listen to all key events. vend keystroke.
+        NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDownMask, handler: { event in
+            if event.keyCode == 126 {
+                // up
+                self._directionalKey.observer.sendNext(.Up);
+                self._directionalKey.observer.sendNext(.None);
+                return nil;
+            } else if event.keyCode == 125 {
+                // down
+                self._directionalKey.observer.sendNext(.Down);
+                self._directionalKey.observer.sendNext(.None);
+                return nil;
+            } else {
+                return event;
+            }
+        });
 
         // draw new contacts as required.
         let tiles = self.connection.contacts.map({ (contacts) -> [ContactTile] in
@@ -102,22 +126,52 @@ class MainView: NSView {
                 return result;
             });
 
+        // determine currently-selected index.
+        let selectedIdx = GlobalInteraction.sharedInstance.activated // (Bool)
+            .combineWithDefault(self._statusTile.searchText, defaultValue: "") // (Bool, String)
+            .combineWithDefault(sort, defaultValue: [Contact:Int]()).map({ ($0.0, $0.1, $1) }) // (Bool, String, [Contact:Int])
+            .combineWithDefault(self._directionalKey.signal, defaultValue: .None).map({ ($0.0, $0.1, $0.2, $1) }) // (Bool, String, [Contact:Int], Direction)
+            .combinePrevious((false, "", [:], .None))
+            .scan(nil, { (lastIdx, states) -> Int? in
+                let (_, lastSearch, _, _) = states.0;
+                let (activated, thisSearch, contacts, direction) = states.1;
+
+                if !activated {
+                    return nil;
+                } else if direction == .Up {
+                    if lastIdx == nil { return nil; }
+                    else if lastIdx == 0 { return nil; }
+                    else if lastIdx > 0 { return lastIdx! - 1; }
+                } else if direction == .Down {
+                    if lastIdx == nil { return 0; }
+                    else if lastIdx == (contacts.count - 1) { return lastIdx; }
+                    else { return lastIdx! + 1; }
+                } else if lastSearch != thisSearch {
+                    if thisSearch == "" { return nil; }
+                    else { return 0; }
+                }
+
+                return lastIdx;
+            });
+
         // relayout as required.
         sort.combineLatestWith(tiles).map { order, _ in order } // (Order)
             .combineWithDefault(conversationViews.map({ _ in nil as AnyObject? }), defaultValue: nil).map { order, _ in order } // (Order)
             .combineWithDefault(GlobalInteraction.sharedInstance.activated, defaultValue: false) // (Order, Bool)
-            .combineWithDefault(notifying, defaultValue: Set<Contact>()) // ((Order, Bool), Set[Contact])
-            .map({ orderActivated, notifying in LayoutState(order: orderActivated.0, activated: orderActivated.1, notifying: notifying); })
-            .combinePrevious(LayoutState(order: [:], activated: false, notifying: Set<Contact>()))
+            .combineWithDefault(notifying, defaultValue: Set<Contact>()).map({ ($0.0, $0.1, $1) }) // ((Order, Bool, Set[Contact])
+            .combineWithDefault(selectedIdx, defaultValue: nil) // ((Order, Bool, Set[Contact]), selectedIdx)
+            .map({ bigTuple, selected in LayoutState(order: bigTuple.0, activated: bigTuple.1, notifying: bigTuple.2, selected: selected); })
+            .debounce(NSTimeInterval(0.02), onScheduler: QueueScheduler.mainQueueScheduler)
+            .combinePrevious(LayoutState(order: [:], activated: false, notifying: Set<Contact>(), selected: nil))
             .observeNext { last, this in self.relayout(last, this) }
 
         // if we are active and no notifications are present, show all contact labels.
         tiles.combineLatestWith(GlobalInteraction.sharedInstance.activated)
             .combineLatestWith(sort).map{ ($0.0, $0.1, $1) } // ghetto flatten
-            .combineLatestWith(notifying).map{ ($0.0, $0.1, $0.2, $1) }
+            .combineWithDefault(notifying.map({ $0 as Set<Contact>? }), defaultValue: nil).map{ ($0.0, $0.1, $0.2, $1) }
             .observeNext { (tiles, activated, sort, notifying) in
                 for tile in tiles {
-                    tile.showLabel = activated && (notifying.count == 0) && (sort[tile.contact] != nil);
+                    tile.showLabel = activated && (notifying == nil || notifying!.count == 0) && (sort[tile.contact] != nil);
                 }
             };
 
@@ -150,7 +204,6 @@ class MainView: NSView {
     }
 
     private func relayout(lastState: LayoutState, _ thisState: LayoutState) {
-        NSLog("relayout");
         // TODO: figure out the two hacks below ( http://stackoverflow.com/questions/37780431/cocoa-core-animation-everything-jumps-around-upon-becomefirstresponder )
         dispatch_async(dispatch_get_main_queue(), {
             // deal with self
@@ -204,11 +257,13 @@ class MainView: NSView {
                 let yThis = self.frame.height - self.allPadding - self.listPadding - ((self.tileSize.height + self.tilePadding) * CGFloat((this ?? 0) + 1));
 
                 if last == nil { from = NSPoint(x: xOff, y: yThis); }
-                else if lastState.activated || lastState.notifying.contains(tile.contact) { from = NSPoint(x: xOn, y: yLast); }
+                else if (lastState.activated || lastState.notifying.contains(tile.contact)) &&
+                        (lastState.selected == nil || lastState.selected == last) { from = NSPoint(x: xOn, y: yLast); }
                 else { from = NSPoint(x: xHalf, y: yLast); }
 
                 if this == nil { to = NSPoint(x: xOff, y: yLast); }
-                else if thisState.activated || thisState.notifying.contains(tile.contact) { to = NSPoint(x: xOn, y: yThis); }
+                else if (thisState.activated || thisState.notifying.contains(tile.contact)) &&
+                        (thisState.selected == nil || thisState.selected == this) { to = NSPoint(x: xOn, y: yThis); }
                 else { to = NSPoint(x: xHalf, y: yThis); }
 
                 if tile.layer!.position != to {
@@ -239,8 +294,6 @@ class MainView: NSView {
                         conversationView.layer!.addAnimation(convAnim, forKey: "conversation-layout");
                         conversationView.layer!.position = to;
                     }
-
-                    NSLog("placing conversation at \(to.x), \(to.y)");
                 }
             }
         });
