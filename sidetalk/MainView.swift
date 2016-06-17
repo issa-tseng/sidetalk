@@ -147,17 +147,19 @@ class MainView: NSView {
             .combinePrevious((false, "", [:], .None))
             .scan(nil, { (lastIdx, states) -> Int? in
                 let (_, lastSearch, _, _) = states.0;
-                let (activated, thisSearch, contacts, direction) = states.1;
+                let (activated, thisSearch, contacts, key) = states.1;
 
                 if !activated {
                     return nil;
                 } else if self._activeContact != nil {
                     return lastIdx;
-                } else if direction == .Up {
+                } else if key == .Escape {
+                    return nil;
+                } else if key == .Up {
                     if lastIdx == nil { return nil; }
                     else if lastIdx == 0 { return nil; }
                     else if lastIdx > 0 { return lastIdx! - 1; }
-                } else if direction == .Down {
+                } else if key == .Down {
                     if lastIdx == nil { return 0; }
                     else if lastIdx == (contacts.count - 1) { return lastIdx; }
                     else { return lastIdx! + 1; }
