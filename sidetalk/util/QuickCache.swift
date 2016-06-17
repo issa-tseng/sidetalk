@@ -5,7 +5,7 @@ import Foundation
 class QuickCache<K: Hashable, V> {
     private var _dict = Dictionary<K, V>();
 
-    func get(key: K) -> V? { return self._dict[key]; }
+    func get(key: K?) -> V? { return (key == nil) ? nil : self._dict[key!]; }
 
     func get(key: K, update: (V) -> (), orElse: () -> V) -> V {
         let val = self._dict[key];

@@ -11,8 +11,8 @@ struct LayoutState {
     let selected: Int?;
 }
 
-enum Direction {
-    case Up, Down, None;
+enum Key {
+    case Up, Down, Return, Escape, None;
 }
 
 // TODO: split into V/VM?
@@ -34,7 +34,10 @@ class MainView: NSView {
 
     let messageShown = NSTimeInterval(3.0);
 
-    private let _directionalKey = ManagedSignal<Direction>();
+    private let _pressedKey = ManagedSignal<Key>();
+
+    // fuck you mutable state!
+    private var _activeContact: Contact?;
 
     init(frame: CGRect, connection: Connection) {
         self.connection = connection;
@@ -58,14 +61,24 @@ class MainView: NSView {
         NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDownMask, handler: { event in
             if event.keyCode == 126 {
                 // up
-                self._directionalKey.observer.sendNext(.Up);
-                self._directionalKey.observer.sendNext(.None);
+                self._pressedKey.observer.sendNext(.Up);
+                self._pressedKey.observer.sendNext(.None);
                 return nil;
             } else if event.keyCode == 125 {
                 // down
-                self._directionalKey.observer.sendNext(.Down);
-                self._directionalKey.observer.sendNext(.None);
+                self._pressedKey.observer.sendNext(.Down);
+                self._pressedKey.observer.sendNext(.None);
                 return nil;
+            } else if event.keyCode == 36 {
+                // enter
+                self._pressedKey.observer.sendNext(.Return);
+                self._pressedKey.observer.sendNext(.None);
+                return event;
+            } else if event.keyCode == 53 {
+                // enter
+                self._pressedKey.observer.sendNext(.Escape);
+                self._pressedKey.observer.sendNext(.None);
+                return event;
             } else {
                 return event;
             }
@@ -130,7 +143,7 @@ class MainView: NSView {
         let selectedIdx = GlobalInteraction.sharedInstance.activated // (Bool)
             .combineWithDefault(self._statusTile.searchText, defaultValue: "") // (Bool, String)
             .combineWithDefault(sort, defaultValue: [Contact:Int]()).map({ ($0.0, $0.1, $1) }) // (Bool, String, [Contact:Int])
-            .combineWithDefault(self._directionalKey.signal, defaultValue: .None).map({ ($0.0, $0.1, $0.2, $1) }) // (Bool, String, [Contact:Int], Direction)
+            .combineWithDefault(self._pressedKey.signal, defaultValue: .None).map({ ($0.0, $0.1, $0.2, $1) }) // (Bool, String, [Contact:Int], Key)
             .combinePrevious((false, "", [:], .None))
             .scan(nil, { (lastIdx, states) -> Int? in
                 let (_, lastSearch, _, _) = states.0;
@@ -138,6 +151,8 @@ class MainView: NSView {
 
                 if !activated {
                     return nil;
+                } else if self._activeContact != nil {
+                    return lastIdx;
                 } else if direction == .Up {
                     if lastIdx == nil { return nil; }
                     else if lastIdx == 0 { return nil; }
@@ -163,15 +178,41 @@ class MainView: NSView {
             .map({ bigTuple, selected in LayoutState(order: bigTuple.0, activated: bigTuple.1, notifying: bigTuple.2, selected: selected); })
             .debounce(NSTimeInterval(0.02), onScheduler: QueueScheduler.mainQueueScheduler)
             .combinePrevious(LayoutState(order: [:], activated: false, notifying: Set<Contact>(), selected: nil))
-            .observeNext { last, this in self.relayout(last, this) }
+            .observeNext { last, this in self.relayout(last, this) };
+
+        // if someone presses return while something is selected, activate that conversation (only).
+        let activeContact = self._pressedKey.signal // (Key)
+            .combineWithDefault(selectedIdx, defaultValue: nil) // (Key, Int?)
+            .combineLatestWith(sort).map({ ($0.0, $0.1, $1) }) // (Key, Int?, [Contact:Int])
+            .scan(nil, { (last, state) -> Contact? in
+                let (key, idx, sort) = state;
+                if key == .Return && idx != nil {
+                    return sort.filter({ _, sortIdx in idx == sortIdx }).first!.0;
+                } else if key == .Escape {
+                    return nil;
+                } else {
+                    return last;
+                }
+            });
+
+        activeContact
+            .combinePrevious(nil)
+            .observeNext { last, this in
+                if last == this { return; }
+                if let view = self._conversationViews.get(last) { view.deactivate(); }
+                if let view = self._conversationViews.get(this) { view.activate(); }
+                self._activeContact = this;
+        };
 
         // if we are active and no notifications are present, show all contact labels.
         tiles.combineLatestWith(GlobalInteraction.sharedInstance.activated)
-            .combineLatestWith(sort).map{ ($0.0, $0.1, $1) } // ghetto flatten
-            .combineWithDefault(notifying.map({ $0 as Set<Contact>? }), defaultValue: nil).map{ ($0.0, $0.1, $0.2, $1) }
-            .observeNext { (tiles, activated, sort, notifying) in
+            .combineLatestWith(sort) // (([ContactTile], Bool), [Contact:Int])
+            .combineWithDefault(notifying.map({ $0 as Set<Contact>? }), defaultValue: nil) // ((([ContactTile], Bool), [Contact:Int]), Set<Contact>?)
+            .combineWithDefault(activeContact, defaultValue: nil) // (((([ContactTile], Bool), [Contact:Int]), Set<Contact>?), Contact?)
+            .map({ ($0.0.0.0, $0.0.0.1, $0.0.1, $0.1, $1) }) // ([ContactTile], Bool, [Contact:Int], Set<Contact>?, Contact?)
+            .observeNext { (tiles, activated, sort, notifying, activeContact) in
                 for tile in tiles {
-                    tile.showLabel = activated && (notifying == nil || notifying!.count == 0) && (sort[tile.contact] != nil);
+                    tile.showLabel = activated && (notifying == nil || notifying!.count == 0) && (sort[tile.contact] != nil) && (activeContact == nil);
                 }
             };
 

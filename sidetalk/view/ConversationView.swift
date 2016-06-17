@@ -88,7 +88,7 @@ class MessageView: NSView {
     }
 
     func removeCallout() {
-        self.calloutLayer!.removeFromSuperlayer();
+        if self.calloutLayer != nil { self.calloutLayer!.removeFromSuperlayer() };
         self.calloutLayer = nil;
     }
 
@@ -189,7 +189,7 @@ class ConversationView: NSView {
             if !lastState.active && thisState.active {
                 // show all messages (unless they're already shown).
                 for (idx, view) in self._messages.enumerate() {
-                    if view.message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThanOrEqualTo(now) {
+                    if view.message.at.dateByAddingTimeInterval(self.messageShown).isLessThan(now) {
                         let anim = CABasicAnimation.init(keyPath: "opacity");
                         anim.fromValue = 0.0;
                         anim.toValue = 1.0;
