@@ -193,7 +193,7 @@ class ConversationView: NSView {
                         let anim = CABasicAnimation.init(keyPath: "opacity");
                         anim.fromValue = 0.0;
                         anim.toValue = 1.0;
-                        anim.duration = NSTimeInterval(0.1 + (0.02 * Double(idx)));
+                        anim.duration = NSTimeInterval(0.1 + (0.07 * Double(idx)));
                         view.layer!.removeAnimationForKey("message-fade");
                         view.layer!.addAnimation(anim, forKey: "message-fade");
                         view.layer!.opacity = 1.0;
@@ -218,7 +218,7 @@ class ConversationView: NSView {
                             let anim = CABasicAnimation.init(keyPath: "opacity");
                             anim.fromValue = 1.0;
                             anim.toValue = 0.0;
-                            anim.duration = NSTimeInterval(0.4);
+                            anim.duration = NSTimeInterval(0.1);
                             view.layer!.removeAnimationForKey("message-fade");
                             view.layer!.addAnimation(anim, forKey: "message-fade");
                             view.layer!.opacity = 0.0;
