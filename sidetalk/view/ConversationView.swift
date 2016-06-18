@@ -3,100 +3,6 @@ import Foundation
 import ReactiveCocoa
 import enum Result.NoError
 
-class MessageView: NSView {
-    private let textView: NSTextView;
-    private let bubbleLayer: CAShapeLayer;
-    private var calloutLayer: CAShapeLayer?;
-
-    private let textWidth = CGFloat(250);
-    private let width: CGFloat;
-
-    private var _outerHeight: CGFloat?;
-    var outerHeight: CGFloat { get { return self._outerHeight ?? 0; } };
-
-    private let bubbleColor = NSColor(red: 0.1, green: 0.12, blue: 0.15, alpha: 0.85).CGColor;
-    private let bubbleMarginX = CGFloat(4);
-    private let bubbleMarginY = CGFloat(4);
-    private let bubbleRadius = CGFloat(3);
-
-    private let calloutSize = CGFloat(4);
-
-    private let message: Message;
-
-    init(frame: NSRect, width: CGFloat, message: Message) {
-        self.textView = NSTextView(frame: NSRect(origin: NSPoint.zero, size: NSSize(width: textWidth, height: 0)));
-        self.bubbleLayer = CAShapeLayer();
-        self.calloutLayer = CAShapeLayer();
-        self.width = width;
-        self.message = message;
-
-        super.init(frame: frame);
-    }
-
-    override func viewWillMoveToSuperview(newSuperview: NSView?) {
-        super.viewWillMoveToSuperview(newSuperview);
-        self.wantsLayer = true;
-
-        // render text view.
-        self.textView.verticallyResizable = true;
-        self.textView.string = self.message.body;
-        self.textView.drawsBackground = false;
-        self.textView.editable = false;
-        self.textView.textColor = NSColor.whiteColor();
-        self.textView.font = NSFont.systemFontOfSize(12);
-        self.textView.sizeToFit();
-
-        // calculate text/bubble frame.
-        let size = self.textView.layoutManager!.usedRectForTextContainer(self.textView.textContainer!).size;
-        let origin = NSPoint(x: self.width - bubbleMarginX - size.width, y: bubbleMarginY);
-        self.textView.setFrameOrigin(origin);
-
-        // draw bubble.
-        let bubbleRect = NSRect(origin: origin, size: size).insetBy(dx: -bubbleMarginX, dy: -bubbleMarginY);
-        let bubblePath = NSBezierPath(roundedRect: bubbleRect, xRadius: bubbleRadius, yRadius: bubbleRadius);
-        self.bubbleLayer.path = bubblePath.CGPath;
-        self.bubbleLayer.fillColor = self.bubbleColor;
-
-        // draw callout.
-        let rightEdge = origin.x + size.width + bubbleMarginX;
-        let vlineCenter = origin.y + 7.0;
-        let calloutPts = NSPointArray.alloc(3);
-        calloutPts[0] = NSPoint(x: rightEdge, y: vlineCenter + calloutSize);
-        calloutPts[1] = NSPoint(x: rightEdge + calloutSize, y: vlineCenter);
-        calloutPts[2] = NSPoint(x: rightEdge, y: vlineCenter - calloutSize);
-        let calloutPath = NSBezierPath();
-        calloutPath.appendBezierPathWithPoints(calloutPts, count: 3);
-        self.calloutLayer!.path = calloutPath.CGPath;
-        self.calloutLayer!.fillColor = self.bubbleColor;
-
-        // add everything.
-        self.layer!.addSublayer(self.calloutLayer!);
-        self.layer!.addSublayer(self.bubbleLayer);
-        self.addSubview(self.textView);
-
-        // remember outer height for other calculations.
-        self._outerHeight = bubbleRect.height;
-
-        /*//self.layerUsesCoreImageFilters = true;
-
-        let blurFilter = CIFilter(name: "CIGaussianBlur")!;
-        blurFilter.setDefaults();
-        blurFilter.setValue(NSNumber(double: 8.0), forKey: "inputRadius");
-        self.bubbleLayer.backgroundFilters = [ blurFilter ];
-        //self.bubbleLayer.needsDisplayOnBoundsChange = true;
-        self.bubbleLayer.setNeedsDisplay();*/
-    }
-
-    func removeCallout() {
-        if self.calloutLayer != nil { self.calloutLayer!.removeFromSuperlayer() };
-        self.calloutLayer = nil;
-    }
-
-    required init(coder: NSCoder) {
-        fatalError("vocoder");
-    }
-}
-
 struct ConversationState {
     var active: Bool;
 }
@@ -108,6 +14,17 @@ class ConversationView: NSView {
     private let messagePadding = CGFloat(2);
     private let messageShown = NSTimeInterval(3.0);
 
+    private let composeHeight = CGFloat(25);
+    private let composePadding = CGFloat(6);
+    private let bubbleMarginX = CGFloat(4);
+    private let bubbleMarginY = CGFloat(4);
+    private let bubbleRadius = CGFloat(3);
+    private let bubbleColor = NSColor.init(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.9).CGColor;
+    private let calloutSize = CGFloat(4);
+
+    private let bubbleLayer: CAShapeLayer;
+    private let calloutLayer: CAShapeLayer;
+    private let textField: NSTextField;
     private var _messages = [MessageView]();
 
     private let _activeSignal = ManagedSignal<Bool>();
@@ -122,6 +39,11 @@ class ConversationView: NSView {
         self.width = width;
         self.conversation = conversation;
 
+        self.bubbleLayer = CAShapeLayer();
+        self.calloutLayer = CAShapeLayer();
+
+        self.textField = NSTextField(frame: NSRect(origin: NSPoint(x: self.calloutSize, y: 0), size: NSSize(width: self.width, height: self.composeHeight)).insetBy(dx: bubbleMarginX, dy: bubbleMarginY));
+
         super.init(frame: frame);
     }
 
@@ -130,6 +52,41 @@ class ConversationView: NSView {
         super.viewWillMoveToSuperview(newSuperview);
 
         self.prepare();
+
+        // calc area.
+        let composeArea = NSRect(origin: NSPoint(x: calloutSize, y: 0), size: NSSize(width: self.width, height: composeHeight));
+
+        // draw bubble.
+        let bubbleRect = composeArea;
+        let bubblePath = NSBezierPath(roundedRect: bubbleRect, xRadius: bubbleRadius, yRadius: bubbleRadius);
+        self.bubbleLayer.path = bubblePath.CGPath;
+        self.bubbleLayer.fillColor = self.bubbleColor;
+        self.bubbleLayer.opacity = 0.0;
+
+        // draw callout.
+        let vlineCenter = CGFloat(12.0);
+        let calloutPts = NSPointArray.alloc(3);
+        calloutPts[0] = NSPoint(x: calloutSize, y: vlineCenter + calloutSize);
+        calloutPts[1] = NSPoint(x: 0, y: vlineCenter);
+        calloutPts[2] = NSPoint(x: calloutSize, y: vlineCenter - calloutSize);
+        let calloutPath = NSBezierPath();
+        calloutPath.appendBezierPathWithPoints(calloutPts, count: 3);
+        self.calloutLayer.path = calloutPath.CGPath;
+        self.calloutLayer.fillColor = self.bubbleColor;
+        self.calloutLayer.opacity = 0.0;
+
+        // set up textfield.
+        self.textField.backgroundColor = NSColor.clearColor();
+        self.textField.bezeled = false;
+        self.textField.focusRingType = NSFocusRingType.None;
+        self.textField.font = NSFont.systemFontOfSize(12);
+        self.textField.lineBreakMode = .ByTruncatingTail;
+        self.textField.alphaValue = 0.0;
+
+        // add layers.
+        self.layer!.addSublayer(self.bubbleLayer);
+        self.layer!.addSublayer(self.calloutLayer);
+        self.addSubview(self.textField);
     }
 
     private func prepare() {
@@ -148,7 +105,7 @@ class ConversationView: NSView {
     }
 
     private func drawMessage(message: Message) -> MessageView {
-        let view = MessageView(frame: NSRect(origin: NSPoint.zero, size: self.frame.size), width: self.width, message: message);
+        let view = MessageView(frame: NSRect(origin: NSPoint(x: 0, y: composeHeight + composePadding), size: self.frame.size), width: self.width, message: message);
         dispatch_async(dispatch_get_main_queue(), {
             self.addSubview(view);
 
@@ -199,6 +156,12 @@ class ConversationView: NSView {
                         view.layer!.opacity = 1.0;
                     }
                 }
+
+                // show compose area.
+                self.bubbleLayer.opacity = 1.0;
+                self.calloutLayer.opacity = 1.0;
+                self.textField.alphaValue = 1.0;
+                self.window!.makeFirstResponder(self.textField);
             } else if lastState.active && !thisState.active {
                 // hide all messages.
                 for (idx, view) in self._messages.enumerate() {
@@ -209,6 +172,11 @@ class ConversationView: NSView {
                     view.layer!.removeAnimationForKey("message-fade");
                     view.layer!.addAnimation(anim, forKey: "message-fade");
                     view.layer!.opacity = 0.0;
+
+                    // hide compose area.
+                    self.bubbleLayer.opacity = 0.0;
+                    self.calloutLayer.opacity = 0.0;
+                    self.textField.alphaValue = 0.0;
                 }
             } else if !thisState.active {
                 // hide individual messages that may have been shown on receipt.

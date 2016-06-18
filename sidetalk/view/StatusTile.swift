@@ -114,7 +114,7 @@ class StatusTile: NSView {
         self._searchField.textColor = NSColor.whiteColor();
         self._searchField.font = NSFont.systemFontOfSize(20);
         self._searchField.alignment = NSTextAlignment.Right;
-        self._searchField.lineBreakMode = .ByClipping;
+        self._searchField.lineBreakMode = .ByTruncatingHead;
         self._searchField.alphaValue = 0.0;
         self._searchLeecher = StringValueLeecher(field: self._searchField);
 

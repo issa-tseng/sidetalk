@@ -30,7 +30,7 @@ class MainView: NSView {
     let tilePadding = CGFloat(4);
     let conversationPadding = CGFloat(14);
     let conversationWidth = CGFloat(300);
-    let conversationVOffset = CGFloat(12.0);
+    let conversationVOffset = CGFloat(-17);
 
     let messageShown = NSTimeInterval(3.0);
 
@@ -222,6 +222,14 @@ class MainView: NSView {
         GlobalInteraction.sharedInstance.activated.observeNext { activated in
             if activated { NSApplication.sharedApplication().activateIgnoringOtherApps(true); }
             else         { GlobalInteraction.sharedInstance.lastApp?.activateWithOptions(NSApplicationActivationOptions.ActivateIgnoringOtherApps); }
+        }
+
+        // if we become inactive, hide the conversation.
+        GlobalInteraction.sharedInstance.activated.observeNext { activated in
+            if !activated && self._activeContact != nil {
+                if let view = self._conversationViews.get(self._activeContact!) { view.deactivate(); }
+                self._activeContact = nil;
+            }
         }
     }
 
