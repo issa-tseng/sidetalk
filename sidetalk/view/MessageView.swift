@@ -22,13 +22,15 @@ class MessageView: NSView {
     private let calloutSize = CGFloat(4);
 
     internal let message: Message;
+    internal let conversation: Conversation;
 
-    init(frame: NSRect, width: CGFloat, message: Message) {
+    init(frame: NSRect, width: CGFloat, message: Message, conversation: Conversation) {
         self.textView = NSTextView(frame: NSRect(origin: NSPoint.zero, size: NSSize(width: textWidth, height: 0)));
         self.bubbleLayer = CAShapeLayer();
         self.calloutLayer = CAShapeLayer();
         self.width = width;
         self.message = message;
+        self.conversation = conversation;
 
         super.init(frame: frame);
     }
@@ -36,6 +38,8 @@ class MessageView: NSView {
     override func viewWillMoveToSuperview(newSuperview: NSView?) {
         super.viewWillMoveToSuperview(newSuperview);
         self.wantsLayer = true;
+
+        let foreign = self.message.from == self.conversation.with;
 
         // render text view.
         self.textView.verticallyResizable = true;
@@ -48,7 +52,7 @@ class MessageView: NSView {
 
         // calculate text/bubble frame.
         let size = self.textView.layoutManager!.usedRectForTextContainer(self.textView.textContainer!).size;
-        let origin = NSPoint(x: self.width - bubbleMarginX - size.width, y: bubbleMarginY);
+        let origin = NSPoint(x: foreign ? (self.width - bubbleMarginX - size.width) : bubbleMarginX, y: bubbleMarginY);
         self.textView.setFrameOrigin(origin);
 
         // draw bubble.
@@ -58,19 +62,21 @@ class MessageView: NSView {
         self.bubbleLayer.fillColor = self.bubbleColor;
 
         // draw callout.
-        let rightEdge = origin.x + size.width + bubbleMarginX;
-        let vlineCenter = origin.y + 7.0;
-        let calloutPts = NSPointArray.alloc(3);
-        calloutPts[0] = NSPoint(x: rightEdge, y: vlineCenter + calloutSize);
-        calloutPts[1] = NSPoint(x: rightEdge + calloutSize, y: vlineCenter);
-        calloutPts[2] = NSPoint(x: rightEdge, y: vlineCenter - calloutSize);
-        let calloutPath = NSBezierPath();
-        calloutPath.appendBezierPathWithPoints(calloutPts, count: 3);
-        self.calloutLayer!.path = calloutPath.CGPath;
-        self.calloutLayer!.fillColor = self.bubbleColor;
+        if foreign {
+            let rightEdge = origin.x + size.width + bubbleMarginX;
+            let vlineCenter = origin.y + 7.0;
+            let calloutPts = NSPointArray.alloc(3);
+            calloutPts[0] = NSPoint(x: rightEdge, y: vlineCenter + calloutSize);
+            calloutPts[1] = NSPoint(x: rightEdge + calloutSize, y: vlineCenter);
+            calloutPts[2] = NSPoint(x: rightEdge, y: vlineCenter - calloutSize);
+            let calloutPath = NSBezierPath();
+            calloutPath.appendBezierPathWithPoints(calloutPts, count: 3);
+            self.calloutLayer!.path = calloutPath.CGPath;
+            self.calloutLayer!.fillColor = self.bubbleColor;
+            self.layer!.addSublayer(self.calloutLayer!);
+        }
 
         // add everything.
-        self.layer!.addSublayer(self.calloutLayer!);
         self.layer!.addSublayer(self.bubbleLayer);
         self.addSubview(self.textView);
 

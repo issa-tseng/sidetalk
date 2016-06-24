@@ -329,13 +329,13 @@ class MainView: NSView {
                 let yThis = self.frame.height - self.allPadding - self.listPadding - ((self.tileSize.height + self.tilePadding) * CGFloat((this ?? 0) + 1));
 
                 if last == nil { from = NSPoint(x: xOff, y: yThis); }
-                else if lastState.state.isActive() && (lastState.notifying.contains(tile.contact) ||
-                        lastState.selected == nil || lastState.selected == last) { from = NSPoint(x: xOn, y: yLast); }
+                else if (lastState.state.isActive() && lastState.selected == nil) ||
+                        lastState.notifying.contains(tile.contact) || lastState.selected == last { from = NSPoint(x: xOn, y: yLast); }
                 else { from = NSPoint(x: xHalf, y: yLast); }
 
                 if this == nil { to = NSPoint(x: xOff, y: yLast); }
-                else if thisState.state.isActive() && (thisState.notifying.contains(tile.contact) ||
-                        thisState.selected == nil || thisState.selected == this) { to = NSPoint(x: xOn, y: yThis); }
+                else if (thisState.state.isActive() && thisState.selected == nil) ||
+                        thisState.notifying.contains(tile.contact) || thisState.selected == this { to = NSPoint(x: xOn, y: yThis); }
                 else { to = NSPoint(x: xHalf, y: yThis); }
 
                 if tile.layer!.position != to {

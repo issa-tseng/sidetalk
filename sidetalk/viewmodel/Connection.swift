@@ -107,6 +107,8 @@ class Connection {
     // own user
     private var _myselfSignal = ManagedSignal<XMPPUser?>();
     var myself: Signal<XMPPUser?, NoError> { get { return self._myselfSignal.signal; } };
+    private var _myselfOnce: Contact?;
+    var myselfOnce: Contact? { get { return self._myselfOnce; } };
 
     // managed contacts (impl in prepare())
     private var _contactsCache = QuickCache<XMPPJID, Contact>();
@@ -136,6 +138,15 @@ class Connection {
             }
         }
 
+        // store off own contact object
+        self.myself.observeNext { next in
+            if let user = next {
+                self._myselfOnce = Contact(xmppUser: user, xmppStream: self.stream);
+            } else {
+                self._myselfOnce = nil;
+            }
+        }
+
         // create managed contacts
         self._contactsSignal = self.users.map { users in
             users.map { user in
@@ -151,7 +162,7 @@ class Connection {
                 NSLog("unrecognized user \(rawMessage.from().bare())!");
             } else {
                 let with = self._contactsCache.get(rawMessage.from(), orElse: { Contact(xmppUser: rawWith, xmppStream: self.stream); });
-                let conversation = self._conversationsCache.get(with, orElse: { Conversation(with); });
+                let conversation = self._conversationsCache.get(with, orElse: { Conversation(with, connection: self); });
 
                 if rawMessage.isMessageWithBody() {
                     conversation.addMessage(Message(from: with, body: rawMessage.body(), at: NSDate()));

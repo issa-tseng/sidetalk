@@ -102,10 +102,26 @@ class ConversationView: NSView {
             .map({ active in ConversationState(active: active) })
             .combinePrevious(ConversationState(active: false))
             .observeNext({ lastState, thisState in self.relayout(lastState, thisState); });
+
+        let keyTracker = Impulse.track(Key);
+        GlobalInteraction.sharedInstance.keyPress
+            .combineWithDefault(self.active, defaultValue: false)
+            .observeNext { wrappedKey, active in
+                let key = keyTracker.extract(wrappedKey);
+                if active && key == .Return && self.textField.stringValue != "" {
+                    self.conversation.sendMessage(self.textField.stringValue);
+                    self.textField.stringValue = "";
+                }
+            }
     }
 
     private func drawMessage(message: Message) -> MessageView {
-        let view = MessageView(frame: NSRect(origin: NSPoint(x: 0, y: composeHeight + composePadding), size: self.frame.size), width: self.width, message: message);
+        let view = MessageView(
+            frame: NSRect(origin: NSPoint(x: 0, y: composeHeight + composePadding), size: self.frame.size),
+            width: self.width,
+            message: message,
+            conversation: self.conversation);
+
         dispatch_async(dispatch_get_main_queue(), {
             self.addSubview(view);
 
