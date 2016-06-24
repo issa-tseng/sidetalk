@@ -117,8 +117,8 @@ class Connection {
 
     // managed conversations
     private var _conversationsCache = QuickCache<Contact, Conversation>();
-    private var _conversationsSignal: Signal<[Conversation], NoError>?;
-    var conversations: Signal<[Conversation], NoError> { get { return self._conversationsSignal!; } };
+    private var _conversationsSignal = ManagedSignal<[Conversation]>();
+    var conversations: Signal<[Conversation], NoError> { get { return self._conversationsSignal.signal; } };
 
     // sets up our own reactions to basic xmpp things
     private func prepare() {
@@ -155,8 +155,7 @@ class Connection {
         }
 
         // create managed conversations. add new messages to said conversations.
-        self._conversationsSignal = self._streamDelegateProxy.messageSignal.map { rawMessage in
-            // HACK: side effects in map!
+        self._streamDelegateProxy.messageSignal.observeNext { rawMessage in
             let rawWith = self.rosterStorage.userForJID(rawMessage.from());
             if rawWith == nil {
                 NSLog("unrecognized user \(rawMessage.from().bare())!");
@@ -169,10 +168,13 @@ class Connection {
                 } else if let state = ChatState.fromMessage(rawMessage) {
                     conversation.setChatState(state);
                 }
-            }
 
-            // TODO: don't resignal here if no new conversations created.
-            return self._conversationsCache.all();
+                self._conversationsSignal.observer.sendNext(self._conversationsCache.all());
+            }
         }
+    }
+
+    func conversationWith(with: Contact) -> Conversation {
+        return self._conversationsCache.get(with, orElse: { Conversation(with, connection: self); });
     }
 }

@@ -222,7 +222,10 @@ class MainView: NSView {
             .observeNext { (last, this) in
                 if last == this { return; }
                 if let view = self._conversationViews.get(last) { view.deactivate(); }
-                if let view = self._conversationViews.get(this) { view.activate(); }
+
+                if let contact = this {
+                    self._conversationViews.get(contact, orElse: { self.drawConversation(self.connection.conversationWith(contact)) }).activate();
+                }
             };
 
         // keep track of our last state:

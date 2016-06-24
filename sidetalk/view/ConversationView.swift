@@ -3,10 +3,6 @@ import Foundation
 import ReactiveCocoa
 import enum Result.NoError
 
-struct ConversationState {
-    var active: Bool;
-}
-
 class ConversationView: NSView {
     internal let conversation: Conversation;
     private let width: CGFloat;
@@ -27,6 +23,7 @@ class ConversationView: NSView {
     private let textField: NSTextField;
     private var _messages = [MessageView]();
 
+    private var _initiallyActivated = false;
     private let _activeSignal = ManagedSignal<Bool>();
     var active: Signal<Bool, NoError> { get { return self._activeSignal.signal; } };
 
@@ -97,11 +94,10 @@ class ConversationView: NSView {
         let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "delayed-messages-conversationview");
         let delayedMessage = self.conversation.latestMessage.delay(self.messageShown, onScheduler: scheduler);
 
-        delayedMessage
-            .combineWithDefault(self.active, defaultValue: false).map({ message, active in active })
-            .map({ active in ConversationState(active: active) })
-            .combinePrevious(ConversationState(active: false))
-            .observeNext({ lastState, thisState in self.relayout(lastState, thisState); });
+        self.active
+            .combineWithDefault(delayedMessage.map({ $0 as Message? }), defaultValue: nil).map({ active, _ in active })
+            .combinePrevious(false)
+            .observeNext({ last, this in self.relayout(last, this); });
 
         let keyTracker = Impulse.track(Key);
         GlobalInteraction.sharedInstance.keyPress
@@ -113,6 +109,8 @@ class ConversationView: NSView {
                     self.textField.stringValue = "";
                 }
             }
+
+        self._activeSignal.observer.sendNext(self._initiallyActivated);
     }
 
     private func drawMessage(message: Message) -> MessageView {
@@ -146,6 +144,8 @@ class ConversationView: NSView {
     }
 
     func activate() {
+        self._initiallyActivated = true;
+
         let now = NSDate();
         self._lastShownOnce = now;
         self._lastShownSignal.observer.sendNext(now);
@@ -154,12 +154,12 @@ class ConversationView: NSView {
     func deactivate() { self._activeSignal.observer.sendNext(false); }
 
     // kind of a misnomer; this doesn't lay anything out at all. it just controls visibility.
-    private func relayout(lastState: ConversationState, _ thisState: ConversationState) {
+    private func relayout(last: Bool, _ this: Bool) {
         NSLog("conversation relayout for \(self.conversation.with.displayName)");
 
         dispatch_async(dispatch_get_main_queue(), {
             let now = NSDate();
-            if !lastState.active && thisState.active {
+            if !last && this {
                 // show all messages (unless they're already shown).
                 for (idx, view) in self._messages.enumerate() {
                     if view.message.at.dateByAddingTimeInterval(self.messageShown).isLessThan(now) {
@@ -178,7 +178,7 @@ class ConversationView: NSView {
                 self.calloutLayer.opacity = 1.0;
                 self.textField.alphaValue = 1.0;
                 self.window!.makeFirstResponder(self.textField);
-            } else if lastState.active && !thisState.active {
+            } else if last && !this {
                 // hide all messages.
                 for (idx, view) in self._messages.enumerate() {
                     let anim = CABasicAnimation.init(keyPath: "opacity");
@@ -194,7 +194,7 @@ class ConversationView: NSView {
                     self.calloutLayer.opacity = 0.0;
                     self.textField.alphaValue = 0.0;
                 }
-            } else if !thisState.active {
+            } else if !this {
                 // hide individual messages that may have been shown on receipt.
                 for view in self._messages {
                     if view.message.at.dateByAddingTimeInterval(self.messageShown).isLessThanOrEqualTo(now) {
