@@ -77,6 +77,8 @@ class MainView: NSView {
                 let override = globalStateOverrideTracker.extract(wrappedOverride);
                 if override != .None { return override; }
 
+                if (last == .Searching) && (search == "") { return .Normal; }
+
                 let key = globalStateKeyTracker.extract(wrappedKey);
                 switch (last, key) {
                 //case (.Normal, .Escape): return .Inactive;
