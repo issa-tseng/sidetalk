@@ -1,18 +1,22 @@
 
-import Foundation
-import Cocoa
-import ReactiveCocoa
-import FuzzySearch
+import Foundation;
+import Cocoa;
+import ReactiveCocoa;
+import FuzzySearch;
+import enum Result.NoError;
 
 struct LayoutState {
     let order: [ Contact : Int ];
-    let activated: Bool;
+    let state: MainState;
     let notifying: Set<Contact>;
     let selected: Int?;
 }
 
-enum Key {
-    case Up, Down, Return, Escape, None;
+enum MainState: Impulsable {
+    case Inactive, Normal, Searching, Selecting, Chatting, None;
+    static func noopValue() -> MainState { return .None; }
+
+    func isActive() -> Bool { return !(self == .Inactive || self == .None); }
 }
 
 // TODO: split into V/VM?
@@ -22,6 +26,10 @@ class MainView: NSView {
     private let _statusTile: StatusTile;
     private var _contactTiles = QuickCache<Contact, ContactTile>();
     private var _conversationViews = QuickCache<Contact, ConversationView>();
+
+    private var _state: Signal<MainState, NoError>?;
+    private let _stateOverride = ManagedSignal<Impulse<MainState>>();
+    var state: Signal<MainState, NoError> { get { return self._state!; } };
 
     // drawing ks. should these go elsewhere?
     let allPadding = CGFloat(150);
@@ -33,11 +41,9 @@ class MainView: NSView {
     let conversationVOffset = CGFloat(-17);
 
     let messageShown = NSTimeInterval(3.0);
+    let restoreInterval = NSTimeInterval(30.0);
 
     private let _pressedKey = ManagedSignal<Key>();
-
-    // fuck you mutable state!
-    private var _activeContact: Contact?;
 
     init(frame: CGRect, connection: Connection) {
         self.connection = connection;
@@ -52,37 +58,41 @@ class MainView: NSView {
         );
 
         self.prepare();
+        self._statusTile.prepare(self.state);
     }
 
     private func prepare() {
+        let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "mainview-scheduler");
         let conversations = self.connection.conversations;
 
-        // listen to all key events. vend keystroke.
-        NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDownMask, handler: { event in
-            if event.keyCode == 126 {
-                // up
-                self._pressedKey.observer.sendNext(.Up);
-                self._pressedKey.observer.sendNext(.None);
-                return nil;
-            } else if event.keyCode == 125 {
-                // down
-                self._pressedKey.observer.sendNext(.Down);
-                self._pressedKey.observer.sendNext(.None);
-                return nil;
-            } else if event.keyCode == 36 {
-                // enter
-                self._pressedKey.observer.sendNext(.Return);
-                self._pressedKey.observer.sendNext(.None);
-                return event;
-            } else if event.keyCode == 53 {
-                // enter
-                self._pressedKey.observer.sendNext(.Escape);
-                self._pressedKey.observer.sendNext(.None);
-                return event;
-            } else {
-                return event;
-            }
-        });
+        // determine global state.
+        let globalStateKeyTracker = Impulse.track(Key);
+        let globalStateOverrideTracker = Impulse.track(MainState);
+        self._state = self._stateOverride.signal
+            .combineWithDefault(self._statusTile.searchText, defaultValue: "")
+            .combineWithDefault(GlobalInteraction.sharedInstance.keyPress.map({ $0 as Impulse<Key>? }), defaultValue: nil).map({ ($0.0, $0.1, $1); })
+            .scan(.Inactive, { (last, args) -> MainState in
+                let (wrappedOverride, search, wrappedKey) = args;
+
+                let override = globalStateOverrideTracker.extract(wrappedOverride);
+                if override != .None { return override; }
+
+                let key = globalStateKeyTracker.extract(wrappedKey);
+                switch (last, key) {
+                //case (.Normal, .Escape): return .Inactive;
+                case (.Normal, .Down): return .Selecting;
+                case (.Selecting, .Return): return .Chatting;
+                case (.Selecting, .Escape): return .Normal;
+                case (.Searching, .Return): return .Chatting;
+                case (.Searching, .Escape): return .Normal;
+                case (.Chatting, .Escape): return .Normal;
+                default: break;
+                };
+
+                if (last == .Normal || last == .Selecting) && (search != "") { return .Searching; }
+
+                return last;
+            });
 
         // draw new contacts as required.
         let tiles = self.connection.contacts.map({ (contacts) -> [ContactTile] in
@@ -95,7 +105,6 @@ class MainView: NSView {
         }
 
         // figure out which contacts currently have notification bubbles.
-        let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "delayed-messages-mainview");
         let notifying = conversations.merge(conversations.delay(self.messageShown, onScheduler: scheduler)).map { _ -> Set<Contact> in
             let now = NSDate();
             var result = Set<Contact>();
@@ -139,98 +148,101 @@ class MainView: NSView {
                 return result;
             });
 
-        // determine currently-selected index.
-        let selectedIdx = GlobalInteraction.sharedInstance.activated // (Bool)
-            .combineWithDefault(self._statusTile.searchText, defaultValue: "") // (Bool, String)
-            .combineWithDefault(sort, defaultValue: [Contact:Int]()).map({ ($0.0, $0.1, $1) }) // (Bool, String, [Contact:Int])
-            .combineWithDefault(self._pressedKey.signal, defaultValue: .None).map({ ($0.0, $0.1, $0.2, $1) }) // (Bool, String, [Contact:Int], Key)
-            .combinePrevious((false, "", [:], .None))
-            .scan(nil, { (lastIdx, states) -> Int? in
-                let (_, lastSearch, _, _) = states.0;
-                let (activated, thisSearch, contacts, key) = states.1;
+        // determine the current index.
+        let selectedIdxKeyTracker = Impulse.track(Key);
+        let selectedIdx = sort
+            .combineLatestWith(self.state)
+            .combineLatestWith(GlobalInteraction.sharedInstance.keyPress).map({ ($0.0, $0.1, $1) })
+            .debounce(NSTimeInterval(0.1), onScheduler: scheduler) // HACK: this is a band-aid at best.
+            .scan(nil, { (last, args) -> Int? in
+                let (sort, state, wrappedKey) = args;
 
-                if !activated {
-                    return nil;
-                } else if self._activeContact != nil {
-                    return lastIdx;
-                } else if key == .Escape {
-                    return nil;
+                if state == .Chatting { return last; }
+                if state != .Searching && state != .Selecting { return nil; }
+                if last == nil { return 0; }
+
+                let key = selectedIdxKeyTracker.extract(wrappedKey);
+                if state == .Searching && key == .None {
+                    return 0;
                 } else if key == .Up {
-                    if lastIdx == nil { return nil; }
-                    else if lastIdx == 0 { return nil; }
-                    else if lastIdx > 0 { return lastIdx! - 1; }
+                    if last > 0 {
+                        return last! - 1;
+                    } else if state == .Selecting {
+                        //self.pushState(.Normal); // HACK: side effects
+                        return nil;
+                    } else {
+                        return 0;
+                    }
                 } else if key == .Down {
-                    if lastIdx == nil { return 0; }
-                    else if lastIdx == (contacts.count - 1) { return lastIdx; }
-                    else { return lastIdx! + 1; }
-                } else if lastSearch != thisSearch {
-                    if thisSearch == "" { return nil; }
-                    else { return 0; }
+                    if last == (sort.count - 1) {
+                        return last;
+                    } else {
+                        return last! + 1;
+                    }
                 }
-
-                return lastIdx;
+                return last; // should never be called.
             });
 
         // relayout as required.
         sort.combineLatestWith(tiles).map { order, _ in order } // (Order)
             .combineWithDefault(conversationViews.map({ _ in nil as AnyObject? }), defaultValue: nil).map { order, _ in order } // (Order)
-            .combineWithDefault(GlobalInteraction.sharedInstance.activated, defaultValue: false) // (Order, Bool)
-            .combineWithDefault(notifying, defaultValue: Set<Contact>()).map({ ($0.0, $0.1, $1) }) // ((Order, Bool, Set[Contact])
-            .combineWithDefault(selectedIdx, defaultValue: nil) // ((Order, Bool, Set[Contact]), selectedIdx)
-            .map({ bigTuple, selected in LayoutState(order: bigTuple.0, activated: bigTuple.1, notifying: bigTuple.2, selected: selected); })
+            .combineWithDefault(self.state, defaultValue: .Inactive) // (Order, MainState)
+            .combineWithDefault(notifying, defaultValue: Set<Contact>()).map({ ($0.0, $0.1, $1) }) // ((Order, MainState, Set[Contact])
+            .combineWithDefault(selectedIdx, defaultValue: nil) // ((Order, MainState, Set[Contact]), selectedIdx)
+            .map({ bigTuple, selected in LayoutState(order: bigTuple.0, state: bigTuple.1, notifying: bigTuple.2, selected: selected); })
             .debounce(NSTimeInterval(0.02), onScheduler: QueueScheduler.mainQueueScheduler)
-            .combinePrevious(LayoutState(order: [:], activated: false, notifying: Set<Contact>(), selected: nil))
+            .combinePrevious(LayoutState(order: [:], state: .Inactive, notifying: Set<Contact>(), selected: nil))
             .observeNext { last, this in self.relayout(last, this) };
 
-        // if someone presses return while something is selected, activate that conversation (only).
-        let activeContact = self._pressedKey.signal // (Key)
-            .combineWithDefault(selectedIdx, defaultValue: nil) // (Key, Int?)
-            .combineLatestWith(sort).map({ ($0.0, $0.1, $1) }) // (Key, Int?, [Contact:Int])
-            .scan(nil, { (last, state) -> Contact? in
-                let (key, idx, sort) = state;
-                if key == .Return && idx != nil {
-                    return sort.filter({ _, sortIdx in idx == sortIdx }).first!.0;
-                } else if key == .Escape {
-                    return nil;
-                } else {
-                    return last;
-                }
-            });
-
-        activeContact
-            .combinePrevious(nil)
-            .observeNext { last, this in
-                if last == this { return; }
-                if let view = self._conversationViews.get(last) { view.deactivate(); }
-                if let view = self._conversationViews.get(this) { view.activate(); }
-                self._activeContact = this;
-        };
-
-        // if we are active and no notifications are present, show all contact labels.
+        // show or hide contact labels as appropriate.
         tiles.combineLatestWith(GlobalInteraction.sharedInstance.activated)
             .combineLatestWith(sort) // (([ContactTile], Bool), [Contact:Int])
             .combineWithDefault(notifying.map({ $0 as Set<Contact>? }), defaultValue: nil) // ((([ContactTile], Bool), [Contact:Int]), Set<Contact>?)
-            .combineWithDefault(activeContact, defaultValue: nil) // (((([ContactTile], Bool), [Contact:Int]), Set<Contact>?), Contact?)
+            .combineWithDefault(self.state, defaultValue: .Inactive) // (((([ContactTile], Bool), [Contact:Int]), Set<Contact>?), Contact?)
             .map({ ($0.0.0.0, $0.0.0.1, $0.0.1, $0.1, $1) }) // ([ContactTile], Bool, [Contact:Int], Set<Contact>?, Contact?)
-            .observeNext { (tiles, activated, sort, notifying, activeContact) in
+            .observeNext { (tiles, activated, sort, notifying, state) in
                 for tile in tiles {
-                    tile.showLabel = activated && (notifying == nil || notifying!.count == 0) && (sort[tile.contact] != nil) && (activeContact == nil);
+                    tile.showLabel = activated && (notifying == nil || notifying!.count == 0) && (sort[tile.contact] != nil) && (state != .Chatting);
                 }
             };
 
-        // if we are active, claim window focus. vice versa.
-        GlobalInteraction.sharedInstance.activated.observeNext { activated in
-            if activated { NSApplication.sharedApplication().activateIgnoringOtherApps(true); }
-            else         { GlobalInteraction.sharedInstance.lastApp?.activateWithOptions(NSApplicationActivationOptions.ActivateIgnoringOtherApps); }
-        }
+        // render only the conversation for the active contact.
+        selectedIdx
+            .combineLatestWith(self.state)
+            .combineLatestWith(sort).map({ ($0.0, $0.1, $1); })
+            .map({ (idx, state, sort) -> Contact? in
+                if state == .Chatting && idx != nil { return sort.filter({ _, cidx in idx == cidx }).first!.0; }
+                else { return nil; }
+            })
+            .combinePrevious(nil)
+            .observeNext { (last, this) in
+                if last == this { return; }
+                if let view = self._conversationViews.get(last) { view.deactivate(); }
+                if let view = self._conversationViews.get(this) { view.activate(); }
+            };
 
-        // if we become inactive, hide the conversation.
+        // keep track of our last state:
+        var lastState: (MainState, NSDate) = (.Normal, NSDate());
+
+        // upon activate/deactivate, push the relevant state.
         GlobalInteraction.sharedInstance.activated.observeNext { activated in
-            if !activated && self._activeContact != nil {
-                if let view = self._conversationViews.get(self._activeContact!) { view.deactivate(); }
-                self._activeContact = nil;
+            if activated {
+                NSApplication.sharedApplication().activateIgnoringOtherApps(true);
+
+                let (state, time) = lastState;
+                if time.dateByAddingTimeInterval(self.restoreInterval).isGreaterThan(NSDate()) {
+                    self.pushState(state);
+                } else {
+                    self.pushState(.Normal);
+                }
+            } else {
+                GlobalInteraction.sharedInstance.lastApp?.activateWithOptions(NSApplicationActivationOptions.ActivateIgnoringOtherApps);
+                self.pushState(.Inactive);
             }
         }
+
+        // remember the last non-inactive state.
+        self.state.filter({ state in state != .Inactive }).observeNext({ state in lastState = (state, NSDate()); });
     }
 
     private func drawContact(contact: Contact) -> ContactTile {
@@ -254,18 +266,23 @@ class MainView: NSView {
         return newView;
     }
 
+    private let overrideGenerator = Impulse.generate(MainState);
+    private func pushState(state: MainState) {
+        self._stateOverride.observer.sendNext(overrideGenerator.create(state));
+    }
+
     private func relayout(lastState: LayoutState, _ thisState: LayoutState) {
         // TODO: figure out the two hacks below ( http://stackoverflow.com/questions/37780431/cocoa-core-animation-everything-jumps-around-upon-becomefirstresponder )
         dispatch_async(dispatch_get_main_queue(), {
             // deal with self
-            if lastState.activated != thisState.activated {
+            if lastState.state.isActive() != thisState.state.isActive() {
                 let tile = self._statusTile;
                 let anim = CABasicAnimation.init(keyPath: "position");
 
                 let off = NSPoint.zero;
                 let on =  NSPoint(x: self.tileSize.height * -0.55, y: 0);
 
-                if (thisState.activated) {
+                if (thisState.state.isActive()) {
                     anim.fromValue = NSValue.init(point: off);
                     anim.toValue = NSValue.init(point: on);
                 } else {
@@ -273,12 +290,12 @@ class MainView: NSView {
                     anim.toValue = NSValue.init(point: off);
                 }
 
-                anim.duration = thisState.activated ? 0.03 : 0.15;
+                anim.duration = thisState.state.isActive() ? 0.03 : 0.15;
                 anim.fillMode = kCAFillModeForwards; // HACK: i don't like this or the next line.
                 anim.removedOnCompletion = false;
                 tile.layer!.removeAnimationForKey("contacttile-layout");
                 tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
-                tile.layer!.position = thisState.activated ? on : off;
+                tile.layer!.position = thisState.state.isActive() ? on : off;
             }
 
             // deal with actual contacts
@@ -308,19 +325,19 @@ class MainView: NSView {
                 let yThis = self.frame.height - self.allPadding - self.listPadding - ((self.tileSize.height + self.tilePadding) * CGFloat((this ?? 0) + 1));
 
                 if last == nil { from = NSPoint(x: xOff, y: yThis); }
-                else if (lastState.activated || lastState.notifying.contains(tile.contact)) &&
+                else if (lastState.state.isActive() || lastState.notifying.contains(tile.contact)) &&
                         (lastState.selected == nil || lastState.selected == last) { from = NSPoint(x: xOn, y: yLast); }
                 else { from = NSPoint(x: xHalf, y: yLast); }
 
                 if this == nil { to = NSPoint(x: xOff, y: yLast); }
-                else if (thisState.activated || thisState.notifying.contains(tile.contact)) &&
+                else if (thisState.state.isActive() || thisState.notifying.contains(tile.contact)) &&
                         (thisState.selected == nil || thisState.selected == this) { to = NSPoint(x: xOn, y: yThis); }
                 else { to = NSPoint(x: xHalf, y: yThis); }
 
                 if tile.layer!.position != to {
                     anim.fromValue = NSValue.init(point: from);
                     anim.toValue = NSValue.init(point: to);
-                    anim.duration = NSTimeInterval((!lastState.activated && thisState.activated ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
+                    anim.duration = NSTimeInterval((!lastState.state.isActive() && thisState.state.isActive() ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
                     anim.fillMode = kCAFillModeForwards; // HACK: i don't like this or the next line.
                     anim.removedOnCompletion = false;
                     tile.layer!.removeAnimationForKey("contacttile-layout");

@@ -123,16 +123,6 @@ class StatusTile: NSView {
         self._searchIcon.iconLayer.opacity = 0.0;
 
         super.init(frame: frame);
-
-        // listen to all key events.
-        NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDownMask, handler: { event in
-            if event.keyCode == 53 && self._searchField.stringValue.characters.count > 0 {
-                self._searchField.stringValue = "";
-                return nil;
-            } else {
-                return event;
-            }
-        });
     }
 
     required init(coder: NSCoder) {
@@ -145,11 +135,9 @@ class StatusTile: NSView {
 
         self.addSubview(self._searchField);
         self.addSubview(self._searchIcon);
-
-        self.prepare();
     }
 
-    private func prepare() {
+    func prepare(mainState: Signal<MainState, NoError>) {
         // grab and render our own info.
         self.connection.myself
             .filter({ user in user != nil })
@@ -168,11 +156,14 @@ class StatusTile: NSView {
             };
 
         // focus textfield if activated. clear it if deactivated.
-        GlobalInteraction.sharedInstance.activated.observeNext { activated in
-            if activated {
-                dispatch_async(dispatch_get_main_queue(), { self.window!.makeFirstResponder(self._searchField); });
-            } else {
-                self._searchField.stringValue = "";
+        mainState.combinePrevious(.Inactive).observeNext { (last, this) in
+            if last == this { return; }
+
+            if this == .Normal {
+                dispatch_async(dispatch_get_main_queue(), {
+                    self._searchField.stringValue = "";
+                    self.window!.makeFirstResponder(self._searchField);
+                });
             }
         }
 
