@@ -170,7 +170,9 @@ class MainView: NSView {
                     if last > 0 {
                         return last! - 1;
                     } else if state == .Selecting {
-                        //self.pushState(.Normal); // HACK: side effects
+                        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0), {
+                            self.pushState(.Normal); // HACK: side effects
+                        });
                         return nil;
                     } else {
                         return 0;
