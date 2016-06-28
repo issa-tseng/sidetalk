@@ -4,7 +4,7 @@ import ReactiveCocoa
 import enum Result.NoError
 
 private var _stringValueContext = 0;
-class StringValueLeecher: NSObject, NSTextFieldDelegate {
+class StringValueLeecher: SuppressAutocompleteDelegate, NSTextFieldDelegate {
     private let _field: NSTextField;
 
     init(field: NSTextField) {
@@ -34,13 +34,6 @@ class StringValueLeecher: NSObject, NSTextFieldDelegate {
         if let field = obj.object as? NSTextField {
             self._searchContents.observer.sendNext(field.stringValue ?? "");
         }
-    }
-
-    // HACK: ugh, this is a different set of functionality than leeching, but we already
-    // have our one delegate for the text field.
-    @objc func control(control: NSControl, textView: NSTextView, completions words: [String], forPartialWordRange charRange: NSRange, indexOfSelectedItem index: UnsafeMutablePointer<Int>) -> [String] {
-        // suppress completion-upon-esc.
-        return [];
     }
 }
 

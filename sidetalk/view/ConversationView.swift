@@ -21,6 +21,7 @@ class ConversationView: NSView {
     private let bubbleLayer: CAShapeLayer;
     private let calloutLayer: CAShapeLayer;
     private let textField: NSTextField;
+    private let textFieldDelegate: NSTextFieldDelegate;
     private var _messages = [MessageView]();
 
     private var _initiallyActivated = false;
@@ -40,6 +41,8 @@ class ConversationView: NSView {
         self.calloutLayer = CAShapeLayer();
 
         self.textField = NSTextField(frame: NSRect(origin: NSPoint(x: self.calloutSize, y: 0), size: NSSize(width: self.width, height: self.composeHeight)).insetBy(dx: bubbleMarginX, dy: bubbleMarginY));
+        self.textFieldDelegate = SuppressAutocompleteTextFieldDelegate();
+        self.textField.delegate = self.textFieldDelegate;
 
         super.init(frame: frame);
     }
