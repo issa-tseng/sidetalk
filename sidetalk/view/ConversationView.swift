@@ -154,6 +154,7 @@ class ConversationView: NSView {
         self._lastShownSignal.observer.sendNext(now);
         self._activeSignal.observer.sendNext(true);
     }
+    
     func deactivate() {
         let now = NSDate();
         self._lastShownOnce = now;
@@ -196,12 +197,12 @@ class ConversationView: NSView {
                     view.layer!.removeAnimationForKey("message-fade");
                     view.layer!.addAnimation(anim, forKey: "message-fade");
                     view.layer!.opacity = 0.0;
-
-                    // hide compose area.
-                    self.bubbleLayer.opacity = 0.0;
-                    self.calloutLayer.opacity = 0.0;
-                    self.textField.alphaValue = 0.0;
                 }
+
+                // hide compose area.
+                self.bubbleLayer.opacity = 0.0;
+                self.calloutLayer.opacity = 0.0;
+                self.textField.alphaValue = 0.0;
             } else if !this {
                 // hide individual messages that may have been shown on receipt.
                 for view in self._messages {
