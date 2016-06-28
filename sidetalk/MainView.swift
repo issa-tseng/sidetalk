@@ -125,17 +125,24 @@ class MainView: NSView {
 
         // calculate the correct sort (and implicitly visibility) of all contacts.
         let sort = self.connection.contacts
+            .combineWithDefault(latestMessage.map({ $0 as Message? }), defaultValue: nil).map({ contacts, _ in contacts })
             .combineWithDefault(self._statusTile.searchText, defaultValue: "")
             .map({ contacts, search -> [ Contact : Int ] in
-                let availableContacts = contacts.filter({ contact in contact.onlineOnce && contact.presenceOnce == nil });
-                let awayContacts = contacts.filter { contact in contact.onlineOnce && contact.presenceOnce != nil };
+                let (chattedContacts, restContacts) = contacts.part({ contact in contact.conversation.messages.count > 0 });
+
+                let sortedChattedContacts = chattedContacts.sort({ a, b in
+                    a.conversation.messages.first!.at.compare(b.conversation.messages.first!.at) == .OrderedAscending
+                });
+
+                let availableContacts = restContacts.filter { contact in contact.onlineOnce && contact.presenceOnce == nil };
+                let awayContacts = restContacts.filter { contact in contact.onlineOnce && contact.presenceOnce != nil };
 
                 var sorted: [Contact]; // HACK: mutable. gross.
 
                 if search == "" {
-                    sorted = availableContacts + awayContacts;
+                    sorted = sortedChattedContacts + availableContacts + awayContacts;
                 } else {
-                    let offlineContacts = contacts.filter { contact in !contact.onlineOnce };
+                    let offlineContacts = restContacts.filter { contact in !contact.onlineOnce };
                     let scores = (availableContacts + awayContacts + offlineContacts).map { contact in
                         (contact, FuzzySearch.score(originalString: contact.displayName, stringToMatch: search, fuzziness: 0.75));
                     };
