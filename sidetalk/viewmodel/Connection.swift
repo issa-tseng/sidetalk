@@ -110,15 +110,14 @@ class Connection {
     private var _myselfOnce: Contact?;
     var myselfOnce: Contact? { get { return self._myselfOnce; } };
 
+    // latest message
+    private var _latestMessageSignal = ManagedSignal<Message>();
+    var latestMessage: Signal<Message, NoError> { get { return self._latestMessageSignal.signal; } };
+
     // managed contacts (impl in prepare())
-    private var _contactsCache = QuickCache<XMPPJID, Contact>();
+    private var _contactsCache = QuickCache<String, Contact>();
     private var _contactsSignal: Signal<[Contact], NoError>?;
     var contacts: Signal<[Contact], NoError> { get { return self._contactsSignal!; } };
-
-    // managed conversations
-    private var _conversationsCache = QuickCache<Contact, Conversation>();
-    private var _conversationsSignal = ManagedSignal<[Conversation]>();
-    var conversations: Signal<[Conversation], NoError> { get { return self._conversationsSignal.signal; } };
 
     // sets up our own reactions to basic xmpp things
     private func prepare() {
@@ -140,41 +139,50 @@ class Connection {
 
         // store off own contact object
         self.myself.observeNext { next in
-            if let user = next {
-                self._myselfOnce = Contact(xmppUser: user, xmppStream: self.stream);
-            } else {
-                self._myselfOnce = nil;
-            }
+            if let user = next { self._myselfOnce = Contact(xmppUser: user, connection: self); }
+            else { self._myselfOnce = nil; }
         }
 
         // create managed contacts
         self._contactsSignal = self.users.map { users in
             users.map { user in
-                self._contactsCache.get(user.jid(), update: { contact in contact.update(user); }, orElse: { Contact(xmppUser: user, xmppStream: self.stream); });
+                self._contactsCache.get(user.jid().bare(), update: { contact in contact.update(user); }, orElse: { Contact(xmppUser: user, connection: self); });
             };
         }
 
-        // create managed conversations. add new messages to said conversations.
+        // add new messages to the appropriate conversations.
         self._streamDelegateProxy.messageSignal.observeNext { rawMessage in
-            let rawWith = self.rosterStorage.userForJID(rawMessage.from());
-            if rawWith == nil {
-                NSLog("unrecognized user \(rawMessage.from().bare())!");
-            } else {
-                let with = self._contactsCache.get(rawMessage.from(), orElse: { Contact(xmppUser: rawWith, xmppStream: self.stream); });
-                let conversation = self._conversationsCache.get(with, orElse: { Conversation(with, connection: self); });
+            if let with = self._contactsCache.get(rawMessage.from().bare()) {
+                let conversation = with.conversation;
 
                 if rawMessage.isMessageWithBody() {
-                    conversation.addMessage(Message(from: with, body: rawMessage.body(), at: NSDate()));
+                    let message = Message(from: with, body: rawMessage.body(), at: NSDate(), conversation: conversation);
+                    conversation.addMessage(message);
+                    self._latestMessageSignal.observer.sendNext(message);
                 } else if let state = ChatState.fromMessage(rawMessage) {
                     conversation.setChatState(state);
                 }
-
-                self._conversationsSignal.observer.sendNext(self._conversationsCache.all());
+            } else {
+                NSLog("unrecognized user \(rawMessage.from().bare())!");
             }
         }
     }
 
-    func conversationWith(with: Contact) -> Conversation {
-        return self._conversationsCache.get(with, orElse: { Conversation(with, connection: self); });
+    // send an outbound message in a way that handles the plumbing correctly.
+    func sendMessage(to: Contact, _ text: String) {
+        let xmlBody = NSXMLElement(name: "body");
+        xmlBody.setStringValue(text, resolvingEntities: false);
+
+        let xmlMessage = NSXMLElement(name: "message");
+        xmlMessage.addAttributeWithName("type", stringValue: "chat");
+        xmlMessage.addAttributeWithName("to", stringValue: to.inner.jid().full());
+        xmlMessage.addChild(xmlBody);
+
+        self.stream.sendElement(xmlMessage);
+
+        let message = Message(from: self.myselfOnce!, body: text, at: NSDate(), conversation: to.conversation);
+        self._latestMessageSignal.observer.sendNext(message);
+        to.conversation.addMessage(message);
+        // TODO: i don't like that this is a separate set of code from the foreign incoming.
     }
 }

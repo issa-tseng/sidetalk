@@ -8,6 +8,7 @@ struct Message {
     let from: Contact;
     let body: String;
     let at: NSDate;
+    let conversation: Conversation;
 }
 
 enum ChatState {
@@ -42,22 +43,12 @@ class Conversation: Hashable {
     }
 
     func addMessage(message: Message) {
-        self.messages.append(message);
+        self.messages.insert(message, atIndex: 0);
         self._latestMessageSignal.observer.sendNext(message);
     }
 
     func sendMessage(text: String) {
-        let body = NSXMLElement(name: "body");
-        body.setStringValue(text, resolvingEntities: false);
-
-        let message = NSXMLElement(name: "message");
-        message.addAttributeWithName("type", stringValue: "chat");
-        message.addAttributeWithName("to", stringValue: self.with.inner.jid().full());
-        message.addChild(body);
-
-        self.connection.stream.sendElement(message);
-
-        self.addMessage(Message(from: self.connection.myselfOnce!, body: text, at: NSDate()));
+        self.connection.sendMessage(self.with, text);
     }
 
     func messages(range: NSRange) -> [Message] {

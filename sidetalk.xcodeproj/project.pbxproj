@@ -14,6 +14,7 @@
 		451282581CF9295C0088DEDE /* sidetalkUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451282571CF9295C0088DEDE /* sidetalkUITests.swift */; };
 		451282661CFA6F100088DEDE /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451282651CFA6F100088DEDE /* MainView.swift */; };
 		452591C81D1CA93D000CF9F1 /* Impulse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452591C71D1CA93D000CF9F1 /* Impulse.swift */; };
+		452591CA1D1D0751000CF9F1 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452591C91D1D0751000CF9F1 /* ArrayExtensions.swift */; };
 		454DBB981D08E4C30065DA1B /* QuickCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 454DBB971D08E4C30065DA1B /* QuickCache.swift */; };
 		454DBB9A1D0935190065DA1B /* ManagedSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 454DBB991D0935190065DA1B /* ManagedSignal.swift */; };
 		457A783E1D0F74DF005D58EF /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A783D1D0F74DF005D58EF /* Conversation.swift */; };
@@ -72,6 +73,7 @@
 		451282591CF9295C0088DEDE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		451282651CFA6F100088DEDE /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		452591C71D1CA93D000CF9F1 /* Impulse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Impulse.swift; path = util/Impulse.swift; sourceTree = "<group>"; };
+		452591C91D1D0751000CF9F1 /* ArrayExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ArrayExtensions.swift; path = util/ArrayExtensions.swift; sourceTree = "<group>"; };
 		454DBB971D08E4C30065DA1B /* QuickCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QuickCache.swift; path = util/QuickCache.swift; sourceTree = "<group>"; };
 		454DBB991D0935190065DA1B /* ManagedSignal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ManagedSignal.swift; path = util/ManagedSignal.swift; sourceTree = "<group>"; };
 		457A783D1D0F74DF005D58EF /* Conversation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Conversation.swift; path = viewmodel/Conversation.swift; sourceTree = "<group>"; };
@@ -215,6 +217,7 @@
 				454DBB991D0935190065DA1B /* ManagedSignal.swift */,
 				458A73441D0A51E20061FAFD /* SignalExtensions.swift */,
 				452591C71D1CA93D000CF9F1 /* Impulse.swift */,
+				452591C91D1D0751000CF9F1 /* ArrayExtensions.swift */,
 			);
 			name = util;
 			sourceTree = "<group>";
@@ -487,6 +490,7 @@
 				457A78401D0F8B57005D58EF /* ConversationView.swift in Sources */,
 				45AEC00C1CFD1F6700203967 /* XUIIndexPathAdditions.m in Sources */,
 				45AEC00B1CFD1F6700203967 /* XUIImageAdditions.m in Sources */,
+				452591CA1D1D0751000CF9F1 /* ArrayExtensions.swift in Sources */,
 				452591C81D1CA93D000CF9F1 /* Impulse.swift in Sources */,
 				45AEC0071CFD1F6700203967 /* XUIColorAdditions.m in Sources */,
 				4512823D1CF9295C0088DEDE /* AppDelegate.swift in Sources */,

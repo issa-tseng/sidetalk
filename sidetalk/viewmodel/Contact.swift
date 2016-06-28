@@ -47,11 +47,15 @@ class Contact: Hashable {
     private var _avatarSignal: SignalProducer<NSImage?, NoError>?;
     var avatar: SignalProducer<NSImage?, NoError> { get { return self._avatarSignal!; } };
 
+    private var _conversation: Conversation?;
+    var conversation: Conversation { get { return self._conversation!; } };
+
     var hashValue: Int { get { return self.inner.jid().hashValue; } };
 
-    init(xmppUser: XMPPUser, xmppStream: XMPPStream) {
+    init(xmppUser: XMPPUser, connection: Connection) {
         self.inner = xmppUser;
-        self.stream = xmppStream;
+        self.stream = connection.stream;
+        self._conversation = Conversation(self, connection: connection);
         self.update(xmppUser, forceUpdate: true);
 
         self.prepare();

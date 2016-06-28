@@ -151,7 +151,12 @@ class ConversationView: NSView {
         self._lastShownSignal.observer.sendNext(now);
         self._activeSignal.observer.sendNext(true);
     }
-    func deactivate() { self._activeSignal.observer.sendNext(false); }
+    func deactivate() {
+        let now = NSDate();
+        self._lastShownOnce = now;
+        self._lastShownSignal.observer.sendNext(now);
+        self._activeSignal.observer.sendNext(false);
+    }
 
     // kind of a misnomer; this doesn't lay anything out at all. it just controls visibility.
     private func relayout(last: Bool, _ this: Bool) {

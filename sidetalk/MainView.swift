@@ -63,7 +63,6 @@ class MainView: NSView {
 
     private func prepare() {
         let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "mainview-scheduler");
-        let conversations = self.connection.conversations;
 
         // determine global state.
         let globalStateKeyTracker = Impulse.track(Key);
@@ -102,12 +101,14 @@ class MainView: NSView {
         });
 
         // draw new conversations as required.
-        let conversationViews = conversations.map { conversations in
-            conversations.map { conversation in self._conversationViews.get(conversation.with, orElse: { self.drawConversation(conversation); }) };
-        }
+        self.connection.latestMessage.observeNext { message in
+            let conversation = message.conversation;
+            self._conversationViews.get(conversation.with, orElse: { self.drawConversation(conversation); })
+        };
 
         // figure out which contacts currently have notification bubbles.
-        let notifying = conversations.merge(conversations.delay(self.messageShown, onScheduler: scheduler)).map { _ -> Set<Contact> in
+        let latestMessage = self.connection.latestMessage;
+        let notifying = latestMessage.merge(latestMessage.delay(self.messageShown, onScheduler: scheduler)).map { _ -> Set<Contact> in
             let now = NSDate();
             var result = Set<Contact>();
 
@@ -189,7 +190,7 @@ class MainView: NSView {
 
         // relayout as required.
         sort.combineLatestWith(tiles).map { order, _ in order } // (Order)
-            .combineWithDefault(conversationViews.map({ _ in nil as AnyObject? }), defaultValue: nil).map { order, _ in order } // (Order)
+            .combineWithDefault(latestMessage.map({ _ in nil as AnyObject? }), defaultValue: nil).map { order, _ in order } // (Order)
             .combineWithDefault(self.state, defaultValue: .Inactive) // (Order, MainState)
             .combineWithDefault(notifying, defaultValue: Set<Contact>()).map({ ($0.0, $0.1, $1) }) // ((Order, MainState, Set[Contact])
             .combineWithDefault(selectedIdx, defaultValue: nil) // ((Order, MainState, Set[Contact]), selectedIdx)
@@ -223,9 +224,7 @@ class MainView: NSView {
                 if last == this { return; }
                 if let view = self._conversationViews.get(last) { view.deactivate(); }
 
-                if let contact = this {
-                    self._conversationViews.get(contact, orElse: { self.drawConversation(self.connection.conversationWith(contact)) }).activate();
-                }
+                if let contact = this { self._conversationViews.get(contact, orElse: { self.drawConversation(contact.conversation) }).activate(); }
             };
 
         // keep track of our last state:

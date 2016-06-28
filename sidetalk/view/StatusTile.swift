@@ -141,7 +141,7 @@ class StatusTile: NSView {
         // grab and render our own info.
         self.connection.myself
             .filter({ user in user != nil })
-            .map({ user in Contact(xmppUser: user!, xmppStream: self.connection.stream); })
+            .map({ user in Contact(xmppUser: user!, connection: self.connection); })
 
             // render the tile.
             .map { contact in self.drawContact(contact) } // HACK: side effects in a map.
