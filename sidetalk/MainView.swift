@@ -75,7 +75,7 @@ class MainView: NSView {
                 let (chattedContacts, restContacts) = contacts.part({ contact in contact.conversation.messages.count > 0 });
 
                 let sortedChattedContacts = chattedContacts.sort({ a, b in
-                    a.conversation.messages.first!.at.compare(b.conversation.messages.first!.at) == .OrderedAscending
+                    a.conversation.messages.first!.at.compare(b.conversation.messages.first!.at) == .OrderedDescending
                 });
 
                 let availableContacts = restContacts.filter { contact in contact.onlineOnce && contact.presenceOnce == nil };
