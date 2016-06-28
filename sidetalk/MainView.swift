@@ -295,7 +295,7 @@ class MainView: NSView {
 
                 // TODO: repetitive.
                 switch (last, lastState.notifying.contains(tile.contact), lastState.state) {
-                case (nil, _, _):                                               from = NSPoint(x: xOff, y: yLast);
+                case (nil, _, _):                                               from = NSPoint(x: xOff, y: yThis);
                 case (let lidx, _, let .Selecting(idx)) where lidx == idx:      from = NSPoint(x: xOn, y: yLast);
                 case (let lidx, _, let .Searching(_, idx)) where lidx == idx:   from = NSPoint(x: xOn, y: yLast);
                 case (_, _, let .Chatting(with)) where with == tile.contact:    from = NSPoint(x: xOn, y: yLast);
@@ -304,7 +304,7 @@ class MainView: NSView {
                 }
 
                 switch (this, thisState.notifying.contains(tile.contact), thisState.state) {
-                case (nil, _, _):                                               to = NSPoint(x: xOff, y: yThis);
+                case (nil, _, _):                                               to = NSPoint(x: xOff, y: yLast);
                 case (let tidx, _, let .Selecting(idx)) where tidx == idx:      to = NSPoint(x: xOn, y: yThis);
                 case (let tidx, _, let .Searching(_, idx)) where tidx == idx:   to = NSPoint(x: xOn, y: yThis);
                 case (_, _, let .Chatting(with)) where with == tile.contact:    to = NSPoint(x: xOn, y: yThis);
