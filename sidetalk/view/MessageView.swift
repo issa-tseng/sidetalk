@@ -52,7 +52,7 @@ class MessageView: NSView {
 
         // calculate text/bubble frame.
         let size = self.textView.layoutManager!.usedRectForTextContainer(self.textView.textContainer!).size;
-        let origin = NSPoint(x: foreign ? (self.width - bubbleMarginX - size.width) : bubbleMarginX, y: bubbleMarginY);
+        let origin = NSPoint(x: foreign ? (self.width - bubbleMarginX - size.width) : (calloutSize + bubbleMarginX), y: bubbleMarginY);
         self.textView.setFrameOrigin(origin);
 
         // draw bubble.
