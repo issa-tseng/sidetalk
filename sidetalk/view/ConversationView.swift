@@ -154,7 +154,7 @@ class ConversationView: NSView {
         self._lastShownSignal.observer.sendNext(now);
         self._activeSignal.observer.sendNext(true);
     }
-    
+
     func deactivate() {
         let now = NSDate();
         self._lastShownOnce = now;

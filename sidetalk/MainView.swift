@@ -67,11 +67,12 @@ class MainView: NSView {
         // determine global state.
         let globalStateKeyTracker = Impulse.track(Key);
         let globalStateOverrideTracker = Impulse.track(MainState);
-        self._state = self._stateOverride.signal
-            .combineWithDefault(self._statusTile.searchText, defaultValue: "")
-            .combineWithDefault(GlobalInteraction.sharedInstance.keyPress.map({ $0 as Impulse<Key>? }), defaultValue: nil).map({ ($0.0, $0.1, $1); })
+        var lastState: (MainState, NSDate) = (.Normal, NSDate());
+        self._state = GlobalInteraction.sharedInstance.keyPress
+            .combineWithDefault(self._stateOverride.signal.downcastToOptional(), defaultValue: nil)
+            .combineWithDefault(self._statusTile.searchText, defaultValue: "").map({ ($0.0, $0.1, $1); })
             .scan(.Inactive, { (last, args) -> MainState in
-                let (wrappedOverride, search, wrappedKey) = args;
+                let (wrappedKey, wrappedOverride, search) = args;
 
                 let override = globalStateOverrideTracker.extract(wrappedOverride);
                 if override != .None { return override; }
@@ -80,7 +81,7 @@ class MainView: NSView {
 
                 let key = globalStateKeyTracker.extract(wrappedKey);
                 switch (last, key) {
-                //case (.Normal, .Escape): return .Inactive;
+                case (.Normal, .Escape): return .Inactive;
                 case (.Normal, .Down): return .Selecting;
                 case (.Selecting, .Return): return .Chatting;
                 case (.Selecting, .Escape): return .Normal;
@@ -90,10 +91,29 @@ class MainView: NSView {
                 default: break;
                 };
 
+                if key == .GlobalToggle {
+                    if last == .Inactive {
+                        let (state, time) = lastState;
+                        if time.dateByAddingTimeInterval(self.restoreInterval).isGreaterThan(NSDate()) {
+                            return state;
+                        } else {
+                            return .Normal;
+                        }
+                    } else {
+                        return .Inactive;
+                    }
+                }
+
                 if (last == .Normal || last == .Selecting) && (search != "") { return .Searching; }
 
                 return last;
             });
+
+        self.state.observeNext({ next in NSLog("state: \(next)"); });
+        GlobalInteraction.sharedInstance.keyPress.observeNext({ next in NSLog("key: \(next)"); });
+
+        // keep track of our last state:
+        self.state.filter({ state in state != .Inactive }).observeNext({ state in lastState = (state, NSDate()); });
 
         // draw new contacts as required.
         let tiles = self.connection.contacts.map({ (contacts) -> [ContactTile] in
@@ -125,7 +145,7 @@ class MainView: NSView {
 
         // calculate the correct sort (and implicitly visibility) of all contacts.
         let sort = self.connection.contacts
-            .combineWithDefault(latestMessage.map({ $0 as Message? }), defaultValue: nil).map({ contacts, _ in contacts })
+            .combineWithDefault(latestMessage.downcastToOptional(), defaultValue: nil).map({ contacts, _ in contacts })
             .combineWithDefault(self._statusTile.searchText, defaultValue: "")
             .map({ contacts, search -> [ Contact : Int ] in
                 let (chattedContacts, restContacts) = contacts.part({ contact in contact.conversation.messages.count > 0 });
@@ -162,7 +182,7 @@ class MainView: NSView {
         let selectedIdxKeyTracker = Impulse.track(Key);
         let selectedIdx = sort
             .combineLatestWith(self.state)
-            .combineWithDefault(GlobalInteraction.sharedInstance.keyPress.map({ $0 as Impulse<Key>? }), defaultValue: nil).map({ ($0.0, $0.1, $1) })
+            .combineWithDefault(GlobalInteraction.sharedInstance.keyPress.downcastToOptional(), defaultValue: nil).map({ ($0.0, $0.1, $1) })
             .debounce(NSTimeInterval(0.1), onScheduler: scheduler) // HACK: this is a band-aid at best.
             .scan(nil, { (last, args) -> Int? in
                 let (sort, state, wrappedKey) = args;
@@ -207,14 +227,13 @@ class MainView: NSView {
             .observeNext { last, this in self.relayout(last, this) };
 
         // show or hide contact labels as appropriate.
-        tiles.combineLatestWith(GlobalInteraction.sharedInstance.activated)
-            .combineLatestWith(sort) // (([ContactTile], Bool), [Contact:Int])
-            .combineWithDefault(notifying.map({ $0 as Set<Contact>? }), defaultValue: nil) // ((([ContactTile], Bool), [Contact:Int]), Set<Contact>?)
-            .combineWithDefault(self.state, defaultValue: .Inactive) // (((([ContactTile], Bool), [Contact:Int]), Set<Contact>?), Contact?)
-            .map({ ($0.0.0.0, $0.0.0.1, $0.0.1, $0.1, $1) }) // ([ContactTile], Bool, [Contact:Int], Set<Contact>?, Contact?)
-            .observeNext { (tiles, activated, sort, notifying, state) in
+        tiles.combineLatestWith(sort) // ([ContactTile], [Contact:Int])
+            .combineWithDefault(notifying.downcastToOptional(), defaultValue: nil) // (([ContactTile], [Contact:Int]), Set<Contact>?)
+            .combineWithDefault(self.state, defaultValue: .Inactive) // ((([ContactTile], [Contact:Int]), Set<Contact>?), Contact?)
+            .map({ ($0.0.0, $0.0.1, $0.1, $1) }) // ([ContactTile], [Contact:Int], Set<Contact>?, Contact?)
+            .observeNext { (tiles, sort, notifying, state) in
                 for tile in tiles {
-                    tile.showLabel = activated && (notifying == nil || notifying!.count == 0) && (sort[tile.contact] != nil) && (state != .Chatting);
+                    tile.showLabel = (state != .Inactive) && (state != .Chatting) && (notifying == nil || notifying!.count == 0) && (sort[tile.contact] != nil);
                 }
             };
 
@@ -234,28 +253,14 @@ class MainView: NSView {
                 if let contact = this { self._conversationViews.get(contact, orElse: { self.drawConversation(contact.conversation) }).activate(); }
             };
 
-        // keep track of our last state:
-        var lastState: (MainState, NSDate) = (.Normal, NSDate());
-
-        // upon activate/deactivate, push the relevant state.
-        GlobalInteraction.sharedInstance.activated.observeNext { activated in
-            if activated {
+        // upon activate/deactivate, handle window focus correctly.
+        self.state.combinePrevious(.Inactive).observeNext { last, this in
+            if last == .Inactive && this != .Inactive {
                 NSApplication.sharedApplication().activateIgnoringOtherApps(true);
-
-                let (state, time) = lastState;
-                if time.dateByAddingTimeInterval(self.restoreInterval).isGreaterThan(NSDate()) {
-                    self.pushState(state);
-                } else {
-                    self.pushState(.Normal);
-                }
-            } else {
+            } else if last != .Inactive && this == .Inactive {
                 GlobalInteraction.sharedInstance.lastApp?.activateWithOptions(NSApplicationActivationOptions.ActivateIgnoringOtherApps);
-                self.pushState(.Inactive);
             }
         }
-
-        // remember the last non-inactive state.
-        self.state.filter({ state in state != .Inactive }).observeNext({ state in lastState = (state, NSDate()); });
     }
 
     private func drawContact(contact: Contact) -> ContactTile {

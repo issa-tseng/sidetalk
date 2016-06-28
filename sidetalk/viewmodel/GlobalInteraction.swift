@@ -5,7 +5,7 @@ import ReactiveCocoa
 import enum Result.NoError
 
 enum Key : Impulsable {
-    case Up, Down, Return, Escape, None;
+    case Up, Down, Return, Escape, GlobalToggle, None;
 
     static func noopValue() -> Key { return .None; }
 }
@@ -19,17 +19,8 @@ class GlobalInteraction {
     var keyPress: Signal<Impulse<Key>, NoError> { get { return self._keyPress.signal; } };
 
     private let activateShortcut = MASShortcut.init(keyCode: 0x31, modifierFlags: NSEventModifierFlags.ControlKeyMask.rawValue);
-    private var _activated = false;
-    private let _activatedSignal = ManagedSignal<Bool>();
-    var activated: Signal<Bool, NoError> { get { return self._activatedSignal.signal; } };
 
     init() {
-        // global shortcut.
-        MASShortcutMonitor.sharedMonitor().registerShortcut(activateShortcut, withAction: {
-            self._activated = !self._activated;
-            self._activatedSignal.observer.sendNext(self._activated);
-        });
-
         // previously focused application handling.
         NSWorkspace.sharedWorkspace().notificationCenter.addObserver(self,
             selector: #selector(appDeactivated), name: NSWorkspaceDidDeactivateApplicationNotification, object: nil);
@@ -47,6 +38,11 @@ class GlobalInteraction {
                 self._keyPress.observer.sendNext(keyGenerator.create(.Escape));
             }
             return event;
+        });
+
+        // global shortcut.
+        MASShortcutMonitor.sharedMonitor().registerShortcut(activateShortcut, withAction: {
+            self._keyPress.observer.sendNext(keyGenerator.create(.GlobalToggle));
         });
     }
 
