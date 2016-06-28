@@ -23,6 +23,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.backgroundColor = NSColor.clearColor();
         window.styleMask = NSBorderlessWindowMask;
 
+        // shadows are currently causing problems w core animation.
+        window.hasShadow = false;
+
         // reënable basic magick?
         //self.window?.canBecomeKeyWindow = true
         //self.window?.canBecomeMainWindow = true
