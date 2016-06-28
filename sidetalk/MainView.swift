@@ -135,7 +135,7 @@ class MainView: NSView {
             // conversation states have changed. let's look at which have recent messages.
             for conversationView in self._conversationViews.all() {
                 let conversation = conversationView.conversation;
-                if conversation.messages.count > 0 && conversation.messages.last!.at.dateByAddingTimeInterval(self.messageShown).isGreaterThanOrEqualTo(now) {
+                if conversation.messages.count > 0 && conversation.messages.first!.at.dateByAddingTimeInterval(self.messageShown).isGreaterThanOrEqualTo(now) {
                     result.insert(conversation.with);
                 }
             }
