@@ -162,7 +162,7 @@ class MainView: NSView {
         let selectedIdxKeyTracker = Impulse.track(Key);
         let selectedIdx = sort
             .combineLatestWith(self.state)
-            .combineLatestWith(GlobalInteraction.sharedInstance.keyPress).map({ ($0.0, $0.1, $1) })
+            .combineWithDefault(GlobalInteraction.sharedInstance.keyPress.map({ $0 as Impulse<Key>? }), defaultValue: nil).map({ ($0.0, $0.1, $1) })
             .debounce(NSTimeInterval(0.1), onScheduler: scheduler) // HACK: this is a band-aid at best.
             .scan(nil, { (last, args) -> Int? in
                 let (sort, state, wrappedKey) = args;
