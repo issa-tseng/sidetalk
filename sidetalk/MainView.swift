@@ -32,7 +32,7 @@ class MainView: NSView {
     let conversationVOffset = CGFloat(-17);
 
     let messageShown = NSTimeInterval(3.0);
-    let restoreInterval = NSTimeInterval(30.0);
+    let restoreInterval = NSTimeInterval(10.0 * 60.0);
 
     private let _pressedKey = ManagedSignal<Key>();
 
