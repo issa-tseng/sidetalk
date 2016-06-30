@@ -216,7 +216,7 @@ class MainView: NSView {
             } else if last != .Inactive && this == .Inactive {
                 GlobalInteraction.sharedInstance.lastApp?.activateWithOptions(NSApplicationActivationOptions.ActivateIgnoringOtherApps);
             }
-        }
+        };
     }
 
     private func drawContact(contact: Contact) -> ContactTile {
@@ -325,21 +325,10 @@ class MainView: NSView {
 
                 // if we have a conversation as well, position that appropriately.
                 if let conversationView = self._conversationViews.get(tile.contact) {
-                    let convAnim = CABasicAnimation.init(keyPath: "position");
-                    let convX = self.frame.width - self.tileSize.height - self.tilePadding - self.conversationPadding - self.conversationWidth;
-                    let from = NSPoint(x: convX, y: yLast + self.conversationVOffset);
-                    let to = NSPoint(x: convX, y: yThis + self.conversationVOffset);
-
-                    if conversationView.layer!.position != to {
-                        convAnim.fromValue = NSValue.init(point: from);
-                        convAnim.toValue = NSValue.init(point: to);
-                        convAnim.duration = anim.duration;
-                        convAnim.fillMode = kCAFillModeForwards; // HACK: i don't like this or the next line.
-                        convAnim.removedOnCompletion = false;
-                        conversationView.layer!.removeAnimationForKey("conversation-layout");
-                        conversationView.layer!.addAnimation(convAnim, forKey: "conversation-layout");
-                        conversationView.layer!.position = to;
-                    }
+                    conversationView.animator().frame.origin = NSPoint(
+                        x: self.frame.width - self.tileSize.height - self.tilePadding - self.conversationPadding - self.conversationWidth,
+                        y: yThis + self.conversationVOffset
+                    );
                 }
             }
         });
