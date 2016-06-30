@@ -45,9 +45,18 @@ class MessageView: NSView {
         self.textView.verticallyResizable = true;
         self.textView.string = self.message.body;
         self.textView.drawsBackground = false;
-        self.textView.editable = false;
         self.textView.textColor = NSColor.whiteColor();
         self.textView.font = NSFont.systemFontOfSize(12);
+
+        // autolink and such.
+        self.textView.automaticLinkDetectionEnabled = true;
+        self.textView.linkTextAttributes?[NSForegroundColorAttributeName] = NSColor.whiteColor();
+        self.textView.editable = true;
+        self.textView.checkTextInDocument(nil);
+        //self.textView.editable = false;
+        self.textView.selectable = true;
+
+        // size it up to fit the text.
         self.textView.sizeToFit();
 
         // calculate text/bubble frame.
