@@ -31,7 +31,7 @@ class MainView: NSView {
     let conversationWidth = CGFloat(300);
     let conversationVOffset = CGFloat(-17);
 
-    let messageShown = NSTimeInterval(3.0);
+    let messageShown = NSTimeInterval(5.0);
     let restoreInterval = NSTimeInterval(10.0 * 60.0);
 
     private let _pressedKey = ManagedSignal<Key>();
@@ -62,7 +62,9 @@ class MainView: NSView {
         });
 
         // draw new conversations as required.
+        var latestForeignMessage_: Message?; // sort of a deviation from pattern. but i think it's better?
         latestMessage.observeNext { message in
+            if message.isForeign() { latestForeignMessage_ = message };
             let conversation = message.conversation;
             self._conversationViews.get(conversation.with, orElse: { self.drawConversation(conversation); })
         };
@@ -105,6 +107,7 @@ class MainView: NSView {
         // determine global state.
         let keyTracker = Impulse.track(Key);
         var lastState: (MainState, NSDate) = (.Normal, NSDate());
+        var lastInactive = NSDate.distantPast();
         self._state = GlobalInteraction.sharedInstance.keyPress
             .combineLatestWith(sort)
             .combineWithDefault(self._statusTile.searchText, defaultValue: "").map({ ($0.0, $0.1, $1); })
@@ -155,21 +158,30 @@ class MainView: NSView {
         // keep track of our last state:
         self.state.filter({ state in state != .Inactive }).observeNext({ state in lastState = (state, NSDate()); });
 
-        // figure out which contacts currently have notification bubbles.
-        let notifying = latestMessage.merge(latestMessage.delay(self.messageShown, onScheduler: scheduler)).map { _ -> Set<Contact> in
-            let now = NSDate();
-            var result = Set<Contact>();
+        // keep track of our last dismissal:
+        self.state.skipRepeats({ $0 == $1 }).filter({ state in state == .Inactive }).observeNext({ _ in lastInactive = NSDate() });
 
-            // conversation states have changed. let's look at which have recent messages.
-            for conversationView in self._conversationViews.all() {
-                let conversation = conversationView.conversation;
-                if conversation.messages.count > 0 && conversation.messages.first!.at.dateByAddingTimeInterval(self.messageShown).isGreaterThanOrEqualTo(now) {
-                    result.insert(conversation.with);
+        // figure out which contacts currently have notification bubbles. TODO: not a big fan of the mutable var but it may be cleaner?
+        let foreignMessages = latestMessage.filter({ message in message.isForeign() });
+        let notifying = foreignMessages.always(0)
+            .merge(foreignMessages.always(0).delay(self.messageShown, onScheduler: scheduler))
+            .merge(self.state.always(0))
+            .map { _ -> Set<Contact> in
+                var result = Set<Contact>();
+                let now = NSDate();
+
+                // conversation states have changed. let's look at which have recent messages since the last dismissal.
+                for conversationView in self._conversationViews.all() {
+                    let conversation = conversationView.conversation;
+                    if let message = conversation.messages.find({ message in message.isForeign() }) {
+                        if message.at.isGreaterThanOrEqualTo(lastInactive) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThanOrEqualTo(now) {
+                            result.insert(conversation.with);
+                        }
+                    }
                 }
-            }
 
-            return result;
-        }
+                return result;
+            };
 
         // relayout as required.
         sort.combineLatestWith(tiles).map { order, _ in order } // (Order)

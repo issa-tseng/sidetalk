@@ -28,6 +28,10 @@ extension Signal {
         return self.map({ value in value as Value? });
     }
 
+    func always<U>(value: U) -> Signal<U, Error> {
+        return self.map({ _ in value });
+    }
+
     // pulled forward from a future version of RAC. See #2952 on their repo.
     public func debounce(interval: NSTimeInterval, onScheduler scheduler: DateSchedulerType) -> Signal<Value, Error> {
         precondition(interval >= 0)

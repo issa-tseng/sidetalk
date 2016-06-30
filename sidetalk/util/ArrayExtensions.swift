@@ -13,4 +13,9 @@ extension Array {
 
         return (a, b);
     }
+
+    func find(predicate: (Element) -> Bool) -> Element? {
+        for elem in self { if predicate(elem) { return elem; } }
+        return nil;
+    }
 }

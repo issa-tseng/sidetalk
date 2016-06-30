@@ -9,6 +9,8 @@ struct Message {
     let body: String;
     let at: NSDate;
     let conversation: Conversation;
+
+    func isForeign() -> Bool { return self.from == self.conversation.with; }
 }
 
 enum ChatState {
