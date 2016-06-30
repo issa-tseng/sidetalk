@@ -246,25 +246,14 @@ class MainView: NSView {
             // deal with self
             if lastState.state.active != thisState.state.active {
                 let tile = self._statusTile;
-                let anim = CABasicAnimation.init(keyPath: "position");
+                let x = self.frame.width - self.tileSize.width - self.tilePadding;
+                let y = self.frame.height - self.allPadding;
 
-                let off = NSPoint.zero;
-                let on =  NSPoint(x: self.tileSize.height * -0.55, y: 0);
-
-                if (thisState.state.active) {
-                    anim.fromValue = NSValue.init(point: off);
-                    anim.toValue = NSValue.init(point: on);
-                } else {
-                    anim.fromValue = NSValue.init(point: on);
-                    anim.toValue = NSValue.init(point: off);
-                }
-
-                anim.duration = thisState.state.active ? 0.03 : 0.15;
-                anim.fillMode = kCAFillModeForwards; // HACK: i don't like this or the next line.
-                anim.removedOnCompletion = false;
-                tile.layer!.removeAnimationForKey("contacttile-layout");
-                tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
-                tile.layer!.position = thisState.state.active ? on : off;
+                NSAnimationContext.beginGrouping();
+                NSAnimationContext.currentContext().duration = thisState.state.active ? 0.03 : 0.2;
+                if (thisState.state.active) { tile.animator().frame.origin = NSPoint(x: x, y: y); }
+                else                        { tile.animator().frame.origin = NSPoint(x: x + (self.tileSize.height * 0.55), y: y); }
+                NSAnimationContext.endGrouping();
             }
 
             // deal with actual contacts
