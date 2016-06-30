@@ -134,9 +134,17 @@ class MainView: NSView {
                 case (.Chatting, .Escape): return .Normal;
 
                 case (.Inactive, .GlobalToggle):
+                    let now = NSDate();
+                    if let message = latestForeignMessage_ {
+                        if message.at.isGreaterThan(lastInactive) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThan(now) {
+                            return .Chatting(message.conversation.with);
+                        }
+                    }
+
                     let (state, time) = lastState;
-                    if time.dateByAddingTimeInterval(self.restoreInterval).isGreaterThan(NSDate()) { return state; }
-                    else { return .Normal; }
+                    if time.dateByAddingTimeInterval(self.restoreInterval).isGreaterThan(now) { return state; }
+
+                    return .Normal;
                 case (_, .GlobalToggle): return .Inactive;
                 default: break;
                 };
