@@ -87,12 +87,13 @@ class ConversationView: NSView {
         self.layer!.addSublayer(self.bubbleLayer);
         self.layer!.addSublayer(self.calloutLayer);
         self.addSubview(self.textField);
+
+        // draw any messages we might already have.
+        for message in self.conversation.messages.reverse() { self.drawMessage(message); }
     }
 
     private func prepare() {
-        self.conversation.latestMessage.observeNext { message in
-            self._messages.insert(self.drawMessage(message), atIndex: 0);
-        }
+        self.conversation.latestMessage.observeNext { message in self.drawMessage(message) };
 
         let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "delayed-messages-conversationview");
         let delayedMessage = self.conversation.latestMessage.delay(self.messageShown, onScheduler: scheduler);
@@ -122,6 +123,7 @@ class ConversationView: NSView {
             width: self.width,
             message: message,
             conversation: self.conversation);
+        self._messages.insert(view, atIndex: 0);
 
         dispatch_async(dispatch_get_main_queue(), {
             self.addSubview(view);
