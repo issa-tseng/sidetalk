@@ -26,10 +26,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // shadows are currently causing problems w core animation.
         window.hasShadow = false;
 
-        // reënable basic magick?
-        //self.window?.canBecomeKeyWindow = true
-        //self.window?.canBecomeMainWindow = true
-
         // position our window.
         let screenFrame = NSScreen.mainScreen()!.visibleFrame;
         let frame = CGRect(
@@ -38,11 +34,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         );
         window.setFrame(frame, display: true);
 
-        // appear on all spaces.
-        window.collectionBehavior = NSWindowCollectionBehavior.init(rawValue:
-            window.collectionBehavior.rawValue | NSWindowCollectionBehavior.CanJoinAllSpaces.rawValue);
-
-        // always on top.
+        // appear on all spaces, and always on top.
+        window.collectionBehavior = [window.collectionBehavior, NSWindowCollectionBehavior.CanJoinAllSpaces];
         window.level = Int(CGWindowLevelForKey(.FloatingWindowLevelKey));
 
         // set our primary view
