@@ -86,21 +86,26 @@ class ConversationView: NSView {
         self.layer!.addSublayer(self.bubbleLayer);
         self.layer!.addSublayer(self.calloutLayer);
         self.addSubview(self.textField);
+    }
 
-        // draw any messages we might already have.
-        if self.conversation.messages.count > 0 {
-            for message in self.conversation.messages.reverse() { self.drawMessage(message); }
+    // like conversation#latestMessage, but returns all messages we know about.
+    func allMessages() -> Signal<Message, NoError> {
+        let managed = ManagedSignal<Message>();
 
-            // schedule relayout so initial messages are appropriately hidden.
-            NSTimer.scheduledTimerWithTimeInterval(messageShown, target: self, selector: #selector(relayoutNow), userInfo: nil, repeats: false);
-        }
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), {
+            for message in self.conversation.messages.reverse() { managed.observer.sendNext(message); }
+            self.conversation.latestMessage.observeNext({ message in managed.observer.sendNext(message); });
+        });
+
+        return managed.signal;
     }
 
     private func prepare() {
-        self.conversation.latestMessage.observeNext { message in self.drawMessage(message) };
+        let allMessages = self.allMessages();
+        allMessages.observeNext { message in self.drawMessage(message) };
 
         let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "delayed-messages-conversationview");
-        let delayedMessage = self.conversation.latestMessage.delay(self.messageShown, onScheduler: scheduler);
+        let delayedMessage = allMessages.delay(self.messageShown, onScheduler: scheduler);
 
         self.active
             .combineWithDefault(delayedMessage.downcastToOptional(), defaultValue: nil).map({ active, _ in active })

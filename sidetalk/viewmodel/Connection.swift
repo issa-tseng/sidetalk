@@ -110,11 +110,15 @@ class Connection {
     var myself_: Contact? { get { return self._myself.value; } };
 
     // latest message
-    private var _latestMessageSignal = ManagedSignal<Message>();
+    private let _latestMessageSignal = ManagedSignal<Message>();
     var latestMessage: Signal<Message, NoError> { get { return self._latestMessageSignal.signal; } };
 
+    // latest activity
+    private let _latestActivitySignal = ManagedSignal<Contact>();
+    var latestActivity: Signal<Contact, NoError> { get { return self._latestActivitySignal.signal; } };
+
     // managed contacts (impl in prepare())
-    private var _contactsCache = QuickCache<String, Contact>();
+    private let _contactsCache = QuickCache<String, Contact>();
     private var _contactsSignal: Signal<[Contact], NoError>?;
     var contacts: Signal<[Contact], NoError> { get { return self._contactsSignal!; } };
 
@@ -149,10 +153,12 @@ class Connection {
                 let conversation = with.conversation;
 
                 if rawMessage.isMessageWithBody() {
+                    self._latestActivitySignal.observer.sendNext(with);
                     let message = Message(from: with, body: rawMessage.body(), at: NSDate(), conversation: conversation);
                     conversation.addMessage(message);
                     self._latestMessageSignal.observer.sendNext(message);
                 } else if let state = ChatState.fromMessage(rawMessage) {
+                    self._latestActivitySignal.observer.sendNext(with);
                     conversation.setChatState(state);
                 }
             } else {

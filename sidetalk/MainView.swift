@@ -62,12 +62,15 @@ class MainView: NSView {
         });
 
         // draw new conversations as required.
-        var latestForeignMessage_: Message?; // sort of a deviation from pattern. but i think it's better?
-        latestMessage.observeNext { message in
-            if message.isForeign() { latestForeignMessage_ = message };
-            let conversation = message.conversation;
+        self.connection.latestActivity.observeNext { contact in
+            let conversation = contact.conversation;
             self._conversationViews.get(conversation.with, orElse: { self.drawConversation(conversation); })
         };
+
+        // remember the latest foreign message.
+        var latestForeignMessage_: Message?; // sort of a deviation from pattern. but i think it's better?
+        let latestForeignMessage = latestMessage.filter({ message in message.isForeign() });
+        latestForeignMessage.observeNext { message in latestForeignMessage_ = message };
 
         // calculate the correct sort (and implicitly visibility) of all contacts.
         let sort = self.connection.contacts
@@ -162,19 +165,15 @@ class MainView: NSView {
                 return last;
             });
 
-        GlobalInteraction.sharedInstance.keyPress.observeNext({ next in NSLog("key: \(next)"); });
-        self.state.observeNext({ next in NSLog("state: \(next)"); });
-
         // keep track of our last state:
         self.state.filter({ state in state != .Inactive }).observeNext({ state in lastState = (state, NSDate()); });
 
         // keep track of our last dismissal:
         self.state.skipRepeats({ $0 == $1 }).filter({ state in state == .Inactive }).observeNext({ _ in lastInactive = NSDate() });
 
-        // figure out which contacts currently have notification bubbles. TODO: not a big fan of the mutable var but it may be cleaner?
-        let foreignMessages = latestMessage.filter({ message in message.isForeign() });
-        let notifying = foreignMessages.always(0)
-            .merge(foreignMessages.always(0).delay(self.messageShown, onScheduler: scheduler))
+        // figure out which contacts currently have notification bubbles.
+        let notifying = latestForeignMessage.always(0)
+            .merge(latestForeignMessage.always(0).delay(self.messageShown, onScheduler: scheduler))
             .merge(self.state.always(0))
             .map { _ -> Set<Contact> in
                 var result = Set<Contact>();
