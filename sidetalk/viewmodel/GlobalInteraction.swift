@@ -5,7 +5,7 @@ import ReactiveCocoa
 import enum Result.NoError
 
 enum Key : Impulsable {
-    case Up, Down, Return, Escape, GlobalToggle, None;
+    case Up, Down, Return, Escape, GlobalToggle, Blur, None;
 
     static func noopValue() -> Key { return .None; }
 }
@@ -13,36 +13,34 @@ enum Key : Impulsable {
 class GlobalInteraction {
     static let sharedInstance = GlobalInteraction();
 
-    var lastApp: NSRunningApplication?;
-
     private let _keyPress = ManagedSignal<Impulse<Key>>();
     var keyPress: Signal<Impulse<Key>, NoError> { get { return self._keyPress.signal; } };
+    let keyGenerator = Impulse.generate(Key);
 
     private let activateShortcut = MASShortcut.init(keyCode: 0x31, modifierFlags: NSEventModifierFlags.ControlKeyMask.rawValue);
 
     init() {
-        // previously focused application handling.
+        // we'll want to blur when the space changes.
         NSWorkspace.sharedWorkspace().notificationCenter.addObserver(self,
-            selector: #selector(appDeactivated), name: NSWorkspaceDidDeactivateApplicationNotification, object: nil);
+            selector: #selector(spaceChanged), name: NSWorkspaceActiveSpaceDidChangeNotification, object: nil);
 
         // listen to all key events. vend keystroke.
-        let keyGenerator = Impulse.generate(Key);
         NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDownMask, handler: { event in
             if event.keyCode == 126 { // up
-                self._keyPress.observer.sendNext(keyGenerator.create(.Up));
+                self._keyPress.observer.sendNext(self.keyGenerator.create(.Up));
             } else if event.keyCode == 125 { // down
-                self._keyPress.observer.sendNext(keyGenerator.create(.Down));
+                self._keyPress.observer.sendNext(self.keyGenerator.create(.Down));
             } else if event.keyCode == 36 { // enter
-                self._keyPress.observer.sendNext(keyGenerator.create(.Return));
+                self._keyPress.observer.sendNext(self.keyGenerator.create(.Return));
             } else if event.keyCode == 53 { // esc
-                self._keyPress.observer.sendNext(keyGenerator.create(.Escape));
+                self._keyPress.observer.sendNext(self.keyGenerator.create(.Escape));
             }
             return event;
         });
 
         // global shortcut.
         MASShortcutMonitor.sharedMonitor().registerShortcut(activateShortcut, withAction: {
-            self._keyPress.observer.sendNext(keyGenerator.create(.GlobalToggle));
+            self._keyPress.observer.sendNext(self.keyGenerator.create(.GlobalToggle));
         });
     }
 
@@ -50,10 +48,36 @@ class GlobalInteraction {
         NSWorkspace.sharedWorkspace().notificationCenter.removeObserver(self);
     }
 
-    @objc internal func appDeactivated(notification: NSNotification) {
-        let lastApp = notification.userInfo?[NSWorkspaceApplicationKey] as? NSRunningApplication;
-        if lastApp != nil && lastApp!.bundleIdentifier != "com.giantacorn.sidetalk" {
-            self.lastApp = lastApp;
+    // this is nasty. we can track the most-recently-focused app before sidetalk, but that's ignorant
+    // of which space that was on. so we grab the entire window stack and try to activate whatever is just
+    // below us. if we can't find that, just give up.
+    func relinquish() {
+        // nothing to be done if we're already blurred.
+        if NSWorkspace.sharedWorkspace().frontmostApplication?.bundleIdentifier != "com.giantacorn.sidetalk" { return; }
+
+        // get the entire stack of currently-visible real windows.
+        guard let windows = CGWindowListCopyWindowInfo([.OptionOnScreenOnly, .ExcludeDesktopElements], CGWindowID(0)) else { return; }
+
+        // iterate til we find ourself. then find the next window down and activate that.
+        var foundSelf = false;
+        for window in windows {
+            if !foundSelf && window.objectForKey(kCGWindowOwnerName) as? String == NSWorkspace.sharedWorkspace().frontmostApplication?.localizedName {
+                foundSelf = true;
+                continue;
+            }
+
+            // window layer of 0 is normalspace.
+            if foundSelf && (window.objectForKey(kCGWindowLayer) as? Int) == 0 {
+                let pid = window.objectForKey(kCGWindowOwnerPID) as! CFNumberRef;
+                if let application = NSWorkspace.sharedWorkspace().runningApplications.find({ app in Int(app.processIdentifier) == Int(pid) }) {
+                    application.activateWithOptions(NSApplicationActivationOptions.ActivateIgnoringOtherApps);
+                    return;
+                }
+            }
         }
+    }
+
+    @objc internal func spaceChanged(notification: NSNotification) {
+        self._keyPress.observer.sendNext(self.keyGenerator.create(.Blur));
     }
 }

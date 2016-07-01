@@ -116,6 +116,8 @@ class MainView: NSView {
 
                 let key = keyTracker.extract(wrappedKey);
                 switch (last, key) {
+                case (_, .Blur): return .Inactive;
+
                 case (.Normal, .Escape): return .Inactive;
                 case (.Normal, .Down): return .Selecting(0);
 
@@ -234,7 +236,7 @@ class MainView: NSView {
             if last == .Inactive && this != .Inactive {
                 NSApplication.sharedApplication().activateIgnoringOtherApps(true);
             } else if last != .Inactive && this == .Inactive {
-                GlobalInteraction.sharedInstance.lastApp?.activateWithOptions(NSApplicationActivationOptions.ActivateIgnoringOtherApps);
+                GlobalInteraction.sharedInstance.relinquish();
             }
         };
     }

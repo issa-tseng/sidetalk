@@ -19,3 +19,17 @@ extension Array {
         return nil;
     }
 }
+
+// from: http://stackoverflow.com/a/32127187
+extension CFArray: SequenceType {
+    public func generate() -> AnyGenerator<AnyObject> {
+        var index = -1;
+        let maxIndex = CFArrayGetCount(self);
+        return AnyGenerator {
+            index += 1;
+            guard index < maxIndex else { return nil; };
+            let unmanagedObject: UnsafePointer<Void> = CFArrayGetValueAtIndex(self, index);
+            return unsafeBitCast(unmanagedObject, AnyObject.self);
+        };
+    }
+}
