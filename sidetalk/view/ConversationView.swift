@@ -8,7 +8,7 @@ class ConversationView: NSView {
     private let width: CGFloat;
 
     private let messagePadding = CGFloat(2);
-    private let messageShown = NSTimeInterval(3.0);
+    private let messageShown = NSTimeInterval(5.0);
 
     private let composeHeight = CGFloat(25);
     private let composePadding = CGFloat(6);
@@ -25,8 +25,8 @@ class ConversationView: NSView {
     private var _messages = [MessageView]();
 
     private var _initiallyActivated = false;
-    private let _activeSignal = ManagedSignal<Bool>();
-    var active: Signal<Bool, NoError> { get { return self._activeSignal.signal; } };
+    private let _active = MutableProperty<Bool>(false);
+    var active: Signal<Bool, NoError> { get { return self._active.signal; } };
 
     private let _lastShown = MutableProperty<NSDate>(NSDate.distantPast());
     var lastShown: Signal<NSDate, NoError> { get { return self._lastShown.signal; } };
@@ -88,7 +88,12 @@ class ConversationView: NSView {
         self.addSubview(self.textField);
 
         // draw any messages we might already have.
-        for message in self.conversation.messages.reverse() { self.drawMessage(message); }
+        if self.conversation.messages.count > 0 {
+            for message in self.conversation.messages.reverse() { self.drawMessage(message); }
+
+            // schedule relayout so initial messages are appropriately hidden.
+            NSTimer.scheduledTimerWithTimeInterval(messageShown, target: self, selector: #selector(relayoutNow), userInfo: nil, repeats: false);
+        }
     }
 
     private func prepare() {
@@ -113,7 +118,7 @@ class ConversationView: NSView {
                 }
             }
 
-        self._activeSignal.observer.sendNext(self._initiallyActivated);
+        self._active.modify({ _ in self._initiallyActivated });
     }
 
     private func drawMessage(message: Message) -> MessageView {
@@ -150,12 +155,17 @@ class ConversationView: NSView {
     func activate() {
         self._initiallyActivated = true;
         self._lastShown.modify({ _ in NSDate() });
-        self._activeSignal.observer.sendNext(true);
+        self._active.modify({ _ in true });
     }
 
     func deactivate() {
         self._lastShown.modify({ _ in NSDate() });
-        self._activeSignal.observer.sendNext(false);
+        self._active.modify({ _ in false });
+    }
+
+    @objc private func relayoutNow() {
+        let active = self._active.value;
+        self.relayout(active, active);
     }
 
     // kind of a misnomer; this doesn't lay anything out at all. it just controls visibility.
