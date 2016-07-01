@@ -28,10 +28,9 @@ class ConversationView: NSView {
     private let _activeSignal = ManagedSignal<Bool>();
     var active: Signal<Bool, NoError> { get { return self._activeSignal.signal; } };
 
-    private let _lastShownSignal = ManagedSignal<NSDate?>();
-    var lastShown: Signal<NSDate?, NoError> { get { return self._lastShownSignal.signal; } };
-    private var _lastShownOnce: NSDate?;
-    var lastShownOnce: NSDate? { get { return self._lastShownOnce; } };
+    private let _lastShown = MutableProperty<NSDate>(NSDate.distantPast());
+    var lastShown: Signal<NSDate, NoError> { get { return self._lastShown.signal; } };
+    var lastShown_: NSDate { get { return self._lastShown.value; } };
 
     init(frame: NSRect, width: CGFloat, conversation: Conversation) {
         self.width = width;
@@ -99,7 +98,7 @@ class ConversationView: NSView {
         let delayedMessage = self.conversation.latestMessage.delay(self.messageShown, onScheduler: scheduler);
 
         self.active
-            .combineWithDefault(delayedMessage.map({ $0 as Message? }), defaultValue: nil).map({ active, _ in active })
+            .combineWithDefault(delayedMessage.downcastToOptional(), defaultValue: nil).map({ active, _ in active })
             .combinePrevious(false)
             .observeNext({ last, this in self.relayout(last, this); });
 
@@ -150,17 +149,12 @@ class ConversationView: NSView {
 
     func activate() {
         self._initiallyActivated = true;
-
-        let now = NSDate();
-        self._lastShownOnce = now;
-        self._lastShownSignal.observer.sendNext(now);
+        self._lastShown.modify({ _ in NSDate() });
         self._activeSignal.observer.sendNext(true);
     }
 
     func deactivate() {
-        let now = NSDate();
-        self._lastShownOnce = now;
-        self._lastShownSignal.observer.sendNext(now);
+        self._lastShown.modify({ _ in NSDate() });
         self._activeSignal.observer.sendNext(false);
     }
 
