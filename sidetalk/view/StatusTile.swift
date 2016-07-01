@@ -157,6 +157,8 @@ class StatusTile: NSView {
                     self._searchField.stringValue = "";
                     self.window!.makeFirstResponder(self._searchField);
                 });
+            } else if this == .Inactive {
+                dispatch_async(dispatch_get_main_queue(), { self._searchField.stringValue = ""; });
             }
         }
 
