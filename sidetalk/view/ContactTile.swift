@@ -84,7 +84,7 @@ class ContactTile : NSView {
         // status ring.
         conversation.chatState
             .combineWithDefault(conversationView.lastShown, defaultValue: NSDate.distantPast())
-            .combineWithDefault(conversation.latestMessage.filter({ message in message.from == self.contact }).map({ $0 as Message? }), defaultValue: nil)
+            .combineWithDefault(conversationView.allMessages().filter({ message in message.from == self.contact }).downcastToOptional(), defaultValue: nil)
             .map({ (stateShown, message) in ContactState(chatState: stateShown.0, lastShown: stateShown.1, latestMessage: message); })
             .observeNext { all in
                 dispatch_async(dispatch_get_main_queue(), {
