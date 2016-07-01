@@ -8,10 +8,9 @@ class QuickCache<K: Hashable, V> {
     func get(key: K?) -> V? { return (key == nil) ? nil : self._dict[key!]; }
 
     func get(key: K, update: (V) -> (), orElse: () -> V) -> V {
-        let val = self._dict[key];
-        if val != nil {
-            update(val!);
-            return val!;
+        if let val = self._dict[key] {
+            update(val);
+            return val;
         } else {
             let newVal = orElse();
             self._dict[key] = newVal;
