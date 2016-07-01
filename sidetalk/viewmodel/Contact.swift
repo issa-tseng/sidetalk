@@ -19,7 +19,7 @@ class AvatarDelegate: NSObject, XMPPvCardTempModuleDelegate {
 
 class Contact: Hashable {
     internal var inner: XMPPUser;
-    internal let stream: XMPPStream; // TODO: i hate this being here but i'm not sure how else to manage this yet.
+    internal let connection: Connection; // TODO: i hate this being here but i'm not sure how else to manage this yet.
 
     var displayName: String { get { return self.inner.nickname() ?? self.inner.jid().bare(); } };
 
@@ -38,11 +38,11 @@ class Contact: Hashable {
 
     private var _onlineSignal = ManagedSignal<Bool>();
     var online: Signal<Bool, NoError> { get { return self._onlineSignal.signal; } };
-    var onlineOnce: Bool { get { return self.inner.isOnline(); } };
+    var online_: Bool { get { return self.inner.isOnline(); } };
 
     private var _presenceSignal = ManagedSignal<String?>();
     var presence: Signal<String?, NoError> { get { return self._presenceSignal.signal; } };
-    var presenceOnce: String? { get { return self.inner.primaryResource()?.presence()?.show(); } };
+    var presence_: String? { get { return self.inner.primaryResource()?.presence()?.show(); } };
 
     private var _avatarSignal: SignalProducer<NSImage?, NoError>?;
     var avatar: SignalProducer<NSImage?, NoError> { get { return self._avatarSignal!; } };
@@ -54,7 +54,7 @@ class Contact: Hashable {
 
     init(xmppUser: XMPPUser, connection: Connection) {
         self.inner = xmppUser;
-        self.stream = connection.stream;
+        self.connection = connection;
         self._conversation = Conversation(self, connection: connection);
         self.update(xmppUser, forceUpdate: true);
 
@@ -73,10 +73,13 @@ class Contact: Hashable {
         self.inner = xmppUser;
     }
 
-    func prepare() {
+    func isSelf() -> Bool { return self == self.connection.myself_; }
+
+    private func prepare() {
         self._avatarSignal = SignalProducer { observer, disposable in
             observer.sendNext(nil); // start with fallback avvy
 
+            // cold signal to fetch the avatar if asked for.
             let backgroundThread = dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0);
             dispatch_async(backgroundThread, {
                 // TODO: lots of instantiation and shit. overhead?
@@ -86,8 +89,8 @@ class Contact: Hashable {
                 let photoData = vcardAvatar.photoDataForJID(self.inner.jid());
                 if photoData == nil {
                     // we don't have it already cached, so go fetch it
-                    vcardTemp.activate(self.stream);
-                    vcardAvatar.activate(self.stream);
+                    vcardTemp.activate(self.connection.stream);
+                    vcardAvatar.activate(self.connection.stream);
 
                     vcardAvatar.addDelegate(AvatarDelegate(withResult: { image in observer.sendNext(image); }), delegateQueue: backgroundThread);
                     vcardTemp.fetchvCardTempForJID(self.inner.jid(), ignoreStorage: true);

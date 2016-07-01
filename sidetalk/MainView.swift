@@ -80,15 +80,15 @@ class MainView: NSView {
                     a.conversation.messages.first!.at.compare(b.conversation.messages.first!.at) == .OrderedDescending
                 });
 
-                let availableContacts = restContacts.filter { contact in contact.onlineOnce && contact.presenceOnce == nil };
-                let awayContacts = restContacts.filter { contact in contact.onlineOnce && contact.presenceOnce != nil };
+                let availableContacts = restContacts.filter { contact in contact.online_ && contact.presence_ == nil };
+                let awayContacts = restContacts.filter { contact in contact.online_ && contact.presence_ != nil };
 
                 var sorted: [Contact]; // HACK: mutable. gross.
 
                 if search == "" {
                     sorted = sortedChattedContacts + availableContacts + awayContacts;
                 } else {
-                    let offlineContacts = restContacts.filter { contact in !contact.onlineOnce };
+                    let offlineContacts = restContacts.filter { contact in !contact.online_ };
                     let scores = (availableContacts + awayContacts + offlineContacts).map { contact in
                         (contact, FuzzySearch.score(originalString: contact.displayName, stringToMatch: search, fuzziness: 0.75));
                     };

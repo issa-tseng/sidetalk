@@ -158,19 +158,27 @@ class ContactTile : NSView {
         }
 
         // adjust avatar opacity based on composite presence
-        self.contact.online.combineLatestWith(self.contact.presence).observeNext { (online, presence) in
-            dispatch_async(dispatch_get_main_queue(), {
-                if online {
-                    if presence == nil {
-                        self.avatarLayer.opacity = 0.9;
-                    } else {
-                        self.avatarLayer.opacity = 0.4;
-                    }
+        self.contact.online.observeNext({ _ in self.updateOpacity(); });
+        self.contact.presence.observeNext({ _ in self.updateOpacity(); });
+        self.updateOpacity();
+    }
+
+    // HACK: here i'm just using rx to trigger the update, then rendering from
+    // static status. because either of these signals could very well never fire.
+    private func updateOpacity() {
+        dispatch_async(dispatch_get_main_queue(), {
+            if self.contact.isSelf() {
+                self.avatarLayer.opacity = 0.9;
+            } else if self.contact.online_ {
+                if self.contact.presence_ == nil {
+                    self.avatarLayer.opacity = 0.9;
                 } else {
-                    self.avatarLayer.opacity = 0.1;
+                    self.avatarLayer.opacity = 0.4;
                 }
-            });
-        }
+            } else {
+                self.avatarLayer.opacity = 0.1;
+            }
+        });
     }
 
     required init(coder: NSCoder) {

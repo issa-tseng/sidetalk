@@ -105,10 +105,9 @@ class Connection {
     var users: Signal<[XMPPUser], NoError> { get { return self._rosterDelegateProxy.usersSignal.debounce(NSTimeInterval(0.15), onScheduler: QueueScheduler.mainQueueScheduler); } };
 
     // own user
-    private var _myselfSignal = ManagedSignal<XMPPUser?>();
-    var myself: Signal<XMPPUser?, NoError> { get { return self._myselfSignal.signal; } };
-    private var _myselfOnce: Contact?;
-    var myselfOnce: Contact? { get { return self._myselfOnce; } };
+    private var _myself = MutableProperty<Contact?>(nil);
+    var myself: Signal<Contact?, NoError> { get { return self._myself.signal; } };
+    var myself_: Contact? { get { return self._myself.value; } };
 
     // latest message
     private var _latestMessageSignal = ManagedSignal<Message>();
@@ -133,14 +132,8 @@ class Connection {
         self.authenticated.observeNext { authenticated in
             if authenticated == true {
                 self.stream.sendElement(XMPPPresence(name: "presence")); // TODO: this init is silly. this is just the NSXML init.
-                self._myselfSignal.observer.sendNext(XMPPUserMemoryStorageObject.init(JID: self.stream.myJID));
+                self._myself.modify({ _ in Contact(xmppUser: XMPPUserMemoryStorageObject.init(JID: self.stream.myJID), connection: self) });
             }
-        }
-
-        // store off own contact object
-        self.myself.observeNext { next in
-            if let user = next { self._myselfOnce = Contact(xmppUser: user, connection: self); }
-            else { self._myselfOnce = nil; }
         }
 
         // create managed contacts
@@ -180,7 +173,7 @@ class Connection {
 
         self.stream.sendElement(xmlMessage);
 
-        let message = Message(from: self.myselfOnce!, body: text, at: NSDate(), conversation: to.conversation);
+        let message = Message(from: self.myself_!, body: text, at: NSDate(), conversation: to.conversation);
         self._latestMessageSignal.observer.sendNext(message);
         to.conversation.addMessage(message);
         // TODO: i don't like that this is a separate set of code from the foreign incoming.
