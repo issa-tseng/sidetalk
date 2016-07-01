@@ -13,16 +13,18 @@ enum Key : Impulsable {
 class GlobalInteraction {
     static let sharedInstance = GlobalInteraction();
 
+    private let keyGenerator = Impulse.generate(Key);
     private let _keyPress = ManagedSignal<Impulse<Key>>();
     var keyPress: Signal<Impulse<Key>, NoError> { get { return self._keyPress.signal; } };
-    let keyGenerator = Impulse.generate(Key);
 
     private let activateShortcut = MASShortcut.init(keyCode: 0x31, modifierFlags: NSEventModifierFlags.ControlKeyMask.rawValue);
 
     init() {
-        // we'll want to blur when the space changes.
+        // we'll want to blur when the space changes, or we lose focus.
         NSWorkspace.sharedWorkspace().notificationCenter.addObserver(self,
             selector: #selector(spaceChanged), name: NSWorkspaceActiveSpaceDidChangeNotification, object: nil);
+        NSWorkspace.sharedWorkspace().notificationCenter.addObserver(self,
+            selector: #selector(appDeactivated), name: NSWorkspaceDidDeactivateApplicationNotification, object: nil);
 
         // listen to all key events. vend keystroke.
         NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDownMask, handler: { event in
@@ -79,5 +81,12 @@ class GlobalInteraction {
 
     @objc internal func spaceChanged(notification: NSNotification) {
         self._keyPress.observer.sendNext(self.keyGenerator.create(.Blur));
+    }
+
+    @objc internal func appDeactivated(notification: NSNotification) {
+        guard let app = notification.userInfo?[NSWorkspaceApplicationKey] as? NSRunningApplication else { return; };
+        if app.bundleIdentifier == "com.giantacorn.sidetalk" {
+            self._keyPress.observer.sendNext(self.keyGenerator.create(.Blur));
+        }
     }
 }
