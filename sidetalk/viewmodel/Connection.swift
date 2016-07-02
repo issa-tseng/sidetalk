@@ -130,7 +130,9 @@ class Connection {
         self.connected.skipRepeats().observeNext { connected in
             if connected == true {
                 self._connectionAttempt += 1; // TODO: i suppose an incrementing signal would be cleaner.
+                let myAttempt = self._connectionAttempt;
                 STKeychain.sharedInstance.get("clint@dontexplain.com", { creds in
+                    if self._connectionAttempt != myAttempt { return; }
                     do { try self.stream.authenticateWithPassword(creds); } catch _ {} // we don't care if this fails; it'll retry.
                 });
             }

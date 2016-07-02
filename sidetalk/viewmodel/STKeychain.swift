@@ -13,9 +13,7 @@ class STKeychain {
     func get(account: String, _ callback: Callback) {
         self._fetchingLock.lock();
 
-        if var callbacks = self._callbacks[account] { callbacks.append(callback); }
-        else { self._callbacks[account] = [callback]; }
-
+        self._callbacks[account] = (self._callbacks[account] ?? []) + [callback];
         if self._callbacks[account]!.count == 1 { self._get(account); }
         self._fetchingLock.unlock();
     }
