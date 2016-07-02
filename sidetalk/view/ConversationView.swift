@@ -9,6 +9,7 @@ class ConversationView: NSView {
 
     private let messagePadding = CGFloat(2);
     private let messageShown = NSTimeInterval(5.0);
+    private let sendLockout = NSTimeInterval(0.1);
 
     private let composeHeight = CGFloat(25);
     private let composePadding = CGFloat(6);
@@ -112,12 +113,15 @@ class ConversationView: NSView {
             .combinePrevious(false)
             .observeNext({ last, this in self.relayout(last, this); });
 
+        // TODO: it's entirely possible that the better way to do this would be to drop Impulses altogether and
+        // simply consume the keystroke entirely within MainView. but for now, bodge it with a delay.
         let keyTracker = Impulse.track(Key);
         GlobalInteraction.sharedInstance.keyPress
             .combineWithDefault(self.active, defaultValue: false)
             .observeNext { wrappedKey, active in
                 let key = keyTracker.extract(wrappedKey);
-                if active && key == .Return && self.textField.stringValue != "" {
+                let tooSoon = self.lastShown_.dateByAddingTimeInterval(self.sendLockout).isGreaterThan(NSDate());
+                if active && (key == .Return) && !tooSoon && (self.textField.stringValue != "") {
                     self.conversation.sendMessage(self.textField.stringValue);
                     self.textField.stringValue = "";
                 }
@@ -198,6 +202,7 @@ class ConversationView: NSView {
                 self.calloutLayer.opacity = 1.0;
                 self.textField.alphaValue = 1.0;
                 self.window!.makeFirstResponder(self.textField);
+                self.textField.currentEditor()!.moveToEndOfLine(nil); // TODO: actually, remembering where they were would be better.
             } else if last && !this {
                 // hide all messages.
                 for (idx, view) in self._messages.enumerate() {
