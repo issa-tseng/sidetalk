@@ -38,7 +38,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.collectionBehavior = [window.collectionBehavior, NSWindowCollectionBehavior.CanJoinAllSpaces];
         window.level = Int(CGWindowLevelForKey(.FloatingWindowLevelKey));
 
-        // set our primary view
+        // set our primary view.
         self.mainView = MainView(frame: frame, connection: self.connection);
         self.mainView!.frame = window.contentView!.bounds;
         window.contentView!.addSubview(self.mainView!);

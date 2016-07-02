@@ -54,8 +54,11 @@ class GlobalInteraction {
     // of which space that was on. so we grab the entire window stack and try to activate whatever is just
     // below us. if we can't find that, just give up.
     func relinquish() {
+        // get our own application. if there isn't one, don't do anything.
+        guard let ownApp = NSWorkspace.sharedWorkspace().frontmostApplication else { return; }
+
         // nothing to be done if we're already blurred.
-        if NSWorkspace.sharedWorkspace().frontmostApplication?.bundleIdentifier != "com.giantacorn.sidetalk" { return; }
+        if ownApp.bundleIdentifier != "com.giantacorn.sidetalk" { return; }
 
         // get the entire stack of currently-visible real windows.
         guard let windows = CGWindowListCopyWindowInfo([.OptionOnScreenOnly, .ExcludeDesktopElements], CGWindowID(0)) else { return; }
@@ -63,7 +66,7 @@ class GlobalInteraction {
         // iterate til we find ourself. then find the next window down and activate that.
         var foundSelf = false;
         for window in windows {
-            if !foundSelf && window.objectForKey(kCGWindowOwnerName) as? String == NSWorkspace.sharedWorkspace().frontmostApplication?.localizedName {
+            if !foundSelf && window.objectForKey(kCGWindowOwnerName) as? String == ownApp.localizedName {
                 foundSelf = true;
                 continue;
             }
