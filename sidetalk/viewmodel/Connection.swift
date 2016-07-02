@@ -72,6 +72,8 @@ class Connection {
     internal let roster: XMPPRoster;
     internal let reconnect: XMPPReconnect;
 
+    private var _connectionAttempt = 0;
+
     private let _streamDelegateProxy: XFStreamDelegateProxy;
     private let _rosterDelegateProxy: XFRosterDelegateProxy;
 
@@ -125,15 +127,17 @@ class Connection {
     // sets up our own reactions to basic xmpp things
     private func prepare() {
         // if we are xmpp-connected, authenticate
-        self.connected.observeNext { connected in
+        self.connected.skipRepeats().observeNext { connected in
             if connected == true {
-                let creds = SSKeychain.passwordForService("Sidetalk", account: "clint@dontexplain.com");
-                do { try self.stream.authenticateWithPassword(creds); } catch _ {} // we don't care if this fails; it'll retry.
+                self._connectionAttempt += 1; // TODO: i suppose an incrementing signal would be cleaner.
+                STKeychain.sharedInstance.get("clint@dontexplain.com", { creds in
+                    do { try self.stream.authenticateWithPassword(creds); } catch _ {} // we don't care if this fails; it'll retry.
+                });
             }
         }
 
         // if we are authenticated, send initial status and set some stuff up
-        self.authenticated.observeNext { authenticated in
+        self.authenticated.skipRepeats().observeNext { authenticated in
             if authenticated == true {
                 self.stream.sendElement(XMPPPresence(name: "presence")); // TODO: this init is silly. this is just the NSXML init.
                 self._myself.modify({ _ in Contact(xmppUser: XMPPUserMemoryStorageObject.init(JID: self.stream.myJID), connection: self) });
