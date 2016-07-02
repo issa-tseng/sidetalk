@@ -4,6 +4,10 @@ import XMPPFramework
 import ReactiveCocoa
 import enum Result.NoError
 
+enum Presence {
+    case Online, Offline, Away, Busy, Invisible, None;
+}
+
 class AvatarDelegate: NSObject, XMPPvCardTempModuleDelegate {
     private let _withResult: (NSImage!) -> ();
     init(withResult: (NSImage!) -> ()) { self._withResult = withResult; }

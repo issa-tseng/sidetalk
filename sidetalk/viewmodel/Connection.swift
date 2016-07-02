@@ -3,6 +3,7 @@ import Foundation
 import XMPPFramework
 import SSKeychain
 import ReactiveCocoa
+import ReachabilitySwift
 import enum Result.NoError
 
 class XFDelegateModuleProxy: NSObject {
@@ -71,6 +72,7 @@ class Connection {
     internal let rosterStorage: XMPPRosterMemoryStorage;
     internal let roster: XMPPRoster;
     internal let reconnect: XMPPReconnect;
+    internal let reachability: Reachability?;
 
     private var _connectionAttempt = 0;
 
@@ -80,6 +82,9 @@ class Connection {
     init() {
         // xmpp logging
         DDLog.addLogger(DDTTYLogger.sharedInstance(), withLevel: DDLogLevel.All);
+
+        // set up network availability detection
+        self.reachability = try? Reachability.reachabilityForInternetConnection();
 
         // setup
         self.rosterStorage = XMPPRosterMemoryStorage();
@@ -123,6 +128,11 @@ class Connection {
     private let _contactsCache = QuickCache<String, Contact>();
     private var _contactsSignal: Signal<[Contact], NoError>?;
     var contacts: Signal<[Contact], NoError> { get { return self._contactsSignal!; } };
+
+    // are we connected to the internet?
+    private let _hasInternet = MutableProperty<Bool>(true); // assume true in case we have nothing.
+    var hasInternet: Signal<Bool, NoError> { get { return self._hasInternet.signal; } };
+    var hasInternet_: Bool { get { return self._hasInternet.value; } };
 
     // sets up our own reactions to basic xmpp things
     private func prepare() {
@@ -170,6 +180,13 @@ class Connection {
             } else {
                 NSLog("unrecognized user \(rawMessage.from().bare())!");
             }
+        }
+
+        // if we have a reachability instance, wire up that signal.
+        if let reach = self.reachability {
+            reach.whenReachable = { _ in self._hasInternet.modify { _ in true; } };
+            reach.whenUnreachable = { _ in self._hasInternet.modify { _ in false; } };
+            do { try reach.startNotifier(); } catch _ { NSLog("could not start reachability"); }
         }
     }
 
