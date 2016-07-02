@@ -23,7 +23,7 @@ class MainView: NSView {
     var state: Signal<MainState, NoError> { get { return self._state!; } };
 
     // drawing ks. should these go elsewhere?
-    let allPadding = CGFloat(150);
+    let allPadding = CGFloat(50);
     let listPadding = CGFloat(35);
     let tileSize = NSSize(width: 300, height: 50);
     let tilePadding = CGFloat(4);
@@ -45,7 +45,7 @@ class MainView: NSView {
         self.addSubview(self._statusTile);
         self._statusTile.frame.origin = NSPoint(
             x: frame.width - self.tileSize.width - self.tilePadding + (self.tileSize.height * 0.55),
-            y: frame.height - self.allPadding
+            y: self.allPadding
         );
 
         self.prepare();
@@ -122,17 +122,17 @@ class MainView: NSView {
                 case (_, .Blur): return .Inactive;
 
                 case (.Normal, .Escape): return .Inactive;
-                case (.Normal, .Down): return .Selecting(0);
+                case (.Normal, .Up): return .Selecting(0);
 
-                case (.Selecting(0), .Up): return .Normal;
-                case (let .Selecting(idx), .Up): return .Selecting(idx - 1);
-                case (let .Selecting(idx), .Down): return .Selecting((idx + 1 == sort.count) ? idx : idx + 1);
+                case (.Selecting(0), .Down): return .Normal;
+                case (let .Selecting(idx), .Down): return .Selecting(idx - 1);
+                case (let .Selecting(idx), .Up): return .Selecting((idx + 1 == sort.count) ? idx : idx + 1);
                 case (let .Selecting(idx), .Return): return .Chatting(sort.filter({ _, sidx in idx == sidx }).first!.0);
                 case (.Selecting, .Escape): return .Normal;
 
-                case (let .Searching(text, 0), .Up): return .Searching(text, 0);
-                case (let .Searching(text, idx), .Up): return .Searching(text, idx - 1);
-                case (let .Searching(text, idx), .Down): return .Searching(text, (idx + 1 == sort.count) ? idx : idx + 1);
+                case (let .Searching(text, 0), .Down): return .Searching(text, 0);
+                case (let .Searching(text, idx), .Down): return .Searching(text, idx - 1);
+                case (let .Searching(text, idx), .Up): return .Searching(text, (idx + 1 == sort.count) ? idx : idx + 1);
                 case (let .Searching(_, idx), .Return): return .Chatting(sort.filter({ _, sidx in idx == sidx }).first!.0);
                 case (.Searching, .Escape): return .Normal;
 
@@ -268,7 +268,7 @@ class MainView: NSView {
             if lastState.state.active != thisState.state.active {
                 let tile = self._statusTile;
                 let x = self.frame.width - self.tileSize.width - self.tilePadding;
-                let y = self.frame.height - self.allPadding;
+                let y = self.allPadding;
 
                 NSAnimationContext.beginGrouping();
                 NSAnimationContext.currentContext().duration = thisState.state.active ? 0.03 : 0.2;
@@ -300,8 +300,8 @@ class MainView: NSView {
                 let xHalf = self.frame.width - self.tileSize.width + (self.tileSize.height * 0.55);
                 let xOff = self.frame.width - self.tileSize.width + self.tileSize.height;
 
-                let yLast = self.frame.height - self.allPadding - self.listPadding - ((self.tileSize.height + self.tilePadding) * CGFloat((last ?? 0) + 1));
-                let yThis = self.frame.height - self.allPadding - self.listPadding - ((self.tileSize.height + self.tilePadding) * CGFloat((this ?? 0) + 1));
+                let yLast = self.allPadding + self.listPadding + ((self.tileSize.height + self.tilePadding) * CGFloat((last ?? 0) + 1));
+                let yThis = self.allPadding + self.listPadding + ((self.tileSize.height + self.tilePadding) * CGFloat((this ?? 0) + 1));
 
                 // TODO: repetitive.
                 switch (last, lastState.notifying.contains(tile.contact), lastState.state) {
