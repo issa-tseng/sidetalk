@@ -127,27 +127,29 @@ class MainView: NSView {
                 case (.Selecting(0), .Down): return .Normal;
                 case (let .Selecting(idx), .Down): return .Selecting(idx - 1);
                 case (let .Selecting(idx), .Up): return .Selecting((idx + 1 == sort.count) ? idx : idx + 1);
-                case (let .Selecting(idx), .Return): return .Chatting(sort.filter({ _, sidx in idx == sidx }).first!.0);
+                case (let .Selecting(idx), .Return): return .Chatting(sort.filter({ _, sidx in idx == sidx }).first!.0, last);
                 case (.Selecting, .Escape): return .Normal;
 
                 case (let .Searching(text, 0), .Down): return .Searching(text, 0);
                 case (let .Searching(text, idx), .Down): return .Searching(text, idx - 1);
                 case (let .Searching(text, idx), .Up): return .Searching(text, (idx + 1 == sort.count) ? idx : idx + 1);
-                case (let .Searching(_, idx), .Return): return .Chatting(sort.filter({ _, sidx in idx == sidx }).first!.0);
+                case (let .Searching(_, idx), .Return): return .Chatting(sort.filter({ _, sidx in idx == sidx }).first!.0, last);
                 case (.Searching, .Escape): return .Normal;
 
-                case (.Chatting, .Escape): return .Normal;
+                case (let .Chatting(_, previous), .Escape): return previous;
 
                 case (.Inactive, .GlobalToggle):
                     let now = NSDate();
+                    let (state, time) = lastState;
+                    let shouldRestore = time.dateByAddingTimeInterval(self.restoreInterval).isGreaterThan(now)
+
                     if let message = latestForeignMessage_ {
                         if message.at.isGreaterThan(lastInactive) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThan(now) {
-                            return .Chatting(message.conversation.with);
+                            return .Chatting(message.conversation.with, shouldRestore ? state : .Inactive);
                         }
+                    } else if shouldRestore {
+                        return state;
                     }
-
-                    let (state, time) = lastState;
-                    if time.dateByAddingTimeInterval(self.restoreInterval).isGreaterThan(now) { return state; }
 
                     return .Normal;
                 case (_, .GlobalToggle): return .Inactive;
@@ -218,7 +220,7 @@ class MainView: NSView {
             .combineLatestWith(sort)
             .map({ (state, sort) -> Contact? in
                 switch state {
-                case let .Chatting(with): return with;
+                case let .Chatting(with, _): return with;
                 default: return nil;
                 }
             })
@@ -308,7 +310,7 @@ class MainView: NSView {
                 case (nil, _, _):                                               from = NSPoint(x: xOff, y: yThis);
                 case (let lidx, _, let .Selecting(idx)) where lidx == idx:      from = NSPoint(x: xOn, y: yLast);
                 case (let lidx, _, let .Searching(_, idx)) where lidx == idx:   from = NSPoint(x: xOn, y: yLast);
-                case (_, _, let .Chatting(with)) where with == tile.contact:    from = NSPoint(x: xOn, y: yLast);
+                case (_, _, let .Chatting(with, _)) where with == tile.contact: from = NSPoint(x: xOn, y: yLast);
                 case (_, _, .Normal), (_, true, _):                             from = NSPoint(x: xOn, y: yLast);
                 default:                                                        from = NSPoint(x: xHalf, y: yLast);
                 }
@@ -317,7 +319,7 @@ class MainView: NSView {
                 case (nil, _, _):                                               to = NSPoint(x: xOff, y: yLast);
                 case (let tidx, _, let .Selecting(idx)) where tidx == idx:      to = NSPoint(x: xOn, y: yThis);
                 case (let tidx, _, let .Searching(_, idx)) where tidx == idx:   to = NSPoint(x: xOn, y: yThis);
-                case (_, _, let .Chatting(with)) where with == tile.contact:    to = NSPoint(x: xOn, y: yThis);
+                case (_, _, let .Chatting(with, _)) where with == tile.contact: to = NSPoint(x: xOn, y: yThis);
                 case (_, _, .Normal), (_, true, _):                             to = NSPoint(x: xOn, y: yThis);
                 default:                                                        to = NSPoint(x: xHalf, y: yThis);
                 }
