@@ -110,7 +110,8 @@ class ConversationView: NSView {
 
         self.active
             .combineWithDefault(delayedMessage.downcastToOptional(), defaultValue: nil).map({ active, _ in active })
-            .combinePrevious(false)
+            .combineWithDefault(self.conversation.connection.hasInternet, defaultValue: true)
+            .combinePrevious((false, true))
             .observeNext({ last, this in self.relayout(last, this); });
 
         // TODO: it's entirely possible that the better way to do this would be to drop Impulses altogether and
@@ -121,7 +122,7 @@ class ConversationView: NSView {
             .observeNext { wrappedKey, active in
                 let key = keyTracker.extract(wrappedKey);
                 let tooSoon = self.lastShown_.dateByAddingTimeInterval(self.sendLockout).isGreaterThan(NSDate());
-                if active && (key == .Return) && !tooSoon && (self.textField.stringValue != "") {
+                if active && self.conversation.connection.hasInternet_ && (key == .Return) && !tooSoon && (self.textField.stringValue != "") {
                     self.conversation.sendMessage(self.textField.stringValue);
                     self.textField.stringValue = "";
                 }
@@ -172,17 +173,15 @@ class ConversationView: NSView {
         self._active.modify({ _ in false });
     }
 
-    @objc private func relayoutNow() {
-        let active = self._active.value;
-        self.relayout(active, active);
-    }
-
     // kind of a misnomer; this doesn't lay anything out at all. it just controls visibility.
-    private func relayout(last: Bool, _ this: Bool) {
-        NSLog("conversation relayout for \(self.conversation.with.displayName)");
+    private func relayout(lastState: (Bool, Bool), _ thisState: (Bool, Bool)) {
+        let (last, _) = lastState;
+        let (this, online) = thisState;
 
         dispatch_async(dispatch_get_main_queue(), {
             let now = NSDate();
+
+            // handle messages.
             if !last && this {
                 // show all messages (unless they're already shown).
                 for (idx, view) in self._messages.enumerate() {
@@ -196,13 +195,6 @@ class ConversationView: NSView {
                         view.layer!.opacity = 1.0;
                     }
                 }
-
-                // show compose area.
-                self.bubbleLayer.opacity = 1.0;
-                self.calloutLayer.opacity = 1.0;
-                self.textField.alphaValue = 1.0;
-                self.window!.makeFirstResponder(self.textField);
-                self.textField.currentEditor()!.moveToEndOfLine(nil); // TODO: actually, remembering where they were would be better.
             } else if last && !this {
                 // hide all messages.
                 for (idx, view) in self._messages.enumerate() {
@@ -214,11 +206,6 @@ class ConversationView: NSView {
                     view.layer!.addAnimation(anim, forKey: "message-fade");
                     view.layer!.opacity = 0.0;
                 }
-
-                // hide compose area.
-                self.bubbleLayer.opacity = 0.0;
-                self.calloutLayer.opacity = 0.0;
-                self.textField.alphaValue = 0.0;
             } else if !this {
                 // hide individual messages that may have been shown on receipt.
                 for view in self._messages {
@@ -237,6 +224,25 @@ class ConversationView: NSView {
                         break;
                     }
                 }
+            }
+
+            // handle compose area.
+            if this {
+                if online {
+                    self.bubbleLayer.opacity = 1.0;
+                    self.calloutLayer.opacity = 1.0;
+                    self.textField.alphaValue = 1.0;
+                } else {
+                    self.bubbleLayer.opacity = 0.3;
+                    self.calloutLayer.opacity = 0.3;
+                    self.textField.alphaValue = 0.3;
+                }
+                self.window!.makeFirstResponder(self.textField);
+                self.textField.currentEditor()!.moveToEndOfLine(nil); // TODO: actually, remembering where they were would be better.
+            } else {
+                self.bubbleLayer.opacity = 0.0;
+                self.calloutLayer.opacity = 0.0;
+                self.textField.alphaValue = 0.0;
             }
         });
     }
