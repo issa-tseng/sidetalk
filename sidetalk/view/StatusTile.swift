@@ -126,7 +126,7 @@ class StatusTile: NSView {
         mainState.combinePrevious(.Inactive).observeNext { (last, this) in
             if last == this { return; }
 
-            if this == .Normal {
+            if this == .Normal || this.essentially == .Selecting {
                 dispatch_async(dispatch_get_main_queue(), {
                     self._searchField.stringValue = "";
                     self.window!.makeFirstResponder(self._searchField);
