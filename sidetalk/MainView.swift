@@ -232,12 +232,14 @@ class MainView: NSView {
                 if let contact = this { self._conversationViews.get(contact, orElse: { self.drawConversation(contact.conversation) }).activate(); }
             };
 
-        // upon activate/deactivate, handle window focus correctly.
+        // upon activate/deactivate, handle window focus and mouse events correctly.
         self.state.combinePrevious(.Inactive).observeNext { last, this in
             if last == .Inactive && this != .Inactive {
                 NSApplication.sharedApplication().activateIgnoringOtherApps(true);
+                self.window!.ignoresMouseEvents = false;
             } else if last != .Inactive && this == .Inactive {
                 GlobalInteraction.sharedInstance.relinquish();
+                self.window!.ignoresMouseEvents = true;
             }
         };
     }
