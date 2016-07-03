@@ -92,7 +92,7 @@ class MainView: NSView {
                     sorted = sortedChattedContacts + availableContacts + awayContacts;
                 } else {
                     let offlineContacts = restContacts.filter { contact in !contact.online_ };
-                    let scores = (availableContacts + awayContacts + offlineContacts).map { contact in
+                    let scores = (sortedChattedContacts + availableContacts + awayContacts + offlineContacts).map { contact in
                         (contact, FuzzySearch.score(originalString: contact.displayName, stringToMatch: search, fuzziness: 0.75));
                     };
 
