@@ -3,40 +3,6 @@ import Foundation
 import ReactiveCocoa
 import enum Result.NoError
 
-private var _stringValueContext = 0;
-class StringValueLeecher: SuppressAutocompleteDelegate, NSTextFieldDelegate {
-    private let _field: NSTextField;
-
-    init(field: NSTextField) {
-        self._field = field;
-        super.init();
-
-        field.addObserver(self, forKeyPath: "stringValue", options: NSKeyValueObservingOptions(), context: &_stringValueContext);
-        field.delegate = self;
-    }
-    deinit {
-        self._field.removeObserver(self, forKeyPath: "stringValue", context: &_stringValueContext);
-    }
-
-    private let _searchContents = ManagedSignal<String>();
-    var searchContentsSignal: Signal<String, NoError> { get { return self._searchContents.signal; } }
-    @objc override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
-        if context != &_stringValueContext {
-            super.observeValueForKeyPath(keyPath, ofObject: object, change: change, context: context);
-            return;
-        }
-
-        if ((object as? NSTextField) == self._field) && (keyPath ?? "") == "stringValue" {
-            self._searchContents.observer.sendNext(self._field.stringValue);
-        }
-    }
-    @objc override func controlTextDidChange(obj: NSNotification) {
-        if let field = obj.object as? NSTextField {
-            self._searchContents.observer.sendNext(field.stringValue ?? "");
-        }
-    }
-}
-
 class SearchIconView: NSView {
     let iconLayer: SearchIconLayer;
 
@@ -92,8 +58,8 @@ class StatusTile: NSView {
     private let _searchIcon: SearchIconView;
     private let _presenceIndicator: PresenceIndicator;
 
-    private let _searchLeecher: StringValueLeecher;
-    var searchText: Signal<String, NoError> { get { return self._searchLeecher.searchContentsSignal; } };
+    private let _searchLeecher: STTextDelegate;
+    var searchText: Signal<String, NoError> { get { return self._searchLeecher.text; } };
 
     private let _ownPresence: ManagedSignal<Presence>; // TODO: temporary until i unify presence into contact.
     var ownPresence: Signal<Presence, NoError> { get { return self._ownPresence.signal; } };
@@ -114,7 +80,7 @@ class StatusTile: NSView {
         self._searchField.alignment = NSTextAlignment.Right;
         self._searchField.lineBreakMode = .ByTruncatingHead;
         self._searchField.alphaValue = 0.0;
-        self._searchLeecher = StringValueLeecher(field: self._searchField);
+        self._searchLeecher = STTextDelegate(field: self._searchField);
 
         self._searchIcon = SearchIconView();
         self._searchIcon.frame = NSRect(origin: NSPoint(x: tileSize.width - tileSize.height, y: 0), size: NSSize(width: tileSize.height, height: tileSize.height));

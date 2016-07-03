@@ -29,7 +29,7 @@ class MainView: NSView {
     let tilePadding = CGFloat(4);
     let conversationPadding = CGFloat(14);
     let conversationWidth = CGFloat(300);
-    let conversationVOffset = CGFloat(-17);
+    let conversationVOffset = CGFloat(-72);
 
     let messageShown = NSTimeInterval(5.0);
     let restoreInterval = NSTimeInterval(10.0 * 60.0);

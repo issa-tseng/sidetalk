@@ -11,18 +11,18 @@ class ConversationView: NSView {
     private let messageShown = NSTimeInterval(5.0);
     private let sendLockout = NSTimeInterval(0.1);
 
-    private let composeHeight = CGFloat(25);
+    private let composeHeight = CGFloat(80);
     private let composePadding = CGFloat(6);
     private let bubbleMarginX = CGFloat(4);
     private let bubbleMarginY = CGFloat(4);
     private let bubbleRadius = CGFloat(3);
     private let bubbleColor = NSColor.init(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.9).CGColor;
     private let calloutSize = CGFloat(4);
+    private let composeTextSize = CGFloat(12);
 
     private let bubbleLayer: CAShapeLayer;
     private let calloutLayer: CAShapeLayer;
     private let textField: NSTextField;
-    private let textFieldDelegate: NSTextFieldDelegate;
     private var _messages = [MessageView]();
 
     private var _initiallyActivated = false;
@@ -33,6 +33,9 @@ class ConversationView: NSView {
     var lastShown: Signal<NSDate, NoError> { get { return self._lastShown.signal; } };
     var lastShown_: NSDate { get { return self._lastShown.value; } };
 
+    private let _searchLeecher: STTextDelegate;
+    var text: Signal<String, NoError> { get { return self._searchLeecher.text; } };
+
     init(frame: NSRect, width: CGFloat, conversation: Conversation) {
         self.width = width;
         self.conversation = conversation;
@@ -41,8 +44,8 @@ class ConversationView: NSView {
         self.calloutLayer = CAShapeLayer();
 
         self.textField = NSTextField(frame: NSRect(origin: NSPoint(x: self.calloutSize, y: 0), size: NSSize(width: self.width, height: self.composeHeight)).insetBy(dx: bubbleMarginX, dy: bubbleMarginY));
-        self.textFieldDelegate = SuppressAutocompleteTextFieldDelegate();
-        self.textField.delegate = self.textFieldDelegate;
+
+        self._searchLeecher = STTextDelegate(field: self.textField);
 
         super.init(frame: frame);
     }
@@ -53,18 +56,13 @@ class ConversationView: NSView {
 
         self.prepare();
 
-        // calc area.
-        let composeArea = NSRect(origin: NSPoint(x: calloutSize, y: 0), size: NSSize(width: self.width, height: composeHeight));
-
         // draw bubble.
-        let bubbleRect = composeArea;
-        let bubblePath = NSBezierPath(roundedRect: bubbleRect, xRadius: bubbleRadius, yRadius: bubbleRadius);
-        self.bubbleLayer.path = bubblePath.CGPath;
+        self.updateComposeHeight();
         self.bubbleLayer.fillColor = self.bubbleColor;
         self.bubbleLayer.opacity = 0.0;
 
         // draw callout.
-        let vlineCenter = CGFloat(12.0);
+        let vlineCenter = self.composeHeight - CGFloat(13.0);
         let calloutPts = NSPointArray.alloc(3);
         calloutPts[0] = NSPoint(x: calloutSize, y: vlineCenter + calloutSize);
         calloutPts[1] = NSPoint(x: 0, y: vlineCenter);
@@ -79,8 +77,8 @@ class ConversationView: NSView {
         self.textField.backgroundColor = NSColor.clearColor();
         self.textField.bezeled = false;
         self.textField.focusRingType = NSFocusRingType.None;
-        self.textField.font = NSFont.systemFontOfSize(12);
-        self.textField.lineBreakMode = .ByTruncatingTail;
+        self.textField.font = NSFont.systemFontOfSize(self.composeTextSize);
+        self.textField.lineBreakMode = .ByWordWrapping;
         self.textField.alphaValue = 0.0;
 
         // add layers.
@@ -121,14 +119,20 @@ class ConversationView: NSView {
             .combineWithDefault(self.active, defaultValue: false)
             .observeNext { wrappedKey, active in
                 let key = keyTracker.extract(wrappedKey);
-                let tooSoon = self.lastShown_.dateByAddingTimeInterval(self.sendLockout).isGreaterThan(NSDate());
-                if active && self.conversation.connection.hasInternet_ && (key == .Return) && !tooSoon && (self.textField.stringValue != "") {
+
+                if !active || self.lastShown_.dateByAddingTimeInterval(self.sendLockout).isGreaterThan(NSDate()) { return; }
+
+                if self.conversation.connection.hasInternet_ && (key == .Return) && (self.textField.stringValue != "") {
                     self.conversation.sendMessage(self.textField.stringValue);
                     self.textField.stringValue = "";
+                } else if key == .LineBreak {
+                    self.textField.insertText("\n");
                 }
-            }
+            };
 
         self._active.modify({ _ in self._initiallyActivated });
+
+        self.text.observeNext { _ in self.updateComposeHeight(); };
     }
 
     private func drawMessage(message: Message) -> MessageView {
@@ -245,6 +249,15 @@ class ConversationView: NSView {
                 self.textField.alphaValue = 0.0;
             }
         });
+    }
+
+    private func updateComposeHeight() {
+        let height = (self.textField.stringValue == "")
+                ? 24.0
+                : min(self.composeHeight, self.textField.cell!.cellSizeForBounds(self.textField.bounds).height) + (self.bubbleMarginY * 2);
+        let composeArea = NSRect(origin: NSPoint(x: calloutSize, y: self.composeHeight - height), size: NSSize(width: self.width, height: height));
+        let bubblePath = NSBezierPath(roundedRect: composeArea, xRadius: bubbleRadius, yRadius: bubbleRadius);
+        self.bubbleLayer.path = bubblePath.CGPath;
     }
 
     required init(coder: NSCoder) {

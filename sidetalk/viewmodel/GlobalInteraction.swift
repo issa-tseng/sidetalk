@@ -5,7 +5,7 @@ import ReactiveCocoa
 import enum Result.NoError
 
 enum Key : Impulsable {
-    case Up, Down, Return, Escape, GlobalToggle, Blur, None;
+    case Up, Down, Return, LineBreak, Escape, GlobalToggle, Blur, None;
 
     static func noopValue() -> Key { return .None; }
 }
@@ -18,6 +18,7 @@ class GlobalInteraction {
     var keyPress: Signal<Impulse<Key>, NoError> { get { return self._keyPress.signal; } };
 
     private let activateShortcut = MASShortcut.init(keyCode: 0x31, modifierFlags: NSEventModifierFlags.ControlKeyMask.rawValue);
+    private let anyModifierMask = NSEventModifierFlags.AlternateKeyMask.rawValue | NSEventModifierFlags.ControlKeyMask.rawValue;
 
     init() {
         // we'll want to blur when the space changes, or we lose focus.
@@ -33,7 +34,11 @@ class GlobalInteraction {
             } else if event.keyCode == 125 { // down
                 self._keyPress.observer.sendNext(self.keyGenerator.create(.Down));
             } else if event.keyCode == 36 { // enter
-                self._keyPress.observer.sendNext(self.keyGenerator.create(.Return));
+                if (event.modifierFlags.rawValue & self.anyModifierMask) > 0 {
+                    self._keyPress.observer.sendNext(self.keyGenerator.create(.LineBreak));
+                } else {
+                    self._keyPress.observer.sendNext(self.keyGenerator.create(.Return));
+                }
             } else if event.keyCode == 53 { // esc
                 self._keyPress.observer.sendNext(self.keyGenerator.create(.Escape));
             }

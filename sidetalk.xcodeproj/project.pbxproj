@@ -17,7 +17,7 @@
 		451282661CFA6F100088DEDE /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451282651CFA6F100088DEDE /* MainView.swift */; };
 		452591C81D1CA93D000CF9F1 /* Impulse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452591C71D1CA93D000CF9F1 /* Impulse.swift */; };
 		452591CA1D1D0751000CF9F1 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452591C91D1D0751000CF9F1 /* ArrayExtensions.swift */; };
-		452591CC1D21F828000CF9F1 /* SuppressAutocompleteDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452591CB1D21F828000CF9F1 /* SuppressAutocompleteDelegate.swift */; };
+		452591CC1D21F828000CF9F1 /* STTextDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452591CB1D21F828000CF9F1 /* STTextDelegate.swift */; };
 		452591CE1D222329000CF9F1 /* MainState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452591CD1D222329000CF9F1 /* MainState.swift */; };
 		454DBB981D08E4C30065DA1B /* QuickCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 454DBB971D08E4C30065DA1B /* QuickCache.swift */; };
 		454DBB9A1D0935190065DA1B /* ManagedSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 454DBB991D0935190065DA1B /* ManagedSignal.swift */; };
@@ -80,7 +80,7 @@
 		451282651CFA6F100088DEDE /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		452591C71D1CA93D000CF9F1 /* Impulse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Impulse.swift; path = util/Impulse.swift; sourceTree = "<group>"; };
 		452591C91D1D0751000CF9F1 /* ArrayExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ArrayExtensions.swift; path = util/ArrayExtensions.swift; sourceTree = "<group>"; };
-		452591CB1D21F828000CF9F1 /* SuppressAutocompleteDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SuppressAutocompleteDelegate.swift; path = view/SuppressAutocompleteDelegate.swift; sourceTree = "<group>"; };
+		452591CB1D21F828000CF9F1 /* STTextDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = STTextDelegate.swift; path = view/STTextDelegate.swift; sourceTree = "<group>"; };
 		452591CD1D222329000CF9F1 /* MainState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MainState.swift; path = viewmodel/MainState.swift; sourceTree = "<group>"; };
 		454DBB971D08E4C30065DA1B /* QuickCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QuickCache.swift; path = util/QuickCache.swift; sourceTree = "<group>"; };
 		454DBB991D0935190065DA1B /* ManagedSignal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ManagedSignal.swift; path = util/ManagedSignal.swift; sourceTree = "<group>"; };
@@ -284,7 +284,7 @@
 				457DF97F1D0CB0C4008BE043 /* StatusTile.swift */,
 				457A783F1D0F8B57005D58EF /* ConversationView.swift */,
 				457A78431D14C1F8005D58EF /* MessageView.swift */,
-				452591CB1D21F828000CF9F1 /* SuppressAutocompleteDelegate.swift */,
+				452591CB1D21F828000CF9F1 /* STTextDelegate.swift */,
 				450EB7371D287FAA00AE272B /* PresenceIndicator.swift */,
 			);
 			name = view;
@@ -506,7 +506,7 @@
 				45AEC00C1CFD1F6700203967 /* XUIIndexPathAdditions.m in Sources */,
 				45AEC00B1CFD1F6700203967 /* XUIImageAdditions.m in Sources */,
 				452591CA1D1D0751000CF9F1 /* ArrayExtensions.swift in Sources */,
-				452591CC1D21F828000CF9F1 /* SuppressAutocompleteDelegate.swift in Sources */,
+				452591CC1D21F828000CF9F1 /* STTextDelegate.swift in Sources */,
 				452591C81D1CA93D000CF9F1 /* Impulse.swift in Sources */,
 				45AEC0071CFD1F6700203967 /* XUIColorAdditions.m in Sources */,
 				4512823D1CF9295C0088DEDE /* AppDelegate.swift in Sources */,
