@@ -8,6 +8,7 @@ struct ContactState {
     let chatState: ChatState?;
     let lastShown: NSDate?;
     let latestMessage: Message?;
+    let active: Bool;
 }
 
 class ContactTile : NSView {
@@ -85,10 +86,11 @@ class ContactTile : NSView {
         conversation.chatState
             .combineWithDefault(conversationView.lastShown, defaultValue: NSDate.distantPast())
             .combineWithDefault(conversationView.allMessages().filter({ message in message.from == self.contact }).downcastToOptional(), defaultValue: nil)
-            .map({ (stateShown, message) in ContactState(chatState: stateShown.0, lastShown: stateShown.1, latestMessage: message); })
+            .combineWithDefault(conversationView.active, defaultValue: false)
+            .map({ (tuple, active) in ContactState(chatState: tuple.0.0, lastShown: tuple.0.1, latestMessage: tuple.1, active: active); })
             .observeNext { all in
                 dispatch_async(dispatch_get_main_queue(), {
-                    let hasUnread = (all.latestMessage != nil) && all.latestMessage!.at.isGreaterThan(all.lastShown);
+                    let hasUnread = !all.active && (all.latestMessage != nil) && all.latestMessage!.at.isGreaterThan(all.lastShown);
                     if all.chatState == .Composing {
                         self.outlineLayer.strokeColor = self.composingColor;
                     } else if hasUnread {
