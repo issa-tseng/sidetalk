@@ -147,11 +147,8 @@ class ConversationView: NSView {
             self.addSubview(view);
 
             // fade in once.
-            let anim = CABasicAnimation.init(keyPath: "opacity");
-            anim.fromValue = 0.0;
-            anim.toValue = 1.0;
-            anim.duration = NSTimeInterval(0.1);
-            view.layer!.addAnimation(anim, forKey: "message-fade");
+            view.alphaValue = 0.0;
+            animationWithDuration(0.1, { view.animator().alphaValue = 1.0; });
 
             // move on up. just move on up.
             if self._messages.count > 1 {
@@ -183,46 +180,23 @@ class ConversationView: NSView {
         let (this, online) = thisState;
 
         dispatch_async(dispatch_get_main_queue(), {
-            let now = NSDate();
-
             // handle messages.
             if !last && this {
-                // show all messages (unless they're already shown).
+                // show all messages. TODO: don't bother to animate offscreen stuff.
                 for (idx, view) in self._messages.enumerate() {
-                    if view.message.at.dateByAddingTimeInterval(self.messageShown).isLessThan(now) {
-                        let anim = CABasicAnimation.init(keyPath: "opacity");
-                        anim.fromValue = 0.0;
-                        anim.toValue = 1.0;
-                        anim.duration = NSTimeInterval(0.1 + (0.07 * Double(idx)));
-                        view.layer!.removeAnimationForKey("message-fade");
-                        view.layer!.addAnimation(anim, forKey: "message-fade");
-                        view.layer!.opacity = 1.0;
-                    }
+                    animationWithDuration(0.1 + (0.07 * Double(idx)), { view.animator().alphaValue = 1.0; });
                 }
             } else if last && !this {
                 // hide all messages.
                 for (idx, view) in self._messages.enumerate() {
-                    let anim = CABasicAnimation.init(keyPath: "opacity");
-                    anim.fromValue = 1.0;
-                    anim.toValue = 0.0;
-                    anim.duration = NSTimeInterval(0.2 + (0.04 * Double(idx)));
-                    view.layer!.removeAnimationForKey("message-fade");
-                    view.layer!.addAnimation(anim, forKey: "message-fade");
-                    view.layer!.opacity = 0.0;
+                    animationWithDuration(0.2 + (0.04 * Double(idx)), { view.animator().alphaValue = 0.0; })
                 }
             } else if !this {
                 // hide individual messages that may have been shown on receipt.
+                let now = NSDate();
                 for view in self._messages {
                     if view.message.at.dateByAddingTimeInterval(self.messageShown).isLessThanOrEqualTo(now) {
-                        if view.layer!.opacity != 0.0 {
-                            let anim = CABasicAnimation.init(keyPath: "opacity");
-                            anim.fromValue = 1.0;
-                            anim.toValue = 0.0;
-                            anim.duration = NSTimeInterval(0.1);
-                            view.layer!.removeAnimationForKey("message-fade");
-                            view.layer!.addAnimation(anim, forKey: "message-fade");
-                            view.layer!.opacity = 0.0;
-                        }
+                        animationWithDuration(0.15, { view.animator().alphaValue = 0.0; });
                     } else {
                         // no point in running through the rest.
                         break;
