@@ -273,11 +273,10 @@ class MainView: NSView {
                 let x = self.frame.width - self.tileSize.width - self.tilePadding;
                 let y = self.allPadding;
 
-                NSAnimationContext.beginGrouping();
-                NSAnimationContext.currentContext().duration = thisState.state.active ? 0.03 : 0.2;
-                if (thisState.state.active) { tile.animator().frame.origin = NSPoint(x: x, y: y); }
-                else                        { tile.animator().frame.origin = NSPoint(x: x + (self.tileSize.height * 0.55), y: y); }
-                NSAnimationContext.endGrouping();
+                animationWithDuration(thisState.state.active ? 0.03 : 0.2, {
+                    if (thisState.state.active) { tile.animator().frame.origin = NSPoint(x: x, y: y); }
+                    else                        { tile.animator().frame.origin = NSPoint(x: x + (self.tileSize.height * 0.55), y: y); }
+                });
             }
 
             // deal with actual contacts
