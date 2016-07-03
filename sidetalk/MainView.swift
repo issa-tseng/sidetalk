@@ -147,10 +147,9 @@ class MainView: NSView {
                         if message.at.isGreaterThan(lastInactive) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThan(now) {
                             return .Chatting(message.conversation.with, shouldRestore ? state : .Inactive);
                         }
-                    } else if shouldRestore {
-                        return state;
                     }
 
+                    if shouldRestore { return state; }
                     return .Normal;
                 case (_, .GlobalToggle): return .Inactive;
                 default: break;
