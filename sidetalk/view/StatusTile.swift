@@ -40,7 +40,7 @@ class SearchIconLayer: CALayer {
         nsPath.addClip();
 
         // draw image
-        let image = NSImage.init(byReferencingFile: "/Users/cxlt/Code/sidetalk/sidetalk/Resources/search.png")!;
+        let image = NSImage.init(named: "search")!;
         image.drawInRect(
             iconBounds,
             fromRect: CGRect.init(origin: CGPoint.zero, size: image.size),
