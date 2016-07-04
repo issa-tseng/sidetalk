@@ -30,8 +30,8 @@ class MainView: NSView {
     var mutedMode: Signal<Bool, NoError> { get { return self._mutedMode.signal; } };
 
     // drawing ks. should these go elsewhere?
-    let allPadding = CGFloat(50);
-    let listPadding = CGFloat(35);
+    let allPadding = CGFloat(12);
+    let listPadding = CGFloat(73);
     let tileSize = NSSize(width: 300, height: 50);
     let tilePadding = CGFloat(4);
     let conversationPadding = CGFloat(14);
@@ -56,7 +56,7 @@ class MainView: NSView {
         );
 
         self.prepare();
-        self._statusTile.prepare(self.state);
+        self._statusTile.prepare(self);
     }
 
     func setHide(hidden: Bool) { self._hiddenMode.modify({ _ in hidden }); }

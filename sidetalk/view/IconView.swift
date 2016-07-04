@@ -37,11 +37,13 @@ class IconLayer: CALayer {
         let iconBounds = CGRect(origin: CGPoint.zero, size: self.frame.size);
 
         if let img = self.image {
+            XUIGraphicsPushContext(ctx);
             img.drawInRect(
                 iconBounds,
                 fromRect: CGRect.init(origin: CGPoint.zero, size: img.size),
-                operation: .CompositeSourceOver,
+                operation: .CompositeCopy,
                 fraction: 1.0);
+            XUIGraphicsPopContext();
         }
     }
 }

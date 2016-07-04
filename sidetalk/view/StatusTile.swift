@@ -8,6 +8,7 @@ class StatusTile: NSView {
 
     private let _searchField: NSTextField;
     private let _searchIcon: IconView;
+    private let _hiddenModeIcon: IconView;
     private let _presenceIndicator: PresenceIndicator;
 
     private let _searchLeecher: STTextDelegate;
@@ -17,8 +18,12 @@ class StatusTile: NSView {
     var ownPresence: Signal<Presence, NoError> { get { return self._ownPresence.signal; } };
 
     let tileSize = NSSize(width: 300, height: 50);
-    let searchFrame = NSRect(origin: NSPoint(x: 30, y: 8), size: NSSize(width: 212, height: 30));
-    let presenceIndicatorOrigin = NSPoint(x: 250, y: 5);
+    let iconMargin = CGFloat(42);
+    let iconSize = CGFloat(20);
+    let icon1Y = CGFloat(22);
+    let icon2Y = CGFloat(0);
+    let searchFrame = NSRect(origin: NSPoint(x: 30, y: 8 + 42), size: NSSize(width: 212, height: 30));
+    let presenceIndicatorOrigin = NSPoint(x: 250, y: 5 + 42);
 
     init(connection: Connection, frame: NSRect) {
         self.connection = connection;
@@ -34,13 +39,21 @@ class StatusTile: NSView {
         self._searchField.alphaValue = 0.0;
         self._searchLeecher = STTextDelegate(field: self._searchField);
 
-        let iconLayer = RoundIconLayer();
+        let searchIconLayer = RoundIconLayer();
         self._searchIcon = IconView(
-            layer: iconLayer, frame: NSRect(origin: NSPoint(x: tileSize.width - tileSize.height, y: 0),
-            size: NSSize(width: tileSize.height, height: tileSize.height))
+            layer: searchIconLayer,
+            frame: NSRect(origin: NSPoint(x: tileSize.width - tileSize.height, y: self.iconMargin), size: NSSize(width: tileSize.height, height: tileSize.height))
         );
-        iconLayer.opacity = 0.0;
-        iconLayer.image = NSImage.init(named: "search");
+        searchIconLayer.opacity = 0.0;
+        searchIconLayer.image = NSImage.init(named: "search");
+
+        let hiddenIconLayer = IconLayer();
+        self._hiddenModeIcon = IconView(
+            layer: hiddenIconLayer,
+            frame: NSRect(origin: NSPoint(x: tileSize.width - tileSize.height + 6, y: self.icon1Y), size: NSSize(width: iconSize, height: iconSize))
+        );
+        self._hiddenModeIcon.alphaValue = 0.0;
+        hiddenIconLayer.image = NSImage.init(named: "hidden");
 
         let presence = ManagedSignal<Presence>();
         self._ownPresence = presence;
@@ -59,10 +72,11 @@ class StatusTile: NSView {
 
         self.addSubview(self._searchField);
         self.addSubview(self._searchIcon);
+        self.addSubview(self._hiddenModeIcon);
         self.addSubview(self._presenceIndicator);
     }
 
-    func prepare(mainState: Signal<MainState, NoError>) {
+    func prepare(mainView: MainView) {
         // grab and render our own info.
         self.connection.myself
             .filter({ contact in contact != nil })
@@ -79,7 +93,7 @@ class StatusTile: NSView {
             };
 
         // focus textfield if activated. clear it if deactivated.
-        mainState.combinePrevious(.Inactive).observeNext { (last, this) in
+        mainView.state.combinePrevious(.Inactive).observeNext { (last, this) in
             if last == this { return; }
 
             if this == .Normal || this.essentially == .Selecting {
@@ -107,11 +121,14 @@ class StatusTile: NSView {
                 case (true, true): self._ownPresence.observer.sendNext(.Online);
                 };
             };
+
+        // display status mode icons.
+        mainView.hiddenMode.observeNext { on in self._hiddenModeIcon.animator().alphaValue = (on ? 1.0 : 0.0); };
     }
 
     private func drawContact(contact: Contact) -> ContactTile {
         let tile = ContactTile(
-            frame: NSRect(origin: NSPoint.zero, size: self.tileSize),
+            frame: NSRect(origin: NSPoint.init(x: 0, y: self.iconMargin), size: self.tileSize),
             size: self.tileSize,
             contact: contact
         );
