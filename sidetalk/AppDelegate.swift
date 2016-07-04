@@ -44,6 +44,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.contentView!.addSubview(self.mainView!);
     }
 
+    @IBAction func toggleHidden(sender: AnyObject) {
+        let item = sender as! NSMenuItem;
+
+        let hidden = (item.state == NSOffState);
+        self.mainView!.setHide(hidden);
+        item.state = hidden ? NSOnState : NSOffState;
+    }
+
+    @IBAction func toggleMuted(sender: AnyObject) {
+        let item = sender as! NSMenuItem;
+
+        let muted = (item.state == NSOffState);
+        self.mainView!.setMute(muted);
+        item.state = muted ? NSOnState : NSOffState;
+    }
+
     func applicationWillTerminate(aNotification: NSNotification) {
         // Insert code here to tear down your application
     }

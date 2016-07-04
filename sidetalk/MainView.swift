@@ -9,6 +9,7 @@ struct LayoutState {
     let order: [ Contact : Int ];
     let state: MainState;
     let notifying: Set<Contact>;
+    let hidden: Bool;
 }
 
 // TODO: split into V/VM?
@@ -21,6 +22,12 @@ class MainView: NSView {
 
     private var _state: Signal<MainState, NoError>?;
     var state: Signal<MainState, NoError> { get { return self._state!; } };
+
+    private let _hiddenMode = MutableProperty<Bool>(false);
+    var hiddenMode: Signal<Bool, NoError> { get { return self._hiddenMode.signal; } };
+
+    private let _mutedMode = MutableProperty<Bool>(false);
+    var mutedMode: Signal<Bool, NoError> { get { return self._mutedMode.signal; } };
 
     // drawing ks. should these go elsewhere?
     let allPadding = CGFloat(50);
@@ -51,6 +58,9 @@ class MainView: NSView {
         self.prepare();
         self._statusTile.prepare(self.state);
     }
+
+    func setHide(hidden: Bool) { self._hiddenMode.modify({ _ in hidden }); }
+    func setMute(muted: Bool) { self._mutedMode.modify({ _ in muted }); }
 
     private func prepare() {
         let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "mainview-scheduler");
@@ -198,9 +208,10 @@ class MainView: NSView {
             .combineWithDefault(latestMessage.map({ _ in nil as AnyObject? }), defaultValue: nil).map { order, _ in order } // (Order)
             .combineWithDefault(self.state, defaultValue: .Inactive) // (Order, MainState)
             .combineWithDefault(notifying, defaultValue: Set<Contact>()) // ((Order, MainState), Set[Contact])
-            .map({ orderState, notifying in LayoutState(order: orderState.0, state: orderState.1, notifying: notifying); })
+            .combineWithDefault(self.hiddenMode, defaultValue: false) // (((Order, MainState), Set[Contact]), Bool)
+            .map({ tuple, hidden in LayoutState(order: tuple.0.0, state: tuple.0.1, notifying: tuple.1, hidden: hidden); })
             .debounce(NSTimeInterval(0.02), onScheduler: QueueScheduler.mainQueueScheduler)
-            .combinePrevious(LayoutState(order: [:], state: .Inactive, notifying: Set<Contact>()))
+            .combinePrevious(LayoutState(order: [:], state: .Inactive, notifying: Set<Contact>(), hidden: false))
             .observeNext { last, this in self.relayout(last, this) };
 
         // show or hide contact labels as appropriate.
@@ -275,6 +286,7 @@ class MainView: NSView {
 
                 animationWithDuration(thisState.state.active ? 0.03 : 0.2, {
                     if (thisState.state.active) { tile.animator().frame.origin = NSPoint(x: x, y: y); }
+                    else if (thisState.hidden)  { tile.animator().frame.origin = NSPoint(x: x + self.tileSize.height + self.tilePadding, y: y); }
                     else                        { tile.animator().frame.origin = NSPoint(x: x + (self.tileSize.height * 0.55), y: y); }
                 });
             }
@@ -312,8 +324,10 @@ class MainView: NSView {
                 case (let lidx, _, let .Searching(_, idx)) where lidx == idx:   from = NSPoint(x: xOn, y: yLast);
                 case (_, _, let .Chatting(with, _)) where with == tile.contact: from = NSPoint(x: xOn, y: yLast);
                 case (_, _, .Normal), (_, true, _):                             from = NSPoint(x: xOn, y: yLast);
-                default:                                                        from = NSPoint(x: xHalf, y: yLast);
-                }
+                default: switch (lastState.state == .Inactive, lastState.hidden) {
+                    case (true, true):                                          from = NSPoint(x: xOff, y: yLast);
+                    default:                                                    from = NSPoint(x: xHalf, y: yLast);
+                }}
 
                 switch (this, thisState.notifying.contains(tile.contact), thisState.state) {
                 case (nil, _, _):                                               to = NSPoint(x: xOff, y: yLast);
@@ -321,8 +335,10 @@ class MainView: NSView {
                 case (let tidx, _, let .Searching(_, idx)) where tidx == idx:   to = NSPoint(x: xOn, y: yThis);
                 case (_, _, let .Chatting(with, _)) where with == tile.contact: to = NSPoint(x: xOn, y: yThis);
                 case (_, _, .Normal), (_, true, _):                             to = NSPoint(x: xOn, y: yThis);
-                default:                                                        to = NSPoint(x: xHalf, y: yThis);
-                }
+                default: switch (thisState.state == .Inactive, thisState.hidden) {
+                    case (true, true):                                          to = NSPoint(x: xOff, y: yThis);
+                    default:                                                    to = NSPoint(x: xHalf, y: yThis);
+                }}
 
                 if tile.layer!.position != to {
                     anim.fromValue = NSValue.init(point: from);
