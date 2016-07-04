@@ -4,13 +4,6 @@ import Cocoa
 import ReactiveCocoa
 
 class CAAvatarLayer : CALayer {
-    let fallbackTextAttr = [
-        NSForegroundColorAttributeName: NSColor.whiteColor(),
-        NSKernAttributeName: -0.2,
-        NSFontAttributeName: NSFont.systemFontOfSize(30)
-    ];
-    let fallbackTextOrigin = CGPoint(x: 12, y: 6);
-
     var _contact: Contact?;
     var contact: Contact? {
         get { return self._contact; }
@@ -59,11 +52,14 @@ class CAAvatarLayer : CALayer {
 
         if self._image == nil {
             // render bg
-            NSColor.init(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.8).set();
+            NSColor.init(red: 0.7, green: 0.7, blue: 0.7, alpha: 0.8).set();
             NSRectFillUsingOperation(avatarBounds, .CompositeSourceOver);
 
             // render text
-            self.contact!.initials.drawAtPoint(fallbackTextOrigin, withAttributes: fallbackTextAttr);
+            NSGraphicsContext.saveGraphicsState();
+            NSGraphicsContext.setCurrentContext(NSGraphicsContext.init(CGContext: ctx, flipped: false));
+            self.contact!.initials.drawInRect(ST.avatar.fallbackTextFrame, withAttributes: ST.avatar.fallbackTextAttr);
+            NSGraphicsContext.restoreGraphicsState();
         } else {
             let image = self._image!;
             image.resizingMode = .Stretch;
