@@ -5,7 +5,7 @@ import ReactiveCocoa
 import enum Result.NoError
 
 enum Key : Impulsable {
-    case Up, Down, Return, LineBreak, Escape, GlobalToggle, Blur, None;
+    case Up, Down, Return, LineBreak, Escape, GlobalToggle, Focus, Blur, None;
 
     static func noopValue() -> Key { return .None; }
 }
@@ -21,11 +21,13 @@ class GlobalInteraction {
     private let anyModifierMask = NSEventModifierFlags.AlternateKeyMask.rawValue | NSEventModifierFlags.ControlKeyMask.rawValue;
 
     init() {
-        // we'll want to blur when the space changes, or we lose focus.
+        // we'll want to blur when the space changes, or we lose focus. and activate if the app is activated from the dock.
         NSWorkspace.sharedWorkspace().notificationCenter.addObserver(self,
             selector: #selector(spaceChanged), name: NSWorkspaceActiveSpaceDidChangeNotification, object: nil);
         NSWorkspace.sharedWorkspace().notificationCenter.addObserver(self,
             selector: #selector(appDeactivated), name: NSWorkspaceDidDeactivateApplicationNotification, object: nil);
+        NSWorkspace.sharedWorkspace().notificationCenter.addObserver(self,
+            selector: #selector(appActivated), name: NSWorkspaceDidActivateApplicationNotification, object: nil);
 
         // listen to all key events. vend keystroke.
         NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDownMask, handler: { event in
@@ -95,6 +97,13 @@ class GlobalInteraction {
         guard let app = notification.userInfo?[NSWorkspaceApplicationKey] as? NSRunningApplication else { return; };
         if app.bundleIdentifier == "com.giantacorn.sidetalk" {
             self._keyPress.observer.sendNext(self.keyGenerator.create(.Blur));
+        }
+    }
+
+    @objc internal func appActivated(notification: NSNotification) {
+        guard let app = notification.userInfo?[NSWorkspaceApplicationKey] as? NSRunningApplication else { return; };
+        if app.bundleIdentifier == "com.giantacorn.sidetalk" {
+            self._keyPress.observer.sendNext(self.keyGenerator.create(.Focus));
         }
     }
 }

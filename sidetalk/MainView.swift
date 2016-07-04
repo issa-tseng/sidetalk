@@ -149,6 +149,7 @@ class MainView: NSView {
 
                 case (let .Chatting(_, previous), .Escape): return previous;
 
+                case (.Inactive, .Focus): fallthrough;
                 case (.Inactive, .GlobalToggle):
                     let now = NSDate();
                     let (state, time) = lastState;
