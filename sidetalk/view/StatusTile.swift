@@ -9,6 +9,7 @@ class StatusTile: NSView {
     private let _searchField: NSTextField;
     private let _searchIcon: IconView;
     private let _hiddenModeIcon: IconView;
+    private let _muteModeIcon: IconView;
     private let _presenceIndicator: PresenceIndicator;
 
     private let _searchLeecher: STTextDelegate;
@@ -20,7 +21,7 @@ class StatusTile: NSView {
     let tileSize = NSSize(width: 300, height: 50);
     let iconMargin = CGFloat(42);
     let iconSize = CGFloat(20);
-    let icon1Y = CGFloat(22);
+    let icon1Y = CGFloat(20);
     let icon2Y = CGFloat(0);
     let searchFrame = NSRect(origin: NSPoint(x: 30, y: 8 + 42), size: NSSize(width: 212, height: 30));
     let presenceIndicatorOrigin = NSPoint(x: 250, y: 5 + 42);
@@ -55,6 +56,14 @@ class StatusTile: NSView {
         self._hiddenModeIcon.alphaValue = 0.0;
         hiddenIconLayer.image = NSImage.init(named: "hidden");
 
+        let muteIconLayer = IconLayer();
+        self._muteModeIcon = IconView(
+            layer: muteIconLayer,
+            frame: NSRect(origin: NSPoint(x: tileSize.width - tileSize.height + 6, y: self.icon1Y), size: NSSize(width: iconSize, height: iconSize))
+        );
+        self._muteModeIcon.alphaValue = 0.0;
+        muteIconLayer.image = NSImage.init(named: "mute");
+
         let presence = ManagedSignal<Presence>();
         self._ownPresence = presence;
         self._presenceIndicator = PresenceIndicator(presenceSignal: presence.signal, initial: .None, frame: NSRect(origin: presenceIndicatorOrigin, size: frame.size));
@@ -73,6 +82,7 @@ class StatusTile: NSView {
         self.addSubview(self._searchField);
         self.addSubview(self._searchIcon);
         self.addSubview(self._hiddenModeIcon);
+        self.addSubview(self._muteModeIcon);
         self.addSubview(self._presenceIndicator);
     }
 
@@ -123,7 +133,11 @@ class StatusTile: NSView {
             };
 
         // display status mode icons.
-        mainView.hiddenMode.observeNext { on in self._hiddenModeIcon.animator().alphaValue = (on ? 1.0 : 0.0); };
+        mainView.hiddenMode.observeNext { on in
+            self._hiddenModeIcon.animator().alphaValue = (on ? 1.0 : 0.0);
+            self._muteModeIcon.animator().frame.origin = NSPoint(x: self._muteModeIcon.frame.origin.x, y: (on ? self.icon2Y : self.icon1Y));
+        };
+        mainView.mutedMode.observeNext { on in self._muteModeIcon.animator().alphaValue = (on ? 1.0 : 0.0) }
     }
 
     private func drawContact(contact: Contact) -> ContactTile {
