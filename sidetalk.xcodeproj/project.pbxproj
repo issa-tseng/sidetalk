@@ -23,6 +23,7 @@
 		454DBB9A1D0935190065DA1B /* ManagedSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 454DBB991D0935190065DA1B /* ManagedSignal.swift */; };
 		455852391D29D1B500ECE93C /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455852381D29D1B500ECE93C /* Util.swift */; };
 		4558523B1D29DAEB00ECE93C /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4558523A1D29DAEB00ECE93C /* Constants.swift */; };
+		455852431D2A06D800ECE93C /* IconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455852421D2A06D800ECE93C /* IconView.swift */; };
 		457A783E1D0F74DF005D58EF /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A783D1D0F74DF005D58EF /* Conversation.swift */; };
 		457A78401D0F8B57005D58EF /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A783F1D0F8B57005D58EF /* ConversationView.swift */; };
 		457A78441D14C1F8005D58EF /* MessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A78431D14C1F8005D58EF /* MessageView.swift */; };
@@ -88,6 +89,7 @@
 		454DBB991D0935190065DA1B /* ManagedSignal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ManagedSignal.swift; path = util/ManagedSignal.swift; sourceTree = "<group>"; };
 		455852381D29D1B500ECE93C /* Util.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Util.swift; path = util/Util.swift; sourceTree = "<group>"; };
 		4558523A1D29DAEB00ECE93C /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Constants.swift; path = view/Constants.swift; sourceTree = "<group>"; };
+		455852421D2A06D800ECE93C /* IconView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = IconView.swift; path = view/IconView.swift; sourceTree = "<group>"; };
 		457A783D1D0F74DF005D58EF /* Conversation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Conversation.swift; path = viewmodel/Conversation.swift; sourceTree = "<group>"; };
 		457A783F1D0F8B57005D58EF /* ConversationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ConversationView.swift; path = view/ConversationView.swift; sourceTree = "<group>"; };
 		457A78431D14C1F8005D58EF /* MessageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MessageView.swift; path = view/MessageView.swift; sourceTree = "<group>"; };
@@ -292,6 +294,7 @@
 				452591CB1D21F828000CF9F1 /* STTextDelegate.swift */,
 				450EB7371D287FAA00AE272B /* PresenceIndicator.swift */,
 				4558523A1D29DAEB00ECE93C /* Constants.swift */,
+				455852421D2A06D800ECE93C /* IconView.swift */,
 			);
 			name = view;
 			sourceTree = "<group>";
@@ -500,6 +503,7 @@
 				45AEC0051CFD1F6700203967 /* XUIBase.m in Sources */,
 				45AEC01A1CFD59CF00203967 /* AvatarLayer.swift in Sources */,
 				45AEC0091CFD1F6700203967 /* XUIGeometry.m in Sources */,
+				455852431D2A06D800ECE93C /* IconView.swift in Sources */,
 				455852391D29D1B500ECE93C /* Util.swift in Sources */,
 				45AEC0161CFD58AA00203967 /* ContactTile.swift in Sources */,
 				458A73401D0A423C0061FAFD /* Connection.swift in Sources */,

@@ -3,59 +3,11 @@ import Foundation
 import ReactiveCocoa
 import enum Result.NoError
 
-class SearchIconView: NSView {
-    let iconLayer: SearchIconLayer;
-
-    override init(frame: NSRect) {
-        self.iconLayer = SearchIconLayer();
-
-        super.init(frame: frame);
-        self.wantsLayer = true;
-    }
-
-    override func viewWillMoveToSuperview(newSuperview: NSView?) {
-        self.iconLayer.frame = NSRect(origin: NSPoint.zero, size: self.frame.size);
-        self.layer!.addSublayer(self.iconLayer);
-        self.iconLayer.setNeedsDisplay();
-
-        super.viewWillMoveToSuperview(newSuperview);
-    }
-
-    required init(coder: NSCoder) { fatalError("fuck you"); }
-}
-
-class SearchIconLayer: CALayer {
-    override func drawInContext(ctx: CGContext) {
-        self.contentsScale = NSScreen.mainScreen()!.backingScaleFactor;
-
-        // prepare avatar
-        let iconBounds = CGRect(origin: CGPoint.zero, size: self.frame.size);
-
-        // prepare and clip
-        XUIGraphicsPushContext(ctx);
-        let nsPath = NSBezierPath();
-        nsPath.appendBezierPathWithRoundedRect(iconBounds,
-                                               xRadius: self.frame.size.width / 2,
-                                               yRadius: self.frame.size.height / 2);
-        nsPath.addClip();
-
-        // draw image
-        let image = NSImage.init(named: "search")!;
-        image.drawInRect(
-            iconBounds,
-            fromRect: CGRect.init(origin: CGPoint.zero, size: image.size),
-            operation: .CompositeSourceOver,
-            fraction: 0.98);
-
-        XUIGraphicsPopContext();
-    }
-}
-
 class StatusTile: NSView {
     internal let connection: Connection;
 
     private let _searchField: NSTextField;
-    private let _searchIcon: SearchIconView;
+    private let _searchIcon: IconView;
     private let _presenceIndicator: PresenceIndicator;
 
     private let _searchLeecher: STTextDelegate;
@@ -82,9 +34,13 @@ class StatusTile: NSView {
         self._searchField.alphaValue = 0.0;
         self._searchLeecher = STTextDelegate(field: self._searchField);
 
-        self._searchIcon = SearchIconView();
-        self._searchIcon.frame = NSRect(origin: NSPoint(x: tileSize.width - tileSize.height, y: 0), size: NSSize(width: tileSize.height, height: tileSize.height));
-        self._searchIcon.iconLayer.opacity = 0.0;
+        let iconLayer = RoundIconLayer();
+        self._searchIcon = IconView(
+            layer: iconLayer, frame: NSRect(origin: NSPoint(x: tileSize.width - tileSize.height, y: 0),
+            size: NSSize(width: tileSize.height, height: tileSize.height))
+        );
+        iconLayer.opacity = 0.0;
+        iconLayer.image = NSImage.init(named: "search");
 
         let presence = ManagedSignal<Presence>();
         self._ownPresence = presence;
