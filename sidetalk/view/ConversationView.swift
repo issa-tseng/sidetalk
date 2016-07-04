@@ -7,6 +7,8 @@ class ConversationView: NSView {
     internal let conversation: Conversation;
     private let width: CGFloat;
 
+    private let _mainView: MainView;
+
     private let messagePadding = CGFloat(2);
     private let messageShown = NSTimeInterval(5.0);
     private let sendLockout = NSTimeInterval(0.1);
@@ -36,9 +38,10 @@ class ConversationView: NSView {
     private let _searchLeecher: STTextDelegate;
     var text: Signal<String, NoError> { get { return self._searchLeecher.text; } };
 
-    init(frame: NSRect, width: CGFloat, conversation: Conversation) {
+    init(frame: NSRect, width: CGFloat, conversation: Conversation, mainView: MainView) {
         self.width = width;
         self.conversation = conversation;
+        self._mainView = mainView;
 
         self.bubbleLayer = CAShapeLayer();
         self.calloutLayer = CAShapeLayer();
@@ -146,9 +149,9 @@ class ConversationView: NSView {
         dispatch_async(dispatch_get_main_queue(), {
             self.addSubview(view);
 
-            // fade in once.
+            // fade in once if we're not muted.
             view.alphaValue = 0.0;
-            animationWithDuration(0.1, { view.animator().alphaValue = 1.0; });
+            if !self._mainView.mutedMode_ { animationWithDuration(0.1, { view.animator().alphaValue = 1.0; }); }
 
             // move on up. just move on up.
             if self._messages.count > 1 {

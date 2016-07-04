@@ -28,6 +28,7 @@ class MainView: NSView {
 
     private let _mutedMode = MutableProperty<Bool>(false);
     var mutedMode: Signal<Bool, NoError> { get { return self._mutedMode.signal; } };
+    var mutedMode_: Bool { get { return self._mutedMode.value; } };
 
     // drawing ks. should these go elsewhere?
     let allPadding = CGFloat(12);
@@ -190,12 +191,15 @@ class MainView: NSView {
                 var result = Set<Contact>();
                 let now = NSDate();
 
-                // conversation states have changed. let's look at which have recent messages since the last dismissal.
-                for conversationView in self._conversationViews.all() {
-                    let conversation = conversationView.conversation;
-                    if let message = conversation.messages.find({ message in message.isForeign() }) {
-                        if message.at.isGreaterThanOrEqualTo(lastInactive) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThanOrEqualTo(now) {
-                            result.insert(conversation.with);
+                // MAYBE HACK: i *think* we don't actually need to react based on mute, just readonce it.
+                if !self.mutedMode_ {
+                    // conversation states have changed. let's look at which have recent messages since the last dismissal.
+                    for conversationView in self._conversationViews.all() {
+                        let conversation = conversationView.conversation;
+                        if let message = conversation.messages.find({ message in message.isForeign() }) {
+                            if message.at.isGreaterThanOrEqualTo(lastInactive) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThanOrEqualTo(now) {
+                                result.insert(conversation.with);
+                            }
                         }
                     }
                 }
@@ -268,7 +272,8 @@ class MainView: NSView {
         let newView = ConversationView(
             frame: self.frame,
             width: self.conversationWidth,
-            conversation: conversation
+            conversation: conversation,
+            mainView: self
         );
         self._contactTiles.get(conversation.with)!.attachConversation(newView);
         dispatch_async(dispatch_get_main_queue(), { self.addSubview(newView); });
