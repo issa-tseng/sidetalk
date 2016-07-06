@@ -157,7 +157,12 @@ class MainView: NSView {
 
                     if let message = latestForeignMessage_ {
                         if message.at.isGreaterThan(lastInactive) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThan(now) {
-                            return .Chatting(message.conversation.with, shouldRestore ? state : .Inactive);
+                            switch (shouldRestore, state) {
+                            case (true, let .Chatting(_, previous)): return .Chatting(message.conversation.with, previous);
+                            case (true, .Searching(_, _)): return .Chatting(message.conversation.with, .Normal);
+                            case (true, let previous): return .Chatting(message.conversation.with, previous);
+                            case (false, _): return .Chatting(message.conversation.with, .Normal);
+                            }
                         }
                     }
 
