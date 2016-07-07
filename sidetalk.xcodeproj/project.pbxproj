@@ -24,6 +24,8 @@
 		455852391D29D1B500ECE93C /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455852381D29D1B500ECE93C /* Util.swift */; };
 		4558523B1D29DAEB00ECE93C /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4558523A1D29DAEB00ECE93C /* Constants.swift */; };
 		455852431D2A06D800ECE93C /* IconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455852421D2A06D800ECE93C /* IconView.swift */; };
+		455852451D2DAE4C00ECE93C /* Settings.xib in Resources */ = {isa = PBXBuildFile; fileRef = 455852441D2DAE4C00ECE93C /* Settings.xib */; };
+		4558524B1D2DBAB600ECE93C /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4558524A1D2DBAB600ECE93C /* Settings.swift */; };
 		457A783E1D0F74DF005D58EF /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A783D1D0F74DF005D58EF /* Conversation.swift */; };
 		457A78401D0F8B57005D58EF /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A783F1D0F8B57005D58EF /* ConversationView.swift */; };
 		457A78441D14C1F8005D58EF /* MessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A78431D14C1F8005D58EF /* MessageView.swift */; };
@@ -90,6 +92,8 @@
 		455852381D29D1B500ECE93C /* Util.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Util.swift; path = util/Util.swift; sourceTree = "<group>"; };
 		4558523A1D29DAEB00ECE93C /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Constants.swift; path = view/Constants.swift; sourceTree = "<group>"; };
 		455852421D2A06D800ECE93C /* IconView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = IconView.swift; path = view/IconView.swift; sourceTree = "<group>"; };
+		455852441D2DAE4C00ECE93C /* Settings.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = Settings.xib; path = ui/Settings.xib; sourceTree = "<group>"; };
+		4558524A1D2DBAB600ECE93C /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Settings.swift; path = ui/Settings.swift; sourceTree = "<group>"; };
 		457A783D1D0F74DF005D58EF /* Conversation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Conversation.swift; path = viewmodel/Conversation.swift; sourceTree = "<group>"; };
 		457A783F1D0F8B57005D58EF /* ConversationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ConversationView.swift; path = view/ConversationView.swift; sourceTree = "<group>"; };
 		457A78431D14C1F8005D58EF /* MessageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MessageView.swift; path = view/MessageView.swift; sourceTree = "<group>"; };
@@ -193,6 +197,7 @@
 		4512823B1CF9295C0088DEDE /* sidetalk */ = {
 			isa = PBXGroup;
 			children = (
+				455852491D2DBAA800ECE93C /* ui */,
 				454DBB961D08E47F0065DA1B /* util */,
 				45AEC0141CFD589600203967 /* view */,
 				45AEC0111CFD57C800203967 /* viewmodel */,
@@ -235,6 +240,15 @@
 				455852381D29D1B500ECE93C /* Util.swift */,
 			);
 			name = util;
+			sourceTree = "<group>";
+		};
+		455852491D2DBAA800ECE93C /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				455852441D2DAE4C00ECE93C /* Settings.xib */,
+				4558524A1D2DBAB600ECE93C /* Settings.swift */,
+			);
+			name = ui;
 			sourceTree = "<group>";
 		};
 		45AEBFC41CFACECE00203967 /* XUIKit */ = {
@@ -414,6 +428,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				455852451D2DAE4C00ECE93C /* Settings.xib in Resources */,
 				4512823F1CF9295C0088DEDE /* Assets.xcassets in Resources */,
 				451282421CF9295C0088DEDE /* MainMenu.xib in Resources */,
 			);
@@ -494,6 +509,7 @@
 				45AEC0181CFD592600203967 /* Common.swift in Sources */,
 				454DBB9A1D0935190065DA1B /* ManagedSignal.swift in Sources */,
 				450EB7381D287FAA00AE272B /* PresenceIndicator.swift in Sources */,
+				4558524B1D2DBAB600ECE93C /* Settings.swift in Sources */,
 				454DBB981D08E4C30065DA1B /* QuickCache.swift in Sources */,
 				458A73451D0A51E20061FAFD /* SignalExtensions.swift in Sources */,
 				45AEC00E1CFD1F6700203967 /* XUIView.m in Sources */,

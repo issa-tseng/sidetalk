@@ -8,6 +8,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let connection: Connection;
     var mainView: MainView?;
 
+    private var _settingsController: SettingsController?;
+    private var _settingsWindow: NSWindow?;
+
     let WIDTH: CGFloat = 400;
 
     override init() {
@@ -58,6 +61,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let muted = (item.state == NSOffState);
         self.mainView!.setMute(muted);
         item.state = muted ? NSOnState : NSOffState;
+    }
+
+    @IBAction func showPreferences(sender: AnyObject) {
+        if self._settingsWindow == nil {
+            self._settingsController = SettingsController(nibName: "Settings", bundle: nil)!;
+            self._settingsWindow = NSWindow(contentViewController: self._settingsController!);
+        }
+        self._settingsWindow!.makeKeyAndOrderFront(nil);
     }
 
     func applicationWillTerminate(aNotification: NSNotification) {
