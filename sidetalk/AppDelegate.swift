@@ -1,5 +1,7 @@
 
-import Cocoa
+import Cocoa;
+import ReactiveCocoa;
+import enum Result.NoError;
 
 class MainWindow: NSWindow {
     override var canBecomeKeyWindow: Bool { get { return true; } };
@@ -12,6 +14,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @IBOutlet weak var window: MainWindow!;
     let connection: Connection;
     var mainView: MainView?;
+
+    private let _settingsShown = MutableProperty<Bool>(false);
+    public var settingsShown: Signal<Bool, NoError> { get { return self._settingsShown.signal; } };
 
     private var _settingsController: SettingsController?;
     private var _settingsWindow: NSWindow?;
@@ -74,16 +79,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self._settingsWindow = NSWindow(contentViewController: self._settingsController!);
 
             self._settingsWindow!.nextResponder = self.window;
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(blurPreferences), name: NSWindowWillCloseNotification, object: nil);
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(windowClosing), name: NSWindowWillCloseNotification, object: nil);
         }
         self._settingsWindow!.makeKeyAndOrderFront(nil);
+        self._settingsShown.modify { _ in true };
     }
 
-    @objc private func blurPreferences(notification: NSNotification) {
-        if (notification.object as! NSWindow) == self._settingsWindow {
-            self._settingsWindow!.orderOut(nil);
-            self.window.makeKeyAndOrderFront(nil);
-        }
+    @objc private func windowClosing(notification: NSNotification) {
+        if (notification.object as! NSWindow) == self._settingsWindow { self._settingsShown.modify { _ in false }; }
     }
 
     func applicationWillTerminate(aNotification: NSNotification) {
