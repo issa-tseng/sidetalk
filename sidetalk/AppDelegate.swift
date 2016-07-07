@@ -1,10 +1,15 @@
 
 import Cocoa
 
+class MainWindow: NSWindow {
+    override var canBecomeKeyWindow: Bool { get { return true; } };
+    override var canBecomeMainWindow: Bool { get { return true; } };
+}
+
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
 
-    @IBOutlet weak var window: NSWindow!;
+    @IBOutlet weak var window: MainWindow!;
     let connection: Connection;
     var mainView: MainView?;
 
@@ -67,8 +72,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if self._settingsWindow == nil {
             self._settingsController = SettingsController(nibName: "Settings", bundle: nil)!;
             self._settingsWindow = NSWindow(contentViewController: self._settingsController!);
+
+            self._settingsWindow!.nextResponder = self.window;
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(blurPreferences), name: NSWindowWillCloseNotification, object: nil);
         }
         self._settingsWindow!.makeKeyAndOrderFront(nil);
+    }
+
+    @objc private func blurPreferences(notification: NSNotification) {
+        if (notification.object as! NSWindow) == self._settingsWindow {
+            self._settingsWindow!.orderOut(nil);
+            self.window.makeKeyAndOrderFront(nil);
+        }
     }
 
     func applicationWillTerminate(aNotification: NSNotification) {
