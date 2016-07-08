@@ -17,7 +17,6 @@ class GlobalInteraction {
     private let _keyPress = ManagedSignal<Impulse<Key>>();
     var keyPress: Signal<Impulse<Key>, NoError> { get { return self._keyPress.signal; } };
 
-    private let activateShortcut = MASShortcut.init(keyCode: 0x31, modifierFlags: NSEventModifierFlags.ControlKeyMask.rawValue);
     private let anyModifierMask = NSEventModifierFlags.AlternateKeyMask.rawValue | NSEventModifierFlags.ControlKeyMask.rawValue;
 
     init() {
@@ -48,7 +47,7 @@ class GlobalInteraction {
         });
 
         // global shortcut.
-        MASShortcutMonitor.sharedMonitor().registerShortcut(activateShortcut, withAction: {
+        MASShortcutBinder.sharedBinder().bindShortcutWithDefaultsKey("globalActivation", toAction: {
             self._keyPress.observer.sendNext(self.keyGenerator.create(.GlobalToggle));
         });
     }

@@ -2,6 +2,7 @@
 import Foundation;
 import Cocoa;
 import SSKeychain;
+import MASShortcut;
 
 class SettingsController: NSViewController {
     private var _keyMonitor: AnyObject?;
@@ -10,6 +11,7 @@ class SettingsController: NSViewController {
     @IBOutlet private var emailField: NSTextField?;
     @IBOutlet private var passwordField: NSTextField?;
     @IBOutlet private var statusImage: NSImageView?;
+    @IBOutlet private var shortcutView: MASShortcutView?;
 
     override func viewWillAppear() {
         // wire up cmd+w the manual way.
@@ -60,6 +62,9 @@ class SettingsController: NSViewController {
         if let account = NSUserDefaults.standardUserDefaults().stringForKey("mainAccount") {
             if let field = self.emailField { field.stringValue = account; }
         }
+
+        // hook up the shortcut view to the correct prefkey.
+        if let field = self.shortcutView { field.associatedUserDefaultsKey = "globalActivation"; }
     }
 
     @IBAction func credentialsChanged(sender: AnyObject) {
