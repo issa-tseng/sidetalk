@@ -90,6 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self._settingsController = SettingsController(nibName: "Settings", bundle: nil)!;
             self._settingsWindow = NSWindow(contentViewController: self._settingsController!);
 
+            self._settingsWindow?.title = "Sidetalk Preferences";
             self._settingsWindow!.nextResponder = self.window;
             NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(windowClosing), name: NSWindowWillCloseNotification, object: nil);
         }

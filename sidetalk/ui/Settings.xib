@@ -100,6 +100,7 @@
                             <constraint firstItem="ynq-tY-B40" firstAttribute="top" secondItem="Seu-Yg-toC" secondAttribute="bottom" constant="12" id="MDF-Ef-t6F"/>
                             <constraint firstItem="Lrb-RS-44X" firstAttribute="top" secondItem="3eb-AW-lwc" secondAttribute="top" constant="20" id="TNf-5a-mbh"/>
                             <constraint firstItem="Ge0-uo-phr" firstAttribute="baseline" secondItem="Seu-Yg-toC" secondAttribute="baseline" id="X6K-Wg-F0P"/>
+                            <constraint firstItem="ynq-tY-B40" firstAttribute="leading" secondItem="lCt-nP-KfR" secondAttribute="trailing" constant="8" id="YWb-OS-cHa"/>
                             <constraint firstAttribute="trailing" secondItem="Lrb-RS-44X" secondAttribute="trailing" constant="20" id="b5t-hd-iCD"/>
                             <constraint firstItem="lCt-nP-KfR" firstAttribute="top" secondItem="Seu-Yg-toC" secondAttribute="bottom" constant="8" symbolic="YES" id="bSF-bM-vs0"/>
                             <constraint firstItem="ynq-tY-B40" firstAttribute="trailing" secondItem="Seu-Yg-toC" secondAttribute="trailing" id="dWY-DA-Hmg"/>
@@ -128,7 +129,7 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nW0-YE-meT" customClass="MASShortcutView">
+                <customView ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nW0-YE-meT" customClass="MASShortcutView">
                     <rect key="frame" x="136" y="20" width="324" height="19"/>
                 </customView>
             </subviews>
@@ -137,6 +138,7 @@
                 <constraint firstItem="RMA-4h-88m" firstAttribute="centerX" secondItem="x3A-Ox-fHP" secondAttribute="centerX" id="iEH-Ug-cxe"/>
                 <constraint firstAttribute="trailing" secondItem="RMA-4h-88m" secondAttribute="trailing" constant="20" id="jJ0-7F-meC"/>
                 <constraint firstItem="RMA-4h-88m" firstAttribute="leading" secondItem="x3A-Ox-fHP" secondAttribute="leading" constant="20" id="sLU-ZS-UVr"/>
+                <constraint firstAttribute="trailing" secondItem="nW0-YE-meT" secondAttribute="trailing" constant="20" id="uIg-ce-jjj"/>
             </constraints>
             <point key="canvasLocation" x="501" y="250.5"/>
         </view>
