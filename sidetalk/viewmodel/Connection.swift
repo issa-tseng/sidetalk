@@ -104,7 +104,7 @@ class Connection {
     }
 
     func connect(account: String) {
-        if stream.isConnected() { stream.disconnectAfterSending(); }
+        if stream.isConnected() { stream.disconnect(); }
 
         self.stream.myJID = XMPPJID.jidWithString(account);
         try! stream.connectWithTimeout(NSTimeInterval(10));
