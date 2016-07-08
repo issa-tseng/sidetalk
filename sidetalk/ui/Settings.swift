@@ -27,6 +27,8 @@ class SettingsController: NSViewController {
 
     private enum TestResult { case None, Pending, Failed, Succeeded; }
     override func viewDidLoad() {
+        super.viewDidLoad();
+
         // if we are trying the connection, show the appropriate status.
         self._testConnection.connected
             .combineWithDefault(self._testConnection.authenticated, defaultValue: false)
@@ -54,7 +56,10 @@ class SettingsController: NSViewController {
                 }
             };
 
-        super.viewDidLoad();
+        // if we already have account information, fill it in.
+        if let account = NSUserDefaults.standardUserDefaults().stringForKey("mainAccount") {
+            if let field = self.emailField { field.stringValue = account; }
+        }
     }
 
     @IBAction func credentialsChanged(sender: AnyObject) {
