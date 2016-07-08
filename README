@@ -1,0 +1,70 @@
+Sidetalk (alpha 1)
+==================
+
+Thanks for helping me test this thing! It wasn't ever meant to be more than an experiment and something for myself to use, but people seem to like the idea so if it's not too difficult to make it generally applicable, then why not? Here are some basic instructions:
+
+Installation
+------------
+
+I've probably already collected your Hardware UUID. This lets me add you to my test provisioning account and authorizes your mac to run the code. I'll have sent you a provisioning profile file; if you double-click on that it should fire up and install and everything, then it'll sit there looking complicated and not do anything. It's okay, as long as no errors occurred, we're all good.
+
+Next, just copy the sidetalk.app file into your Applications folder like you would any other app, and start it up.
+
+Basic configuration
+-------------------
+
+First, you'll have to enter your Google account information. As the message in the app says, if you have 2-factor authentication enabled, you'll have to generate an app-specific password. Clicking on the (?) button will take you to the relevant page. Once you have your account details, enter them into the boxes. If everything is correct, it should start working immediately and you should see your contacts on the right side of your screen.
+
+You should also set a global activation shortcut. You technically don't have to; you could click on the app icon in the dock every time you want to chat. But the app is really intended to use a shortcut. I recommend ^Space (Control Space) or ⌥Space (Option Space) as they're really easy to get to.
+
+Usage
+-----
+
+I don't have any help material in the application yet, so you'll have to either experiment a bit or read below to figure out what's what.
+
+Any time you want to use sidetalk, click the dock icon or hit the shortcut. It'll pop out from the side. From here, you can either start searching for someone to chat with simply by starting to type their name, or you can use the arrow keys to select someone you already see. People with which you're actively chatting will float to the bottom so you can always see them. Press Enter while someone is highlighted to start a conversation.
+
+To back out of a conversation or a search, press Escape. If you press Escape enough times, the whole thing will go away and you'll go back to what you were doing. A neat little trick is that if instead of pressing Escape you press the global shortcut, then sidetalk will remember what you were doing and go back to it when you reactivate it.
+
+The last thing to point out are the Mute and Hide modes. These are accessible via the sidetalk menu in the main Mac menubar, or by pressing ⌘M and ⌘H, respectively, while sidetalk is open. Mute will prevent messages from popping up in bubbles, though the contact circle will still light up to let you know to pay attention to it when you have a chance. Hide will make it so that when sidetalk is in the background, the bubbles go all the way offscreen instead of only halfway. Icons appear in the bottom-right to let you know when these have been turned on. These make it quick and easy to shut sidetalk up if you're having a sensitive conversation and someone walks by.
+
+Known issues
+------------
+
+Most of what's wrong with the app are what it doesn't already do; that's covered below. Here's what -is- in there that doesn't work so well:
+
+1. The conversation view looks bad, especially when you first initiate a conversation with someone. I need to do something about it.
+2. When someone chats you when you're already talking to someone else, the messages can overlap in odd ways.
+3. If you get chatted while you're in search mode and that person doesn't match your search, the notification appears in a sort of arbitrary spot.
+4. I don't think I'm loading everyone's names in the optimal way. I seem to pick up some but not others.
+
+What's next
+-----------
+
+Here is the list of what I'd love to tackle next. I'd love feedback on what would be most helpful to you.
+
+1. Scrollable conversations, so you can look back up at what's been said.
+2. Mouse support on the contact list.
+3. More customization: colors, placements, sizes, etc. What do you most want to customize? A lot is possible.
+4. Pinned contacts, so the most important people you always chat with are always at hand.
+5. Setting your presence. Right now sidetalk doesn't even set you to available or away or anything like that.
+6. Formatted messages. Bold, italics, etc. Probably not colors.
+7. Typing notifications for the other party. Right now it gets them but doesn't send them.
+
+There are many more much, much larger things (stored conversation history; detachable conversation windows; multiple accounts; etc) that I'm also thinking about, but they're too numerous to list here.
+
+How you can help
+----------------
+
+I'd love to know three things:
+
+1. Crashes and bugs.
+2. What is confusing? What do you want to work differently?
+3. What doesn't it do that you'd like it to?
+
+
+Thanks
+------
+
+Thanks!
+
