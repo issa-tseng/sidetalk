@@ -37,7 +37,6 @@ class XFStreamDelegateProxy: NSObject, XMPPStreamDelegate {
     }
 
     // on disconnect, we are both unconnected and unauthenticated.
-    // TODO: error?
     @objc internal func xmppStreamDidDisconnect(sender: XMPPStream!, withError error: NSError!) {
         self._connectProxy.observer.sendNext(false);
         self._authenticatedProxy.observer.sendNext(false);
@@ -92,17 +91,22 @@ class Connection {
         self.reconnect = XMPPReconnect();
 
         self.stream = XMPPStream();
-        self.stream.myJID = XMPPJID.jidWithString("clint@dontexplain.com");
         self.stream.hostName = "talk.google.com";
 
         // init proxies
         self._streamDelegateProxy = XFStreamDelegateProxy(stream: self.stream);
         self._rosterDelegateProxy = XFRosterDelegateProxy(module: self.roster);
 
-        // connect
+        // set up reactions and plugins
         self.prepare();
         self.roster.activate(self.stream);
         self.reconnect.activate(self.stream);
+    }
+
+    func connect(account: String) {
+        if stream.isConnected() { stream.disconnectAfterSending(); }
+
+        self.stream.myJID = XMPPJID.jidWithString(account);
         try! stream.connectWithTimeout(NSTimeInterval(10));
     }
 
@@ -141,7 +145,7 @@ class Connection {
             if connected == true {
                 self._connectionAttempt += 1; // TODO: i suppose an incrementing signal would be cleaner.
                 let myAttempt = self._connectionAttempt;
-                STKeychain.sharedInstance.get("clint@dontexplain.com", { creds in
+                STKeychain.sharedInstance.get(self.stream.myJID.bare(), { creds in
                     if self._connectionAttempt != myAttempt { return; }
                     do { try self.stream.authenticateWithPassword(creds); } catch _ {} // we don't care if this fails; it'll retry.
                 });

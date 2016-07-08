@@ -16,7 +16,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var mainView: MainView?;
 
     private let _settingsShown = MutableProperty<Bool>(false);
-    public var settingsShown: Signal<Bool, NoError> { get { return self._settingsShown.signal; } };
+    var settingsShown: Signal<Bool, NoError> { get { return self._settingsShown.signal; } };
 
     private var _settingsController: SettingsController?;
     private var _settingsWindow: NSWindow?;
@@ -55,6 +55,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self.mainView = MainView(frame: frame, connection: self.connection);
         self.mainView!.frame = window.contentView!.bounds;
         window.contentView!.addSubview(self.mainView!);
+
+        // attempt to connect.
+        self.connect();
+    }
+
+    func connect() {
+        // if we have an account to connect to, do so. otherwise, show the prefpane.
+        if let account = NSUserDefaults.standardUserDefaults().stringForKey("mainAccount") {
+            self.connection.connect(account);
+        } else {
+            self.showPreferences(0);
+        }
     }
 
     @IBAction func toggleHidden(sender: AnyObject) {

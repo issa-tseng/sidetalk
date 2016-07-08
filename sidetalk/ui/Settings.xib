@@ -8,6 +8,9 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="SettingsController" customModule="sidetalk" customModuleProvider="target">
             <connections>
+                <outlet property="emailField" destination="Lrb-RS-44X" id="gpL-Nh-kvc"/>
+                <outlet property="passwordField" destination="Seu-Yg-toC" id="yn4-1c-dVF"/>
+                <outlet property="statusImage" destination="Ww3-jG-Ibv" id="uUI-hw-BWJ"/>
                 <outlet property="view" destination="x3A-Ox-fHP" id="gNb-Ep-IrT"/>
             </connections>
         </customObject>
@@ -16,7 +19,7 @@
             <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
             <autoresizingMask key="autoresizingMask"/>
             <subviews>
-                <box title="Account" borderType="line" translatesAutoresizingMaskIntoConstraints="NO" id="RMA-4h-88m">
+                <box title="Google Account" borderType="line" translatesAutoresizingMaskIntoConstraints="NO" id="RMA-4h-88m">
                     <rect key="frame" x="17" y="100" width="446" height="150"/>
                     <view key="contentView" id="3eb-AW-lwc">
                         <rect key="frame" x="1" y="1" width="444" height="131"/>
@@ -30,11 +33,7 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                                 <connections>
-                                    <binding destination="gyj-BG-AdU" name="value" keyPath="values.accountEmail" id="ygZ-Zl-rWg">
-                                        <dictionary key="options">
-                                            <bool key="NSAllowsEditingMultipleValuesSelection" value="NO"/>
-                                        </dictionary>
-                                    </binding>
+                                    <action selector="credentialsChanged:" target="-2" id="dlc-m7-xTf"/>
                                 </connections>
                             </textField>
                             <secureTextField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Seu-Yg-toC">
@@ -47,6 +46,9 @@
                                         <string>NSAllRomanInputSourcesLocaleIdentifier</string>
                                     </allowedInputSourceLocales>
                                 </secureTextFieldCell>
+                                <connections>
+                                    <action selector="credentialsChanged:" target="-2" id="RVc-dk-X4x"/>
+                                </connections>
                             </secureTextField>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gEx-t6-XJa">
                                 <rect key="frame" x="18" y="92" width="95" height="17"/>
