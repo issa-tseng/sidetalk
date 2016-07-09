@@ -140,18 +140,6 @@ class Connection {
 
     // sets up our own reactions to basic xmpp things
     private func prepare() {
-        // if we are xmpp-connected, authenticate
-        self.connected.skipRepeats().observeNext { connected in
-            if connected == true {
-                self._connectionAttempt += 1; // TODO: i suppose an incrementing signal would be cleaner.
-                let myAttempt = self._connectionAttempt;
-                STKeychain.sharedInstance.get(self.stream.myJID.bare(), { creds in
-                    if self._connectionAttempt != myAttempt { return; }
-                    do { try self.stream.authenticateWithPassword(creds); } catch _ {} // we don't care if this fails; it'll retry.
-                });
-            }
-        }
-
         // if we are authenticated, send initial status and set some stuff up
         self.authenticated.skipRepeats().observeNext { authenticated in
             if authenticated == true {
@@ -210,5 +198,23 @@ class Connection {
         self._latestMessageSignal.observer.sendNext(message);
         to.conversation.addMessage(message);
         // TODO: i don't like that this is a separate set of code from the foreign incoming.
+    }
+}
+
+class AutomaticConnection: Connection {
+    override private func prepare() {
+        // if we are xmpp-connected, authenticate
+        self.connected.skipRepeats().observeNext { connected in
+            if connected == true {
+                self._connectionAttempt += 1; // TODO: i suppose an incrementing signal would be cleaner.
+                let myAttempt = self._connectionAttempt;
+                STKeychain.sharedInstance.get(self.stream.myJID.bare(), { creds in
+                    if self._connectionAttempt != myAttempt { return; }
+                    do { try self.stream.authenticateWithPassword(creds); } catch _ {} // we don't care if this fails; it'll retry.
+                });
+            }
+        }
+
+        super.prepare();
     }
 }

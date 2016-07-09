@@ -24,7 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let WIDTH: CGFloat = 400;
 
     override init() {
-        self.connection = Connection();
+        self.connection = AutomaticConnection();
         super.init();
     }
 

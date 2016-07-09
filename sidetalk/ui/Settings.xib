@@ -33,9 +33,6 @@
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
-                                <connections>
-                                    <action selector="credentialsChanged:" target="-2" id="dlc-m7-xTf"/>
-                                </connections>
                             </textField>
                             <secureTextField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Seu-Yg-toC">
                                 <rect key="frame" x="119" y="57" width="305" height="22"/>
@@ -47,9 +44,6 @@
                                         <string>NSAllRomanInputSourcesLocaleIdentifier</string>
                                     </allowedInputSourceLocales>
                                 </secureTextFieldCell>
-                                <connections>
-                                    <action selector="credentialsChanged:" target="-2" id="RVc-dk-X4x"/>
-                                </connections>
                             </secureTextField>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gEx-t6-XJa">
                                 <rect key="frame" x="18" y="92" width="95" height="17"/>
