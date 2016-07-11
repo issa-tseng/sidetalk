@@ -7,6 +7,7 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="SettingsController" customModule="sidetalk" customModuleProvider="target">
             <connections>
+                <outlet property="clearAccountButton" destination="HTe-ds-UiU" id="FBg-tk-aYD"/>
                 <outlet property="emailLabel" destination="aXN-Nl-AcB" id="309-u6-CHB"/>
                 <outlet property="shortcutView" destination="nW0-YE-meT" id="WLX-Qx-jYQ"/>
                 <outlet property="statusImage" destination="Ww3-jG-Ibv" id="uUI-hw-BWJ"/>
@@ -44,7 +45,7 @@
                     </connections>
                 </button>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="aXN-Nl-AcB">
-                    <rect key="frame" x="134" y="100" width="222" height="17"/>
+                    <rect key="frame" x="134" y="100" width="201" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" id="oji-Hn-K4r">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -68,6 +69,16 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
+                <button hidden="YES" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="HTe-ds-UiU">
+                    <rect key="frame" x="341" y="98" width="13" height="19"/>
+                    <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSStopProgressTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" imageScaling="proportionallyDown" inset="2" id="T60-KL-tG5">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="clearAccount:" target="-2" id="tLc-Vi-uwI"/>
+                    </connections>
+                </button>
             </subviews>
             <constraints>
                 <constraint firstItem="Ww3-jG-Ibv" firstAttribute="top" secondItem="x3A-Ox-fHP" secondAttribute="top" constant="22" id="SW2-RK-LIp"/>
@@ -88,5 +99,6 @@
     </objects>
     <resources>
         <image name="NSStatusNone" width="16" height="16"/>
+        <image name="NSStopProgressTemplate" width="11" height="11"/>
     </resources>
 </document>

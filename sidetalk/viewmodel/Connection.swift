@@ -202,19 +202,24 @@ class Connection {
 }
 
 class OAuthConnection: Connection {
-    private let _oauth2 = OAuth2CodeGrant(settings: ST.oauth.settings);
+    private var _oauth2: OAuth2CodeGrant?;
 
     override private func prepare() {
         // if we are xmpp-connected, authenticate
         self.connected.skipRepeats().observeNext { connected in
             if connected == true {
-                self._oauth2.onAuthorize = { _ in
+                // need to make a new instance each attempt or else keychain access gets wonky race conditions.
+                self._oauth2 = OAuth2CodeGrant(settings: ST.oauth.settings);
+                guard let oauth = self._oauth2 else { return };
+
+                oauth.verbose = true;
+                oauth.onAuthorize = { _ in
                     // extract our token.
-                    guard let password = self._oauth2.accessToken else { return; }
+                    guard let password = oauth.accessToken else { return; }
                     try! self.stream.authenticateWithGoogleAccessToken(password);
                 }
-                self._oauth2.authConfig.authorizeEmbedded = false;
-                self._oauth2.authorize();
+                oauth.authConfig.authorizeEmbedded = false;
+                oauth.authorize();
             }
         }
 

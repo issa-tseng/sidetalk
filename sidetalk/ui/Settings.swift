@@ -6,6 +6,8 @@ import p2_OAuth2;
 import ReactiveCocoa;
 import enum Result.NoError;
 
+// TODO: the clear button is written old-school instead of rx.
+
 class SettingsController: NSViewController {
     private var _keyMonitor: AnyObject?;
     private let _testConnection = MutableProperty<Connection?>(nil);
@@ -13,6 +15,7 @@ class SettingsController: NSViewController {
     private let _oauth2 = OAuth2CodeGrant(settings: ST.oauth.settings);
 
     @IBOutlet private var emailLabel: NSTextField?;
+    @IBOutlet private var clearAccountButton: NSButton?;
     @IBOutlet private var statusImage: NSImageView?;
     @IBOutlet private var shortcutView: MASShortcutView?;
 
@@ -58,6 +61,7 @@ class SettingsController: NSViewController {
                         self.statusImage!.image = NSImage.init(named: NSImageNameStatusUnavailable);
                     } else if result == .Succeeded {
                         self.statusImage!.image = NSImage.init(named: NSImageNameStatusAvailable);
+                        if let button = self.clearAccountButton { button.hidden = false; }
                     }
                 };
         }).combinePrevious(nil).observeNext { last, _ in last?.dispose(); };
@@ -65,10 +69,11 @@ class SettingsController: NSViewController {
         // handle the redirect callback.
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(handleCallback), name: "OAuth2AppDidReceiveCallback", object: nil);
 
-        // if we already have account information, fill it in and light green.
+        // if we already have account information, fill it in, light green, and show the x button.
         if let account = NSUserDefaults.standardUserDefaults().stringForKey("mainAccount") {
             if let field = self.emailLabel { field.stringValue = account; }
             if let light = self.statusImage { light.image = NSImage.init(named: NSImageNameStatusAvailable); }
+            if let button = self.clearAccountButton { button.hidden = false; }
         }
 
         // hook up the shortcut view to the correct prefkey.
@@ -112,7 +117,12 @@ class SettingsController: NSViewController {
                         if authenticated == true {
                             // it works; make this working account the primary and make it go.
                             NSUserDefaults.standardUserDefaults().setValue(email, forKey: "mainAccount");
-                            (NSApplication.sharedApplication().delegate as! AppDelegate).connect();
+                            if let field = self.emailLabel { field.stringValue = email; }
+
+                            // wait a tick for everything to be stored to keychain.
+                            dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), {
+                                (NSApplication.sharedApplication().delegate as! AppDelegate).connect();
+                            });
                         }
                     }
                     connection.connect(email);
@@ -122,6 +132,15 @@ class SettingsController: NSViewController {
         };
         self._oauth2.authConfig.authorizeEmbedded = false;
         self._oauth2.authorize();
+    }
+
+    @IBAction func clearAccount(sender: AnyObject) {
+        NSUserDefaults.standardUserDefaults().removeObjectForKey("mainAccount");
+        self._oauth2.forgetTokens();
+
+        if let field = self.emailLabel { field.stringValue = ""; }
+        if let light = self.statusImage { light.image = NSImage.init(named: NSImageNameStatusNone); }
+        if let button = self.clearAccountButton { button.hidden = true; }
     }
 
     @objc private func handleCallback(notification: NSNotification) {
