@@ -5,7 +5,6 @@ target 'sidetalk' do
 
   pod 'KissXML', :git => 'https://github.com/farion/KissXML'
   pod 'XMPPFramework', :git => 'https://github.com/farion/XMPPFramework'
-  pod 'SSKeychain', '~>1.4.0'
   pod 'ReactiveCocoa', '~>4.1.0'
   pod 'MASShortcut', '~>2.3'
   pod 'FuzzySearch', :git => 'https://github.com/rahulnadella/FuzzySearch'

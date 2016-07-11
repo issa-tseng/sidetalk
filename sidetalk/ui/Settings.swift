@@ -1,7 +1,6 @@
 
 import Foundation;
 import Cocoa;
-import SSKeychain;
 import MASShortcut;
 import p2_OAuth2;
 import ReactiveCocoa;

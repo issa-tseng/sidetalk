@@ -1,7 +1,6 @@
 
 import Foundation
 import XMPPFramework
-import SSKeychain
 import ReactiveCocoa
 import ReachabilitySwift
 import p2_OAuth2

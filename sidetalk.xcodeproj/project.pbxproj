@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		450EB7361D27481500AE272B /* STKeychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 450EB7351D27481500AE272B /* STKeychain.swift */; };
 		450EB7381D287FAA00AE272B /* PresenceIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 450EB7371D287FAA00AE272B /* PresenceIndicator.swift */; };
 		4512823D1CF9295C0088DEDE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4512823C1CF9295C0088DEDE /* AppDelegate.swift */; };
 		4512823F1CF9295C0088DEDE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4512823E1CF9295C0088DEDE /* Assets.xcassets */; };
@@ -69,7 +68,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		450EB7351D27481500AE272B /* STKeychain.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = STKeychain.swift; path = viewmodel/STKeychain.swift; sourceTree = "<group>"; };
 		450EB7371D287FAA00AE272B /* PresenceIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PresenceIndicator.swift; path = view/PresenceIndicator.swift; sourceTree = "<group>"; };
 		451282391CF9295C0088DEDE /* sidetalk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = sidetalk.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4512823C1CF9295C0088DEDE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -291,7 +289,6 @@
 				458A73421D0A43FB0061FAFD /* GlobalInteraction.swift */,
 				457A783D1D0F74DF005D58EF /* Conversation.swift */,
 				452591CD1D222329000CF9F1 /* MainState.swift */,
-				450EB7351D27481500AE272B /* STKeychain.swift */,
 			);
 			name = viewmodel;
 			sourceTree = "<group>";
@@ -504,7 +501,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				450EB7361D27481500AE272B /* STKeychain.swift in Sources */,
 				4558523B1D29DAEB00ECE93C /* Constants.swift in Sources */,
 				457A783E1D0F74DF005D58EF /* Conversation.swift in Sources */,
 				45AEC0181CFD592600203967 /* Common.swift in Sources */,
