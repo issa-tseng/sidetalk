@@ -13,7 +13,7 @@ Next, just copy the sidetalk.app file into your Applications folder like you wou
 Basic configuration
 -------------------
 
-First, you'll have to enter your Google account information. As the message in the app says, if you have 2-factor authentication enabled, you'll have to generate an app-specific password. Clicking on the (?) button will take you to the relevant page. Once you have your account details, enter them into the boxes. If everything is correct, it should start working immediately and you should see your contacts on the right side of your screen.
+First, you'll have to connect to your Google account. This is done through OAuth, so simply click the button and log in with your account of choice, and authorize the app. This should work whether you have 2-factor authentication or not.
 
 You should also set a global activation shortcut. You technically don't have to; you could click on the app icon in the dock every time you want to chat. But the app is really intended to use a shortcut. I recommend ^Space (Control Space) or ⌥Space (Option Space) as they're really easy to get to.
 
@@ -43,13 +43,14 @@ What's next
 
 Here is the list of what I'd love to tackle next. I'd love feedback on what would be most helpful to you.
 
-1. Scrollable conversations, so you can look back up at what's been said.
-2. Mouse support on the contact list.
-3. More customization: colors, placements, sizes, etc. What do you most want to customize? A lot is possible.
+1. Typing notifications for the other party. Right now it gets them but doesn't send them.
+2. Timestamps on messages in conversations.
+3. Scrollable conversations, so you can look back up at what's been said.
 4. Pinned contacts, so the most important people you always chat with are always at hand.
-5. Setting your presence. Right now sidetalk doesn't even set you to available or away or anything like that.
-6. Formatted messages. Bold, italics, etc. Probably not colors.
-7. Typing notifications for the other party. Right now it gets them but doesn't send them.
+5. Mouse support on the contact list.
+6. More customization: colors, placements, sizes, etc. What do you most want to customize? A lot is possible.
+7. Setting your presence. Right now sidetalk doesn't even set you to available or away or anything like that.
+8. Formatted messages. Bold, italics, etc. Probably not colors.
 
 There are many more much, much larger things (stored conversation history; detachable conversation windows; multiple accounts; etc) that I'm also thinking about, but they're too numerous to list here.
 
