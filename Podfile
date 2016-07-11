@@ -10,4 +10,5 @@ target 'sidetalk' do
   pod 'MASShortcut', '~>2.3'
   pod 'FuzzySearch', :git => 'https://github.com/rahulnadella/FuzzySearch'
   pod 'ReachabilitySwift', '~>2.3.3'
+  pod 'p2.OAuth2', '~>2.2.7'
 end

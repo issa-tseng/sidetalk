@@ -4,6 +4,7 @@ import XMPPFramework
 import SSKeychain
 import ReactiveCocoa
 import ReachabilitySwift
+import p2_OAuth2
 import enum Result.NoError
 
 class XFDelegateModuleProxy: NSObject {
@@ -201,17 +202,20 @@ class Connection {
     }
 }
 
-class AutomaticConnection: Connection {
+class OAuthConnection: Connection {
+    private let _oauth2 = OAuth2CodeGrant(settings: ST.oauth.settings);
+
     override private func prepare() {
         // if we are xmpp-connected, authenticate
         self.connected.skipRepeats().observeNext { connected in
             if connected == true {
-                self._connectionAttempt += 1; // TODO: i suppose an incrementing signal would be cleaner.
-                let myAttempt = self._connectionAttempt;
-                STKeychain.sharedInstance.get(self.stream.myJID.bare(), { creds in
-                    if self._connectionAttempt != myAttempt { return; }
-                    do { try self.stream.authenticateWithPassword(creds); } catch _ {} // we don't care if this fails; it'll retry.
-                });
+                self._oauth2.onAuthorize = { _ in
+                    // extract our token.
+                    guard let password = self._oauth2.accessToken else { return; }
+                    try! self.stream.authenticateWithGoogleAccessToken(password);
+                }
+                self._oauth2.authConfig.authorizeEmbedded = false;
+                self._oauth2.authorize();
             }
         }
 

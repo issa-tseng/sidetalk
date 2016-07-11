@@ -3,13 +3,11 @@
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="10117"/>
-        <capability name="box content view" minToolsVersion="7.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="SettingsController" customModule="sidetalk" customModuleProvider="target">
             <connections>
-                <outlet property="emailField" destination="Lrb-RS-44X" id="gpL-Nh-kvc"/>
-                <outlet property="passwordField" destination="Seu-Yg-toC" id="yn4-1c-dVF"/>
+                <outlet property="emailLabel" destination="aXN-Nl-AcB" id="309-u6-CHB"/>
                 <outlet property="shortcutView" destination="nW0-YE-meT" id="WLX-Qx-jYQ"/>
                 <outlet property="statusImage" destination="Ww3-jG-Ibv" id="uUI-hw-BWJ"/>
                 <outlet property="view" destination="x3A-Ox-fHP" id="gNb-Ep-IrT"/>
@@ -17,104 +15,51 @@
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <view id="x3A-Ox-fHP">
-            <rect key="frame" x="0.0" y="0.0" width="480" height="213"/>
+            <rect key="frame" x="0.0" y="0.0" width="480" height="137"/>
             <autoresizingMask key="autoresizingMask"/>
             <subviews>
-                <box title="Google Account" borderType="line" translatesAutoresizingMaskIntoConstraints="NO" id="RMA-4h-88m">
-                    <rect key="frame" x="17" y="43" width="446" height="150"/>
-                    <view key="contentView" id="3eb-AW-lwc">
-                        <rect key="frame" x="1" y="1" width="444" height="131"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Lrb-RS-44X">
-                                <rect key="frame" x="119" y="89" width="305" height="22"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="3Qu-HB-oGJ">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
-                            <secureTextField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Seu-Yg-toC">
-                                <rect key="frame" x="119" y="57" width="305" height="22"/>
-                                <secureTextFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesSingleLineMode="YES" id="VUt-nD-cXs">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                    <allowedInputSourceLocales>
-                                        <string>NSAllRomanInputSourcesLocaleIdentifier</string>
-                                    </allowedInputSourceLocales>
-                                </secureTextFieldCell>
-                            </secureTextField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gEx-t6-XJa">
-                                <rect key="frame" x="18" y="92" width="95" height="17"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="91" id="qTF-UL-D35"/>
-                                </constraints>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Email:" id="FJa-OL-Udy">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Ge0-uo-phr">
-                                <rect key="frame" x="18" y="60" width="95" height="17"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Password:" id="XZv-e1-Yea">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="749" translatesAutoresizingMaskIntoConstraints="NO" id="lCt-nP-KfR">
-                                <rect key="frame" x="117" y="20" width="280" height="29"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="276" id="YW7-ht-Qh5"/>
-                                </constraints>
-                                <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="left" title="If you use 2-factor authentication (which you should!) you will have to generate an app-specific password." id="K6i-nf-bjF">
-                                    <font key="font" metaFont="system" size="10"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
-                            <button horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ynq-tY-B40">
-                                <rect key="frame" x="401" y="21" width="25" height="25"/>
-                                <buttonCell key="cell" type="help" bezelStyle="helpButton" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="RPd-en-14E">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="show2FA:" target="-2" id="Fvm-gG-kIC"/>
-                                </connections>
-                            </button>
-                        </subviews>
-                        <constraints>
-                            <constraint firstItem="Ge0-uo-phr" firstAttribute="leading" secondItem="3eb-AW-lwc" secondAttribute="leading" constant="20" id="0gr-ez-PRE"/>
-                            <constraint firstAttribute="bottom" secondItem="gEx-t6-XJa" secondAttribute="bottom" constant="92" id="7vs-dX-wdW"/>
-                            <constraint firstItem="Ge0-uo-phr" firstAttribute="top" secondItem="gEx-t6-XJa" secondAttribute="bottom" constant="15" id="9Aq-pr-Y36"/>
-                            <constraint firstItem="lCt-nP-KfR" firstAttribute="centerY" secondItem="ynq-tY-B40" secondAttribute="centerY" id="Fx6-fT-0C6"/>
-                            <constraint firstItem="ynq-tY-B40" firstAttribute="top" secondItem="Seu-Yg-toC" secondAttribute="bottom" constant="12" id="MDF-Ef-t6F"/>
-                            <constraint firstItem="Lrb-RS-44X" firstAttribute="top" secondItem="3eb-AW-lwc" secondAttribute="top" constant="20" id="TNf-5a-mbh"/>
-                            <constraint firstItem="Ge0-uo-phr" firstAttribute="baseline" secondItem="Seu-Yg-toC" secondAttribute="baseline" id="X6K-Wg-F0P"/>
-                            <constraint firstItem="ynq-tY-B40" firstAttribute="leading" secondItem="lCt-nP-KfR" secondAttribute="trailing" constant="8" id="YWb-OS-cHa"/>
-                            <constraint firstAttribute="trailing" secondItem="Lrb-RS-44X" secondAttribute="trailing" constant="20" id="b5t-hd-iCD"/>
-                            <constraint firstItem="lCt-nP-KfR" firstAttribute="top" secondItem="Seu-Yg-toC" secondAttribute="bottom" constant="8" symbolic="YES" id="bSF-bM-vs0"/>
-                            <constraint firstItem="ynq-tY-B40" firstAttribute="trailing" secondItem="Seu-Yg-toC" secondAttribute="trailing" id="dWY-DA-Hmg"/>
-                            <constraint firstItem="Seu-Yg-toC" firstAttribute="leading" secondItem="Lrb-RS-44X" secondAttribute="leading" id="fAt-6m-S2A"/>
-                            <constraint firstItem="Seu-Yg-toC" firstAttribute="leading" secondItem="Ge0-uo-phr" secondAttribute="trailing" constant="8" id="hGS-zO-Icx"/>
-                            <constraint firstItem="gEx-t6-XJa" firstAttribute="leading" secondItem="Ge0-uo-phr" secondAttribute="leading" id="hS4-wf-9PT"/>
-                            <constraint firstItem="lCt-nP-KfR" firstAttribute="leading" secondItem="Seu-Yg-toC" secondAttribute="leading" id="mVm-dm-DkT"/>
-                            <constraint firstItem="gEx-t6-XJa" firstAttribute="baseline" secondItem="Lrb-RS-44X" secondAttribute="baseline" id="miq-xD-80u"/>
-                            <constraint firstItem="Lrb-RS-44X" firstAttribute="leading" secondItem="gEx-t6-XJa" secondAttribute="trailing" constant="8" symbolic="YES" id="tDF-q2-cd2"/>
-                            <constraint firstAttribute="trailing" secondItem="ynq-tY-B40" secondAttribute="trailing" constant="20" id="xOq-hQ-qd4"/>
-                        </constraints>
-                    </view>
-                    <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
-                    <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                    <font key="titleFont" metaFont="system"/>
-                </box>
-                <imageView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ww3-jG-Ibv">
-                    <rect key="frame" x="444" y="177" width="16" height="16"/>
+                <imageView translatesAutoresizingMaskIntoConstraints="NO" id="Ww3-jG-Ibv">
+                    <rect key="frame" x="444" y="99" width="16" height="16"/>
                     <imageCell key="cell" refusesFirstResponder="YES" alignment="left" animates="YES" imageScaling="proportionallyDown" image="NSStatusNone" id="kAS-us-LIt"/>
                 </imageView>
+                <customView ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nW0-YE-meT" customClass="MASShortcutView">
+                    <rect key="frame" x="136" y="20" width="324" height="19"/>
+                </customView>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="SGp-UF-5z3">
+                    <rect key="frame" x="18" y="100" width="112" height="17"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Google Account:" id="4DI-Fq-c5U">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <button verticalHuggingPriority="750" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="oYy-yf-Sr8">
+                    <rect key="frame" x="356" y="90" width="92" height="32"/>
+                    <buttonCell key="cell" type="push" title="Connect" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="u8C-h6-fyT">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="showAuth:" target="-2" id="4qe-8I-kDB"/>
+                    </connections>
+                </button>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="aXN-Nl-AcB">
+                    <rect key="frame" x="134" y="100" width="222" height="17"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" id="oji-Hn-K4r">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="QvS-Lw-FgR">
+                    <rect key="frame" x="134" y="47" width="328" height="42"/>
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="left" id="PFY-FT-O7e">
+                        <font key="font" metaFont="system" size="10"/>
+                        <string key="title">You will be prompted to allow access to your email address. We need this to connect to your account. Don't worry: your email will never leave your computer and we will never use it to spam you.</string>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nDS-SA-nwi">
                     <rect key="frame" x="18" y="22" width="112" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Global Activation:" id="nuF-65-poV">
@@ -123,18 +68,15 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <customView ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nW0-YE-meT" customClass="MASShortcutView">
-                    <rect key="frame" x="136" y="20" width="324" height="19"/>
-                </customView>
             </subviews>
             <constraints>
-                <constraint firstItem="RMA-4h-88m" firstAttribute="top" secondItem="x3A-Ox-fHP" secondAttribute="top" constant="20" id="EOq-he-OKQ"/>
-                <constraint firstItem="RMA-4h-88m" firstAttribute="centerX" secondItem="x3A-Ox-fHP" secondAttribute="centerX" id="iEH-Ug-cxe"/>
-                <constraint firstAttribute="trailing" secondItem="RMA-4h-88m" secondAttribute="trailing" constant="20" id="jJ0-7F-meC"/>
-                <constraint firstItem="RMA-4h-88m" firstAttribute="leading" secondItem="x3A-Ox-fHP" secondAttribute="leading" constant="20" id="sLU-ZS-UVr"/>
+                <constraint firstItem="Ww3-jG-Ibv" firstAttribute="top" secondItem="x3A-Ox-fHP" secondAttribute="top" constant="22" id="SW2-RK-LIp"/>
+                <constraint firstAttribute="trailing" secondItem="oYy-yf-Sr8" secondAttribute="trailing" constant="38" id="Xpf-R2-lUQ"/>
+                <constraint firstAttribute="trailing" secondItem="Ww3-jG-Ibv" secondAttribute="trailing" constant="20" id="kPb-LU-gWB"/>
                 <constraint firstAttribute="trailing" secondItem="nW0-YE-meT" secondAttribute="trailing" constant="20" id="uIg-ce-jjj"/>
+                <constraint firstItem="nW0-YE-meT" firstAttribute="leading" secondItem="x3A-Ox-fHP" secondAttribute="leading" constant="136" id="vjq-Mr-YHq"/>
             </constraints>
-            <point key="canvasLocation" x="501" y="250.5"/>
+            <point key="canvasLocation" x="501" y="212.5"/>
         </view>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <userDefaultsController representsSharedInstance="YES" id="gyj-BG-AdU"/>

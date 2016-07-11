@@ -24,8 +24,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let WIDTH: CGFloat = 400;
 
     override init() {
-        self.connection = AutomaticConnection();
+        self.connection = OAuthConnection();
         super.init();
+    }
+
+    func applicationWillFinishLaunching(notification: NSNotification) {
+        NSAppleEventManager.sharedAppleEventManager().setEventHandler(self, andSelector: #selector(handleURL), forEventClass: UInt32(kInternetEventClass), andEventID: UInt32(kAEGetURL));
     }
 
     func applicationDidFinishLaunching(aNotification: NSNotification) {
@@ -100,6 +104,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func windowClosing(notification: NSNotification) {
         if (notification.object as! NSWindow) == self._settingsWindow { self._settingsShown.modify { _ in false }; }
+    }
+
+    @objc private func handleURL(event: NSAppleEventDescriptor, withReplyEvent: NSAppleEventDescriptor) {
+        guard let urlString = event.paramDescriptorForKeyword(UInt32(keyDirectObject))?.stringValue else { return; }
+        guard let url = NSURL.init(string: urlString) else { return; }
+
+        if url.scheme == "com.giantacorn.sidetalk" {
+            NSNotificationCenter.defaultCenter().postNotificationName("OAuth2AppDidReceiveCallback", object: url);
+        }
     }
 
     func applicationWillTerminate(aNotification: NSNotification) {

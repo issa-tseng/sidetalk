@@ -3,6 +3,7 @@ import Foundation;
 import Cocoa;
 import SSKeychain;
 import MASShortcut;
+import p2_OAuth2;
 import ReactiveCocoa;
 import enum Result.NoError;
 
@@ -10,10 +11,9 @@ class SettingsController: NSViewController {
     private var _keyMonitor: AnyObject?;
     private let _testConnection = MutableProperty<Connection?>(nil);
 
-    private let credentialInputDelay = NSTimeInterval(0.5);
+    private let _oauth2 = OAuth2CodeGrant(settings: ST.oauth.settings);
 
-    @IBOutlet private var emailField: NSTextField?;
-    @IBOutlet private var passwordField: NSTextField?;
+    @IBOutlet private var emailLabel: NSTextField?;
     @IBOutlet private var statusImage: NSImageView?;
     @IBOutlet private var shortcutView: MASShortcutView?;
 
@@ -59,53 +59,78 @@ class SettingsController: NSViewController {
                         self.statusImage!.image = NSImage.init(named: NSImageNameStatusUnavailable);
                     } else if result == .Succeeded {
                         self.statusImage!.image = NSImage.init(named: NSImageNameStatusAvailable);
-
-                        // in addition to setting the status light, make this working account the primary and make it go.
-                        NSUserDefaults.standardUserDefaults().setValue(self.emailField!.stringValue, forKey: "mainAccount");
-                        SSKeychain.setPassword(self.passwordField!.stringValue, forService: "Sidetalk", account: self.emailField!.stringValue);
-                        (NSApplication.sharedApplication().delegate as! AppDelegate).connect();
                     }
                 };
         }).combinePrevious(nil).observeNext { last, _ in last?.dispose(); };
 
-        // if we already have account information, fill it in.
-        if let account = NSUserDefaults.standardUserDefaults().stringForKey("mainAccount") {
-            if let field = self.emailField { field.stringValue = account; }
-        }
+        // handle the redirect callback.
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(handleCallback), name: "OAuth2AppDidReceiveCallback", object: nil);
 
-        // hook up our own listeners to the textfields so we get immediate notification.
-        let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "credentials-debouncer");
-        if let field = self.emailField {
-            self._emailDelegate = STTextDelegate(field: field);
-            self._emailDelegate!.text.debounce(self.credentialInputDelay, onScheduler: scheduler).observeNext { _ in self.credentialsChanged(); };
-        }
-        if let field = self.passwordField {
-            self._passwordDelegate = STTextDelegate(field: field);
-            self._passwordDelegate!.text.debounce(self.credentialInputDelay, onScheduler: scheduler).observeNext { _ in self.credentialsChanged(); };
+        // if we already have account information, fill it in and light green.
+        if let account = NSUserDefaults.standardUserDefaults().stringForKey("mainAccount") {
+            if let field = self.emailLabel { field.stringValue = account; }
+            if let light = self.statusImage { light.image = NSImage.init(named: NSImageNameStatusAvailable); }
         }
 
         // hook up the shortcut view to the correct prefkey.
         if let field = self.shortcutView { field.associatedUserDefaultsKey = "globalActivation"; }
     }
 
-    private func credentialsChanged() {
-        if let email = self.emailField?.stringValue, password = self.passwordField?.stringValue {
-            self._testConnection.modify({ last in
-                // kill the previous one if we have it.
-                if let connection = last { connection.stream.disconnect(); }
+    @IBAction func showAuth(sender: AnyObject) {
+        if let light = self.statusImage { light.image = NSImage.init(named: NSImageNameStatusPartiallyAvailable); }
 
-                // set up a new one, and have it use our password.
-                let connection = Connection();
-                connection.connected.observeNext { connected in
-                    if connected == true { try! connection.stream.authenticateWithPassword(password); }
-                };
-                connection.connect(email);
-                return connection;
-            });
-        }
+        self._oauth2.verbose = true;
+        self._oauth2.onAuthorize = { _ in
+            // extract our token.
+            guard let password = self._oauth2.accessToken else { return self.fail(nil); }
+
+            // okay, we have a token but (harrumph) no user email. so now go get that.
+            let request = self._oauth2.request(forURL: NSURL.init(string: "https://www.googleapis.com/plus/v1/people/me")!);
+            self._oauth2.session.dataTaskWithRequest(request, completionHandler: { rawdata, status, error in
+                guard let data = rawdata else { return self.fail(nil); }
+                guard let rawhead = try? NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions()),
+                      let head = rawhead as? [String : AnyObject],
+                      let emails = (head["emails"] as? [AnyObject]),
+                      let primaryEmailInfo = (emails[0] as? [String : AnyObject]),
+                      var email = primaryEmailInfo["value"] as? String else { return self.fail(nil); }
+
+                if let match = email.rangeOfString("@gmail\\.com$", options: .RegularExpressionSearch) {
+                    // for whatever reason, google refuses to start the stream if i'm connecting with a full
+                    // @gmail.com address. works fine with apps domains addresses.
+                    email.removeRange(match);
+                }
+
+                self._testConnection.modify({ last in
+                    // kill the previous one if we have it.
+                    if let connection = last { connection.stream.disconnect(); }
+
+                    // set up a new one, and have it use our password.
+                    let connection = Connection();
+                    connection.connected.observeNext { connected in
+                        if connected == true { try! connection.stream.authenticateWithGoogleAccessToken(password); }
+                    };
+                    connection.authenticated.observeNext { authenticated in
+                        if authenticated == true {
+                            // it works; make this working account the primary and make it go.
+                            NSUserDefaults.standardUserDefaults().setValue(email, forKey: "mainAccount");
+                            (NSApplication.sharedApplication().delegate as! AppDelegate).connect();
+                        }
+                    }
+                    connection.connect(email);
+                    return connection;
+                });
+            }).resume();
+        };
+        self._oauth2.authConfig.authorizeEmbedded = false;
+        self._oauth2.authorize();
     }
 
-    @IBAction func show2FA(sender: AnyObject) {
-        NSWorkspace.sharedWorkspace().openURL(NSURL(string: "https://security.google.com/settings/security/apppasswords")!);
+    @objc private func handleCallback(notification: NSNotification) {
+        if let url = notification.object as? NSURL { self._oauth2.handleRedirectURL(url); }
+    }
+
+    private func fail(message: String?) {
+        if let light = self.statusImage { light.image = NSImage.init(named: NSImageNameStatusUnavailable); }
+        if let field = self.emailLabel { field.stringValue = message ?? "Something went wrong; try again."; }
     }
 }
