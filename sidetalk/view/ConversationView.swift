@@ -79,14 +79,16 @@ class ConversationView: NSView {
         self.textStorage.addLayoutManager(self.textLayout);
 
         // set up the scroll view itself.
-        self.scrollView.frame = NSRect(
-            origin: NSPoint(x: 0, y: ST.conversation.composeHeight + ST.conversation.composeMargin),
-            size: NSSize(width: self.width, height: self.frame.height - ST.conversation.composeHeight - ST.conversation.composeMargin));
-        self.scrollView.translatesAutoresizingMaskIntoConstraints = true;
+        self.scrollView.translatesAutoresizingMaskIntoConstraints = false;
         self.scrollView.hasVerticalScroller = true;
         self.scrollView.scrollerStyle = .Overlay;
         self.scrollView.drawsBackground = false;
         self.addSubview(self.scrollView);
+
+        self.addConstraints([
+            self.scrollView.constrain.width == self.width, self.scrollView.constrain.top == self.constrain.top,
+            self.scrollView.constrain.bottom == self.constrain.bottom - (ST.conversation.composeHeight + ST.conversation.composeMargin)
+        ]);
 
         // set up the scroll contents container.
         self.scrollView.documentView = self.scrollContents;

@@ -368,6 +368,10 @@ class MainView: NSView {
                         x: self.frame.width - self.tileSize.height - self.tilePadding - self.conversationPadding - self.conversationWidth,
                         y: yThis + self.conversationVOffset
                     );
+                    conversationView.animator().frame.size = NSSize(
+                        width: self.conversationWidth,
+                        height: self.frame.height - (yThis + self.conversationVOffset)
+                    );
                 }
             }
         });
