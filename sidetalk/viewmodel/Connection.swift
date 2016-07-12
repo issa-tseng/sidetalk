@@ -199,6 +199,20 @@ class Connection {
         to.conversation.addMessage(message);
         // TODO: i don't like that this is a separate set of code from the foreign incoming.
     }
+
+    func sendChatState(to: Contact, _ state: ChatState) {
+        let xmlMessage = NSXMLElement(name: "message");
+        xmlMessage.addAttributeWithName("type", stringValue: "chat");
+        xmlMessage.addAttributeWithName("to", stringValue: to.inner.jid().full());
+        let xmppMessage = XMPPMessage(fromElement: xmlMessage);
+        switch (state) {
+        case .Active: xmppMessage.addActiveChatState();
+        case .Composing: xmppMessage.addComposingChatState();
+        case .Inactive: xmppMessage.addInactiveChatState();
+        case .Paused: xmppMessage.addPausedChatState();
+        }
+        self.stream.sendElement(xmppMessage);
+    }
 }
 
 class OAuthConnection: Connection {

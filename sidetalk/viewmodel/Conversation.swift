@@ -64,6 +64,10 @@ class Conversation: Hashable {
     func setChatState(state: ChatState) {
         self._chatStateSignal.observer.sendNext(state);
     }
+
+    func sendChatState(state: ChatState) {
+        self.connection.sendChatState(self.with, state);
+    }
 }
 
 // base equality on Contact (which is based on JID). TODO: this is probably an awful idea.

@@ -152,6 +152,10 @@ class ConversationView: NSView {
         self._active.modify({ _ in self._initiallyActivated });
 
         self.text.observeNext { _ in self.updateComposeHeight(); };
+
+        let immediateChatState = self.text.map { (text) -> ChatState in (text == "") ? .Active : .Composing };
+        let delayedChatState = self.text.debounce(NSTimeInterval(5), onScheduler: scheduler).map { (text) -> ChatState in (text == "") ? .Active : .Paused };
+        immediateChatState.merge(delayedChatState).skipRepeats().observeNext { state in self.conversation.sendChatState(state); };
     }
 
     private func drawMessage(message: Message) {
