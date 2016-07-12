@@ -158,8 +158,17 @@ class ConversationView: NSView {
         dispatch_async(dispatch_get_main_queue(), {
             let foreign = message.isForeign();
 
-            // update our total stored text.
-            self.textStorage.appendAttributedString(NSAttributedString.init(string: message.body + "\n", attributes: ST.message.textAttr));
+            // update our total stored text, with link detection.
+            let mutable = NSMutableAttributedString(string: message.body);
+            let fullRange = NSRange(location: 0, length: message.body.characters.count);
+            mutable.addAttributes(ST.message.textAttr, range: fullRange);
+            let detector = try! NSDataDetector(types: NSTextCheckingType.Link.rawValue);
+            detector.enumerateMatchesInString(message.body, options: NSMatchingOptions(), range: fullRange, usingBlock: { match, _, _ in
+                if let url = match?.URL { mutable.addAttributes([ NSLinkAttributeName: url ], range: match!.range); }
+            });
+            let nonmutable = mutable.copy() as! NSAttributedString;
+            self.textStorage.appendAttributedString(nonmutable);
+            self.textStorage.appendAttributedString(NSAttributedString(string: "\n"));
 
             // create a new text container that tracks the view.
             let textContainer = NSTextContainer();
@@ -167,20 +176,16 @@ class ConversationView: NSView {
             textContainer.heightTracksTextView = true;
 
             // measure the new message so we know how big to make the textView.
-            self.textMeasurer.string = message.body + " "; // HACK: doesn't measure right without the space. why?
+            self.textMeasurer.textStorage!.setAttributedString(mutable);
             self.textMeasurer.sizeToFit();
-            let size = self.textMeasurer.layoutManager!.usedRectForTextContainer(self.textMeasurer.textContainer!).size;
+            let measuredSize = self.textMeasurer.layoutManager!.usedRectForTextContainer(self.textMeasurer.textContainer!).size;
+            let size = NSSize(width: measuredSize.width + 1.0, height: measuredSize.height); // HACK: why is this 1 pixel off?
 
             // create the textView, set basic attributes.
             let textView = NSTextView(frame: NSRect(origin: NSPoint.zero, size: size), textContainer: textContainer);
             textView.translatesAutoresizingMaskIntoConstraints = false;
-            textView.drawsBackground = false;
-
-            // enable link detection.
-            textView.automaticLinkDetectionEnabled = true;
             textView.linkTextAttributes?[NSForegroundColorAttributeName] = NSColor.whiteColor();
-            textView.editable = true;
-            textView.checkTextInDocument(nil);
+            textView.drawsBackground = false;
             textView.editable = false;
             textView.selectable = true;
 
