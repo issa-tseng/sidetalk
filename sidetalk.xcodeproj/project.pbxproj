@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		450180481D3493A4001DD4ED /* BubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 450180471D3493A4001DD4ED /* BubbleView.swift */; };
+		4501804A1D34B326001DD4ED /* ConstraintExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 450180491D34B326001DD4ED /* ConstraintExtensions.swift */; };
 		450EB7381D287FAA00AE272B /* PresenceIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 450EB7371D287FAA00AE272B /* PresenceIndicator.swift */; };
 		4512823D1CF9295C0088DEDE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4512823C1CF9295C0088DEDE /* AppDelegate.swift */; };
 		4512823F1CF9295C0088DEDE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4512823E1CF9295C0088DEDE /* Assets.xcassets */; };
@@ -27,7 +29,6 @@
 		4558524B1D2DBAB600ECE93C /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4558524A1D2DBAB600ECE93C /* Settings.swift */; };
 		457A783E1D0F74DF005D58EF /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A783D1D0F74DF005D58EF /* Conversation.swift */; };
 		457A78401D0F8B57005D58EF /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A783F1D0F8B57005D58EF /* ConversationView.swift */; };
-		457A78441D14C1F8005D58EF /* MessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A78431D14C1F8005D58EF /* MessageView.swift */; };
 		457DF9801D0CB0C4008BE043 /* StatusTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457DF97F1D0CB0C4008BE043 /* StatusTile.swift */; };
 		458A73401D0A423C0061FAFD /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458A733E1D0A423C0061FAFD /* Connection.swift */; };
 		458A73411D0A423C0061FAFD /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458A733F1D0A423C0061FAFD /* Contact.swift */; };
@@ -68,6 +69,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		450180471D3493A4001DD4ED /* BubbleView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BubbleView.swift; path = view/BubbleView.swift; sourceTree = "<group>"; };
+		450180491D34B326001DD4ED /* ConstraintExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ConstraintExtensions.swift; path = util/ConstraintExtensions.swift; sourceTree = "<group>"; };
 		450EB7371D287FAA00AE272B /* PresenceIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PresenceIndicator.swift; path = view/PresenceIndicator.swift; sourceTree = "<group>"; };
 		451282391CF9295C0088DEDE /* sidetalk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = sidetalk.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4512823C1CF9295C0088DEDE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -94,7 +97,6 @@
 		4558524A1D2DBAB600ECE93C /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Settings.swift; path = ui/Settings.swift; sourceTree = "<group>"; };
 		457A783D1D0F74DF005D58EF /* Conversation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Conversation.swift; path = viewmodel/Conversation.swift; sourceTree = "<group>"; };
 		457A783F1D0F8B57005D58EF /* ConversationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ConversationView.swift; path = view/ConversationView.swift; sourceTree = "<group>"; };
-		457A78431D14C1F8005D58EF /* MessageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MessageView.swift; path = view/MessageView.swift; sourceTree = "<group>"; };
 		457DF97F1D0CB0C4008BE043 /* StatusTile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = StatusTile.swift; path = view/StatusTile.swift; sourceTree = "<group>"; };
 		458A733E1D0A423C0061FAFD /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Connection.swift; path = viewmodel/Connection.swift; sourceTree = "<group>"; };
 		458A733F1D0A423C0061FAFD /* Contact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Contact.swift; path = viewmodel/Contact.swift; sourceTree = "<group>"; };
@@ -236,6 +238,7 @@
 				452591C71D1CA93D000CF9F1 /* Impulse.swift */,
 				452591C91D1D0751000CF9F1 /* ArrayExtensions.swift */,
 				455852381D29D1B500ECE93C /* Util.swift */,
+				450180491D34B326001DD4ED /* ConstraintExtensions.swift */,
 			);
 			name = util;
 			sourceTree = "<group>";
@@ -301,11 +304,11 @@
 				45AEC0171CFD592600203967 /* Common.swift */,
 				457DF97F1D0CB0C4008BE043 /* StatusTile.swift */,
 				457A783F1D0F8B57005D58EF /* ConversationView.swift */,
-				457A78431D14C1F8005D58EF /* MessageView.swift */,
 				452591CB1D21F828000CF9F1 /* STTextDelegate.swift */,
 				450EB7371D287FAA00AE272B /* PresenceIndicator.swift */,
 				4558523A1D29DAEB00ECE93C /* Constants.swift */,
 				455852421D2A06D800ECE93C /* IconView.swift */,
+				450180471D3493A4001DD4ED /* BubbleView.swift */,
 			);
 			name = view;
 			sourceTree = "<group>";
@@ -525,16 +528,17 @@
 				452591CE1D222329000CF9F1 /* MainState.swift in Sources */,
 				457DF9801D0CB0C4008BE043 /* StatusTile.swift in Sources */,
 				45AEC0081CFD1F6700203967 /* XUIFontAdditions.m in Sources */,
-				457A78441D14C1F8005D58EF /* MessageView.swift in Sources */,
 				458A73431D0A43FB0061FAFD /* GlobalInteraction.swift in Sources */,
 				457A78401D0F8B57005D58EF /* ConversationView.swift in Sources */,
 				45AEC00C1CFD1F6700203967 /* XUIIndexPathAdditions.m in Sources */,
 				45AEC00B1CFD1F6700203967 /* XUIImageAdditions.m in Sources */,
 				452591CA1D1D0751000CF9F1 /* ArrayExtensions.swift in Sources */,
+				450180481D3493A4001DD4ED /* BubbleView.swift in Sources */,
 				452591CC1D21F828000CF9F1 /* STTextDelegate.swift in Sources */,
 				452591C81D1CA93D000CF9F1 /* Impulse.swift in Sources */,
 				45AEC0071CFD1F6700203967 /* XUIColorAdditions.m in Sources */,
 				4512823D1CF9295C0088DEDE /* AppDelegate.swift in Sources */,
+				4501804A1D34B326001DD4ED /* ConstraintExtensions.swift in Sources */,
 				45AEC00A1CFD1F6700203967 /* XUIGraphics.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

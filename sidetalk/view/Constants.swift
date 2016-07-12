@@ -4,6 +4,8 @@ import p2_OAuth2;
 
 class ST {
     static let avatar = AvatarConst();
+    static let conversation = ConversationConst();
+    static let message = MessageConst();
     static let oauth = OAuthConst();
 
     internal class AvatarConst {
@@ -23,6 +25,32 @@ class ST {
             ];
 
         }
+    }
+
+    internal class ConversationConst {
+        let composeHeight = CGFloat(80);
+        let composeMargin = CGFloat(6);
+        let composeTextSize = CGFloat(12);
+
+        let sendLockout = NSTimeInterval(0.1);
+    }
+
+    internal class MessageConst {
+        let textAttr = [
+            NSForegroundColorAttributeName: NSColor.whiteColor(),
+            NSFontAttributeName: NSFont.systemFontOfSize(12)
+        ];
+
+        let margin = CGFloat(2);
+
+        let paddingX = CGFloat(4);
+        let paddingY = CGFloat(4);
+        let radius = CGFloat(3);
+
+        let calloutSize = CGFloat(4);
+        let calloutVline = CGFloat(11);
+
+        let shownFor = NSTimeInterval(5.0);
     }
 
     internal class OAuthConst {
