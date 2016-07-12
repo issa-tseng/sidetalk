@@ -26,10 +26,10 @@ class ContactTile : NSView {
         }
     };
 
-    let avatarLayer: CAAvatarLayer;
-    let outlineLayer: CAShapeLayer;
-    let textboxLayer: CAShapeLayer;
-    let textLayer: CATextLayer;
+    let avatarLayer = CAAvatarLayer();
+    let outlineLayer = CAShapeLayer();
+    let textboxLayer = CAShapeLayer();
+    let textLayer = CATextLayer();
 
     private let composingColor = NSColor.init(red: 0.027, green: 0.785, blue: 0.746, alpha: 0.95).CGColor;
     private let attentionColor = NSColor.init(red: 0.859, green: 0.531, blue: 0.066, alpha: 1.0).CGColor;
@@ -41,14 +41,6 @@ class ContactTile : NSView {
         // save props.
         self.contact = contact;
         self.size = size;
-
-        // create layers.
-        self.avatarLayer = CAAvatarLayer();
-        self.outlineLayer = CAShapeLayer();
-        self.textLayer = CATextLayer();
-        self.textboxLayer = CAShapeLayer();
-
-        // set up layers.
         self.avatarLayer.contact = self.contact;
 
         // actually init.
