@@ -32,6 +32,8 @@ class ST {
         let composeMargin = CGFloat(6);
         let composeTextSize = CGFloat(12);
 
+        let composeBg = NSColor.init(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.9).CGColor;
+
         let sendLockout = NSTimeInterval(0.1);
     }
 
@@ -40,6 +42,8 @@ class ST {
             NSForegroundColorAttributeName: NSColor.whiteColor(),
             NSFontAttributeName: NSFont.systemFontOfSize(12)
         ];
+
+        let bg = NSColor(red: 0.1, green: 0.12, blue: 0.15, alpha: 0.85).CGColor;
 
         let margin = CGFloat(2);
 

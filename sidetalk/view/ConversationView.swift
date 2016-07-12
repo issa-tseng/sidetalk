@@ -60,8 +60,8 @@ class ConversationView: NSView {
         self.prepare();
 
         // draw bubble.
-        self.composeBubble.material = .Titlebar;
         self.updateComposeHeight();
+        self.composeBubble.bubbleColor = ST.conversation.composeBg;
 
         // set up textfield.
         self.textField.backgroundColor = NSColor.clearColor();
@@ -172,8 +172,7 @@ class ConversationView: NSView {
             // create the textView, set basic attributes.
             let textView = NSTextView(frame: NSRect(origin: NSPoint.zero, size: size), textContainer: textContainer);
             textView.translatesAutoresizingMaskIntoConstraints = false;
-            textView.drawsBackground = true;
-            textView.backgroundColor = NSColor.init(red: 1, green: 1, blue: 1, alpha: 0);
+            textView.drawsBackground = false;
 
             // enable link detection.
             textView.automaticLinkDetectionEnabled = true;
