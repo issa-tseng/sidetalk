@@ -254,6 +254,12 @@ class ConversationView: NSView {
         self._active.modify({ _ in false });
     }
 
+    // ignore mouse events if we are not active.
+    override func hitTest(point: NSPoint) -> NSView? {
+        if self._active.value { return super.hitTest(point); }
+        else { return nil; }
+    }
+
     // kind of a misnomer; this doesn't lay anything out at all. it just controls visibility.
     private func relayout(lastState: (Bool, Bool), _ thisState: (Bool, Bool)) {
         let (last, _) = lastState;
