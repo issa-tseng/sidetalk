@@ -43,14 +43,11 @@ What's next
 
 Here is the list of what I'd love to tackle next. I'd love feedback on what would be most helpful to you.
 
-1. Typing notifications for the other party. Right now it gets them but doesn't send them.
-2. Timestamps on messages in conversations.
-3. Scrollable conversations, so you can look back up at what's been said.
-4. Pinned contacts, so the most important people you always chat with are always at hand.
-5. Mouse support on the contact list.
-6. More customization: colors, placements, sizes, etc. What do you most want to customize? A lot is possible.
-7. Setting your presence. Right now sidetalk doesn't even set you to available or away or anything like that.
-8. Formatted messages. Bold, italics, etc. Probably not colors.
+1. Pinned contacts, so the most important people you always chat with are always at hand.
+2. Mouse support on the contact list.
+3. More customization: colors, placements, sizes, etc. What do you most want to customize? A lot is possible.
+4. Setting your presence. Right now sidetalk doesn't even set you to available or away or anything like that.
+5. Formatted messages. Bold, italics, etc. Probably not colors.
 
 There are many more much, much larger things (stored conversation history; detachable conversation windows; multiple accounts; etc) that I'm also thinking about, but they're too numerous to list here.
 
@@ -63,6 +60,20 @@ I'd love to know three things:
 2. What is confusing? What do you want to work differently?
 3. What doesn't it do that you'd like it to?
 
+Changelog
+---------
+
+alpha-1.1
+* redid text layout system so you can select text to copy/paste across multiple messages.
+* this also enables you to scroll back through messages in a conversation.
+* message bubbles can now be hovered over to find out when the message was sent.
+* typing notifications are now sent to the other party.
+
+alpha-1
+* authentication system completely redone for google oauth.
+
+prelease
+* initial alpha release.
 
 Thanks
 ------
