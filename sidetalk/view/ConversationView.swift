@@ -193,6 +193,13 @@ class ConversationView: NSView {
             textView.editable = false;
             textView.selectable = true;
 
+            // set tooltip to the receipt timestamp.
+            let formatter = NSDateFormatter();
+            formatter.timeStyle = .MediumStyle;
+            formatter.dateStyle = .ShortStyle;
+            formatter.doesRelativeDateFormatting = true;
+            textView.toolTip = formatter.stringFromDate(message.at);
+
             // make a bubble.
             let bubbleView = BubbleView();
             bubbleView.translatesAutoresizingMaskIntoConstraints = false;
