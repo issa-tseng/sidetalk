@@ -12,6 +12,14 @@ class ST {
         let fallbackTextAttr: [String: AnyObject];
         let fallbackTextFrame = NSRect(x: 5.5, y: 8, width: 38, height: 30);
 
+        let inactiveColor = NSColor.init(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.2).CGColor;
+        let composingColor = NSColor.init(red: 0.027, green: 0.785, blue: 0.746, alpha: 0.95).CGColor;
+        let attentionColor = NSColor.init(red: 0.859, green: 0.531, blue: 0.066, alpha: 1.0).CGColor;
+
+        let selectedInactiveColor = NSColor.init(red: 1, green: 1, blue: 1, alpha: 0.85).CGColor;
+        let selectedComposingColor = NSColor.init(red: 0.573, green: 0.957, blue: 0.937, alpha: 0.95).CGColor;
+        let selectedAttentionColor = NSColor.init(red: 0.965, green: 0.855, blue: 0.698, alpha: 1.0).CGColor;
+
         private init() {
             // set up fallback text attrs.
             let paragraphStyle: NSMutableParagraphStyle = NSParagraphStyle.defaultParagraphStyle().mutableCopy() as! NSMutableParagraphStyle;

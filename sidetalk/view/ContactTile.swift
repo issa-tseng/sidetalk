@@ -9,21 +9,25 @@ struct ContactState {
     let lastShown: NSDate?;
     let latestMessage: Message?;
     let active: Bool;
+    let selected: Bool;
 }
 
 class ContactTile : NSView {
     let contact: Contact;
     let size: CGSize;
 
-    private let _showLabelSignal = ManagedSignal<Bool>();
-    private var _showLabel: Bool = false;
-    var showLabelSignal: Signal<Bool, NoError> { get { return self._showLabelSignal.signal; } };
-    var showLabel: Bool {
-        get { return self._showLabel; }
-        set {
-            self._showLabelSignal.observer.sendNext(newValue);
-            self._showLabel = newValue;
-        }
+    private let _showLabel = MutableProperty<Bool>(false);
+    var showLabel: Signal<Bool, NoError> { get { return self._showLabel.signal; } };
+    var showLabel_: Bool {
+        get { return self._showLabel.value; }
+        set { self._showLabel.modify { _ in newValue }; }
+    };
+
+    private let _selected = MutableProperty<Bool>(false);
+    var selected: Signal<Bool, NoError> { get { return self._selected.signal; } };
+    var selected_: Bool {
+        get { return self._selected.value; }
+        set { self._selected.modify { _ in newValue }; }
     };
 
     let avatarLayer = CAAvatarLayer();
@@ -31,10 +35,7 @@ class ContactTile : NSView {
     let textboxLayer = CAShapeLayer();
     let textLayer = CATextLayer();
 
-    private let composingColor = NSColor.init(red: 0.027, green: 0.785, blue: 0.746, alpha: 0.95).CGColor;
-    private let attentionColor = NSColor.init(red: 0.859, green: 0.531, blue: 0.066, alpha: 1.0).CGColor;
-    private let inactiveColor = NSColor.init(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.2).CGColor;
-
+    private var _simpleRingObserver: Disposable?;
     private var _conversationView: ConversationView?;
 
     init(frame: CGRect, size: CGSize, contact: Contact) {
@@ -75,25 +76,14 @@ class ContactTile : NSView {
         let conversation = conversationView.conversation;
 
         // status ring.
+        self._simpleRingObserver?.dispose(); // we're replacing this logic with the full set.
         conversation.chatState
             .combineWithDefault(conversationView.lastShown, defaultValue: NSDate.distantPast())
             .combineWithDefault(conversationView.allMessages().filter({ message in message.from == self.contact }).downcastToOptional(), defaultValue: nil)
             .combineWithDefault(conversationView.active, defaultValue: false)
-            .map({ (tuple, active) in ContactState(chatState: tuple.0.0, lastShown: tuple.0.1, latestMessage: tuple.1, active: active); })
-            .observeNext { all in
-                dispatch_async(dispatch_get_main_queue(), {
-                    let hasUnread = !all.active && (all.latestMessage != nil) && all.latestMessage!.at.isGreaterThan(all.lastShown);
-                    if all.chatState == .Composing {
-                        self.outlineLayer.strokeColor = self.composingColor;
-                    } else if hasUnread {
-                        self.outlineLayer.strokeColor = self.attentionColor;
-                    } else {
-                        self.outlineLayer.strokeColor = self.inactiveColor;
-                    }
-
-                    self.outlineLayer.lineWidth = hasUnread ? 3.0 : 2.0;
-                });
-            }
+            .combineWithDefault(self.selected, defaultValue: false)
+            .map({ (tuple, selected) in ContactState(chatState: tuple.0.0.0, lastShown: tuple.0.0.1, latestMessage: tuple.0.1, active: tuple.1, selected: selected); })
+            .observeNext { all in self.updateRing(all) }
     }
 
     private func drawAll() {
@@ -113,7 +103,7 @@ class ContactTile : NSView {
         let outlinePath = NSBezierPath(roundedRect: avatarBounds, xRadius: avatarHalf, yRadius: avatarHalf);
         self.outlineLayer.path = outlinePath.CGPath;
         self.outlineLayer.fillColor = NSColor.clearColor().CGColor;
-        self.outlineLayer.strokeColor = self.inactiveColor;
+        self.outlineLayer.strokeColor = ST.avatar.inactiveColor;
         self.outlineLayer.lineWidth = 2;
 
         // set up text layout.
@@ -139,7 +129,7 @@ class ContactTile : NSView {
 
     private func prepare() {
         // adjust label opacity based on whether we're being asked to show them
-        self.showLabelSignal.observeNext { show in
+        self.showLabel.observeNext { show in
             dispatch_async(dispatch_get_main_queue(), {
                 if show {
                     self.textLayer.opacity = 1.0;
@@ -150,6 +140,12 @@ class ContactTile : NSView {
                 }
             });
         }
+
+        // set up the simple version of ring color adjust. this gets overriden when
+        // a conversation is attached.
+        self._simpleRingObserver = self.selected.observeNext { selected in
+            self.updateRing(ContactState(chatState: nil, lastShown: NSDate.distantPast(), latestMessage: nil, active: false, selected: selected));
+        };
 
         // adjust avatar opacity based on composite presence
         self.contact.online.observeNext({ _ in self.updateOpacity(); });
@@ -172,6 +168,21 @@ class ContactTile : NSView {
             } else {
                 self.avatarLayer.opacity = 0.1;
             }
+        });
+    }
+
+    private func updateRing(all: ContactState) {
+        dispatch_async(dispatch_get_main_queue(), {
+            let hasUnread = !all.active && (all.latestMessage != nil) && all.latestMessage!.at.isGreaterThan(all.lastShown);
+            if all.chatState == .Composing {
+                self.outlineLayer.strokeColor = (all.selected ? ST.avatar.selectedComposingColor : ST.avatar.composingColor);
+            } else if hasUnread {
+                self.outlineLayer.strokeColor = (all.selected ? ST.avatar.selectedAttentionColor : ST.avatar.attentionColor);
+            } else {
+                self.outlineLayer.strokeColor = (all.selected ? ST.avatar.selectedInactiveColor : ST.avatar.inactiveColor);
+            }
+
+            self.outlineLayer.lineWidth = hasUnread ? 3.0 : 2.0;
         });
     }
 

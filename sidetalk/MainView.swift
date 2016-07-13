@@ -231,8 +231,24 @@ class MainView: NSView {
             .map({ ($0.0.0, $0.0.1, $0.1, $1) }) // ([ContactTile], [Contact:Int], Set<Contact>?, Contact?)
             .observeNext { (tiles, sort, notifying, state) in
                 for tile in tiles {
-                    tile.showLabel = (state != .Inactive) && (state.essentially != .Chatting) && (notifying == nil || notifying!.count == 0) && (sort[tile.contact] != nil);
+                    tile.showLabel_ = (state != .Inactive) && (state.essentially != .Chatting) && (notifying == nil || notifying!.count == 0) && (sort[tile.contact] != nil);
                 }
+            };
+
+        // set contact select ring as appropriate.
+        sort.combineWithDefault(self.state, defaultValue: .Inactive)
+            .map({ (sort, state) -> Contact? in
+                switch state {
+                case let .Selecting(idx):       return sort.filter({ _, sidx in idx == sidx }).first!.0;
+                case let .Searching(_, idx):    return sort.filter({ _, sidx in idx == sidx }).first!.0;
+                default:                        return nil;
+                }
+            })
+            .skipRepeats({ a, b in a == b })
+            .combinePrevious(nil)
+            .observeNext { last, this in
+                if let tile = self._contactTiles.get(last) { tile.selected_ = false; }
+                if let tile = self._contactTiles.get(this) { tile.selected_ = true; }
             };
 
         // render only the conversation for the active contact.
@@ -287,7 +303,6 @@ class MainView: NSView {
     }
 
     private func relayout(lastState: LayoutState, _ thisState: LayoutState) {
-        // TODO: figure out the two hacks below ( http://stackoverflow.com/questions/37780431/cocoa-core-animation-everything-jumps-around-upon-becomefirstresponder )
         dispatch_async(dispatch_get_main_queue(), {
             // deal with self
             if lastState.state.active != thisState.state.active {
