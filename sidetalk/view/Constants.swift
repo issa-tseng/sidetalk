@@ -20,6 +20,18 @@ class ST {
         let selectedComposingColor = NSColor.init(red: 0.573, green: 0.957, blue: 0.937, alpha: 0.95).CGColor;
         let selectedAttentionColor = NSColor.init(red: 0.965, green: 0.855, blue: 0.698, alpha: 1.0).CGColor;
 
+        let labelTextAttr = [
+            NSForegroundColorAttributeName: NSColor.whiteColor(),
+            NSKernAttributeName: -0.1,
+            NSFontAttributeName: NSFont.systemFontOfSize(10)
+        ];
+
+        let countTextAttr = [
+            NSForegroundColorAttributeName: NSColor.whiteColor(),
+            NSKernAttributeName: -0.1,
+            NSFontAttributeName: NSFont.boldSystemFontOfSize(9)
+        ];
+
         private init() {
             // set up fallback text attrs.
             let paragraphStyle: NSMutableParagraphStyle = NSParagraphStyle.defaultParagraphStyle().mutableCopy() as! NSMutableParagraphStyle;

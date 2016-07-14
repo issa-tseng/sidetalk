@@ -46,7 +46,6 @@
 		45AEC00E1CFD1F6700203967 /* XUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0021CFD1F6700203967 /* XUIView.m */; };
 		45AEC00F1CFD1F6700203967 /* XUIViewAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0041CFD1F6700203967 /* XUIViewAdditions.m */; };
 		45AEC0161CFD58AA00203967 /* ContactTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0151CFD58AA00203967 /* ContactTile.swift */; };
-		45AEC0181CFD592600203967 /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0171CFD592600203967 /* Common.swift */; };
 		45AEC01A1CFD59CF00203967 /* AvatarLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0191CFD59CF00203967 /* AvatarLayer.swift */; };
 		90AA672577DACDA911E88D99 /* Pods_sidetalk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8D154A4621A69E3A2385A355 /* Pods_sidetalk.framework */; };
 /* End PBXBuildFile section */
@@ -129,7 +128,6 @@
 		45AEC0041CFD1F6700203967 /* XUIViewAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = XUIViewAdditions.m; path = XUIKit/XUIViewAdditions.m; sourceTree = "<group>"; };
 		45AEC0101CFD1FBB00203967 /* sidetalk-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sidetalk-Bridging-Header.h"; sourceTree = "<group>"; };
 		45AEC0151CFD58AA00203967 /* ContactTile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContactTile.swift; path = view/ContactTile.swift; sourceTree = "<group>"; };
-		45AEC0171CFD592600203967 /* Common.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
 		45AEC0191CFD59CF00203967 /* AvatarLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AvatarLayer.swift; path = view/AvatarLayer.swift; sourceTree = "<group>"; };
 		5ABBCA9B60EDB56B8AD71D06 /* Pods-sidetalk.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sidetalk.debug.xcconfig"; path = "Pods/Target Support Files/Pods-sidetalk/Pods-sidetalk.debug.xcconfig"; sourceTree = "<group>"; };
 		8D154A4621A69E3A2385A355 /* Pods_sidetalk.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_sidetalk.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -301,7 +299,6 @@
 			children = (
 				45AEC0191CFD59CF00203967 /* AvatarLayer.swift */,
 				45AEC0151CFD58AA00203967 /* ContactTile.swift */,
-				45AEC0171CFD592600203967 /* Common.swift */,
 				457DF97F1D0CB0C4008BE043 /* StatusTile.swift */,
 				457A783F1D0F8B57005D58EF /* ConversationView.swift */,
 				452591CB1D21F828000CF9F1 /* STTextDelegate.swift */,
@@ -506,7 +503,6 @@
 			files = (
 				4558523B1D29DAEB00ECE93C /* Constants.swift in Sources */,
 				457A783E1D0F74DF005D58EF /* Conversation.swift in Sources */,
-				45AEC0181CFD592600203967 /* Common.swift in Sources */,
 				454DBB9A1D0935190065DA1B /* ManagedSignal.swift in Sources */,
 				450EB7381D287FAA00AE272B /* PresenceIndicator.swift in Sources */,
 				4558524B1D2DBAB600ECE93C /* Settings.swift in Sources */,

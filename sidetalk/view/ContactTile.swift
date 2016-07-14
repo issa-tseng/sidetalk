@@ -35,6 +35,9 @@ class ContactTile : NSView {
     let textboxLayer = CAShapeLayer();
     let textLayer = CATextLayer();
 
+    let countLayer = CATextLayer();
+    let countRingLayer = CAShapeLayer();
+
     private var _simpleRingObserver: Disposable?;
     private var _conversationView: ConversationView?;
 
@@ -56,11 +59,13 @@ class ContactTile : NSView {
         dispatch_async(dispatch_get_main_queue(), {
             self.drawAll();
 
-            let layer = self.layer!
+            let layer = self.layer!;
             layer.addSublayer(self.avatarLayer);
             layer.addSublayer(self.outlineLayer);
             layer.addSublayer(self.textboxLayer);
             layer.addSublayer(self.textLayer);
+            layer.addSublayer(self.countRingLayer);
+            layer.addSublayer(self.countLayer);
         });
 
         // prep future states
@@ -84,6 +89,36 @@ class ContactTile : NSView {
             .combineWithDefault(self.selected, defaultValue: false)
             .map({ (tuple, selected) in ContactState(chatState: tuple.0.0.0, lastShown: tuple.0.0.1, latestMessage: tuple.0.1, active: tuple.1, selected: selected); })
             .observeNext { all in self.updateRing(all) }
+
+        // unread message count.
+        let unread = conversation.latestMessage
+            .combineWithDefault(conversationView.lastShown, defaultValue: NSDate.distantPast())
+            .map({ (_, shown) -> Int in
+                var count = 0; // count this mutably and manually for perf (early exit).
+                for message in conversation.messages {
+                    if message.at.isLessThanOrEqualTo(shown) { break; }
+                    if message.from == self.contact { count += 1; }
+                }
+                return count;
+            });
+
+        // update count label and such.
+        unread.observeNext { count in
+            dispatch_async(dispatch_get_main_queue(), {
+                if count > 0 {
+                    self.countLayer.hidden = false;
+                    self.countRingLayer.hidden = false;
+
+                    let text = NSAttributedString(string: "\(count)", attributes: ST.avatar.countTextAttr);
+                    self.countLayer.string = text;
+                    let additionalWidth = max(0, text.boundingRectWithSize(self.frame.size, options: NSStringDrawingOptions()).width - 5.8);
+                    self.countRingLayer.path = NSBezierPath(roundedRect: NSRect(origin: NSPoint.zero, size: NSSize(width: 14 + additionalWidth, height: 13)), cornerRadius: 6.5).CGPath;
+                } else {
+                    self.countLayer.hidden = true;
+                    self.countRingLayer.hidden = true;
+                }
+            });
+        };
     }
 
     private func drawAll() {
@@ -107,7 +142,7 @@ class ContactTile : NSView {
         self.outlineLayer.lineWidth = 2;
 
         // set up text layout.
-        let text = NSAttributedString(string: contact.displayName ?? "unknown", attributes: Common.labelTextAttr);
+        let text = NSAttributedString(string: contact.displayName ?? "unknown", attributes: ST.avatar.labelTextAttr);
         let textSize = text.size();
         let textOrigin = NSPoint(x: origin.x - 16 - textSize.width, y: origin.y + 3 + textSize.height);
         let textBounds = NSRect(origin: textOrigin, size: textSize);
@@ -125,6 +160,14 @@ class ContactTile : NSView {
         self.textboxLayer.path = textboxPath.CGPath;
         self.textboxLayer.fillColor = NSColor.blackColor().colorWithAlphaComponent(0.5).CGColor;
         self.textboxLayer.opacity = 0.0;
+
+        // set up message count.
+        self.countLayer.frame = NSRect(origin: NSPoint(x: origin.x + 4, y: origin.y + 4), size: NSSize(width: self.size.width, height: 10));
+        self.countLayer.contentsScale = NSScreen.mainScreen()!.backingScaleFactor;
+        self.countLayer.hidden = true;
+
+        self.countRingLayer.hidden = true;
+        self.countRingLayer.frame.origin = NSPoint(x: origin.x, y: origin.y + 2);
     }
 
     private func prepare() {
@@ -175,15 +218,20 @@ class ContactTile : NSView {
         dispatch_async(dispatch_get_main_queue(), {
             let hasUnread = !all.active && (all.latestMessage != nil) && all.latestMessage!.at.isGreaterThan(all.lastShown);
             if all.chatState == .Composing {
-                self.outlineLayer.strokeColor = (all.selected ? ST.avatar.selectedComposingColor : ST.avatar.composingColor);
+                self.setRingColor(all.selected ? ST.avatar.selectedComposingColor : ST.avatar.composingColor);
             } else if hasUnread {
-                self.outlineLayer.strokeColor = (all.selected ? ST.avatar.selectedAttentionColor : ST.avatar.attentionColor);
+                self.setRingColor(all.selected ? ST.avatar.selectedAttentionColor : ST.avatar.attentionColor);
             } else {
-                self.outlineLayer.strokeColor = (all.selected ? ST.avatar.selectedInactiveColor : ST.avatar.inactiveColor);
+                self.setRingColor(all.selected ? ST.avatar.selectedInactiveColor : ST.avatar.inactiveColor);
             }
 
             self.outlineLayer.lineWidth = hasUnread ? 3.0 : 2.0;
         });
+    }
+
+    private func setRingColor(color: CGColor) {
+        self.outlineLayer.strokeColor = color;
+        self.countRingLayer.fillColor = color;
     }
 
     required init(coder: NSCoder) {
