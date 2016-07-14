@@ -34,7 +34,7 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <button verticalHuggingPriority="750" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="oYy-yf-Sr8">
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="oYy-yf-Sr8">
                     <rect key="frame" x="356" y="90" width="92" height="32"/>
                     <buttonCell key="cell" type="push" title="Connect" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="u8C-h6-fyT">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -82,6 +82,7 @@
             </subviews>
             <constraints>
                 <constraint firstItem="Ww3-jG-Ibv" firstAttribute="top" secondItem="x3A-Ox-fHP" secondAttribute="top" constant="22" id="SW2-RK-LIp"/>
+                <constraint firstItem="oYy-yf-Sr8" firstAttribute="top" secondItem="x3A-Ox-fHP" secondAttribute="top" constant="19" id="Smq-RH-3MZ"/>
                 <constraint firstAttribute="trailing" secondItem="oYy-yf-Sr8" secondAttribute="trailing" constant="38" id="Xpf-R2-lUQ"/>
                 <constraint firstAttribute="trailing" secondItem="Ww3-jG-Ibv" secondAttribute="trailing" constant="20" id="kPb-LU-gWB"/>
                 <constraint firstAttribute="trailing" secondItem="nW0-YE-meT" secondAttribute="trailing" constant="20" id="uIg-ce-jjj"/>
