@@ -10,6 +10,7 @@ struct LayoutState {
     let state: MainState;
     let notifying: Set<Contact>;
     let hidden: Bool;
+    let mouseIdx: Int?;
 }
 
 // TODO: split into V/VM?
@@ -20,8 +21,15 @@ class MainView: NSView {
     private var _contactTiles = QuickCache<Contact, ContactTile>();
     private var _conversationViews = QuickCache<Contact, ConversationView>();
 
+    private var marginTracker: NSTrackingArea?;
+    private var contactTracker: NSTrackingArea?;
+
     private var _state: Signal<MainState, NoError>?;
+    private var state_: MainState = .Inactive;
     var state: Signal<MainState, NoError> { get { return self._state!; } };
+
+    private let _mouseIdx = MutableProperty<Int?>(nil);
+    var mouseIdx: Signal<Int?, NoError> { get { return self._mouseIdx.signal.skipRepeats({ a, b in a == b }); } };
 
     private let _hiddenMode = MutableProperty<Bool>(false);
     var hiddenMode: Signal<Bool, NoError> { get { return self._hiddenMode.signal; } };
@@ -58,10 +66,45 @@ class MainView: NSView {
 
         self.prepare();
         self._statusTile.prepare(self);
+
+        self.marginTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: frame.width - 2, y: 0), size: frame.size),
+                                            options: [.MouseEnteredAndExited, .ActiveAlways], owner: self, userInfo: nil);
+        self.addTrackingArea(self.marginTracker!);
     }
 
     func setHide(hidden: Bool) { self._hiddenMode.modify({ _ in hidden }); }
     func setMute(muted: Bool) { self._mutedMode.modify({ _ in muted }); }
+
+    override func mouseEntered(theEvent: NSEvent) {
+        if (theEvent.trackingArea == self.marginTracker) {
+            self.liveMouse();
+            self.processMouse(theEvent.locationInWindow.y);
+        }
+    }
+    override func mouseMoved(theEvent: NSEvent) {
+        self.processMouse(theEvent.locationInWindow.y);
+    }
+    override func mouseExited(theEvent: NSEvent) {
+        if (theEvent.trackingArea == self.contactTracker) {
+            if self.state_ == .Inactive { self.killMouse(); }
+            self._mouseIdx.modify { _ in nil };
+        }
+    }
+
+    private func liveMouse() {
+        if self.contactTracker == nil {
+            self.contactTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: frame.width - self.tileSize.height - self.tilePadding, y: 0), size: frame.size),
+                                                 options: [.MouseEnteredAndExited, .MouseMoved, .ActiveAlways], owner: self, userInfo: nil);
+            self.addTrackingArea(self.contactTracker!);
+        }
+    }
+    private func processMouse(location: CGFloat) {
+        self._mouseIdx.modify { _ in Int(max(0, floor((location - self.allPadding - self.listPadding) / (self.tileSize.height + self.tilePadding)) - 1)) };
+    }
+    private func killMouse() {
+        if let tracker = self.contactTracker { self.removeTrackingArea(tracker); }
+        self.contactTracker = nil;
+    }
 
     private func prepare() {
         let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "mainview-scheduler");
@@ -132,6 +175,8 @@ class MainView: NSView {
                 switch (last, key) {
                 case (_, .Blur): return .Inactive;
 
+                // AOEU
+
                 case (.Normal, .Escape): return .Inactive;
                 case (.Normal, .Up): return .Selecting(0);
 
@@ -185,9 +230,16 @@ class MainView: NSView {
 
         // keep track of our last state:
         self.state.filter({ state in state != .Inactive }).observeNext({ state in lastState = (state, NSDate()); });
+        self.state.observeNext { state in self.state_ = state };
 
         // keep track of our last dismissal:
         self.state.skipRepeats({ $0 == $1 }).filter({ state in state == .Inactive }).observeNext({ _ in lastInactive = NSDate() });
+
+        // wire/dewire mouse depending on our state:
+        self.state.skipRepeats({ $0 == $1 }).observeNext { state in
+            if state == .Inactive { self.killMouse(); }
+            else                  { self.liveMouse(); }
+        };
 
         // figure out which contacts currently have notification bubbles.
         let notifying = latestForeignMessage.always(0)
@@ -219,25 +271,31 @@ class MainView: NSView {
             .combineWithDefault(self.state, defaultValue: .Inactive) // (Order, MainState)
             .combineWithDefault(notifying, defaultValue: Set<Contact>()) // ((Order, MainState), Set[Contact])
             .combineWithDefault(self.hiddenMode, defaultValue: false) // (((Order, MainState), Set[Contact]), Bool)
-            .map({ tuple, hidden in LayoutState(order: tuple.0.0, state: tuple.0.1, notifying: tuple.1, hidden: hidden); })
+            .combineWithDefault(self.mouseIdx, defaultValue: nil) // ((((Order, MainState), Set[Contact]), Bool), Int?)
+            .map({ tuple, mouseIdx in LayoutState(order: tuple.0.0.0, state: tuple.0.0.1, notifying: tuple.0.1, hidden: tuple.1, mouseIdx: mouseIdx); })
             .debounce(NSTimeInterval(0.02), onScheduler: QueueScheduler.mainQueueScheduler)
-            .combinePrevious(LayoutState(order: [:], state: .Inactive, notifying: Set<Contact>(), hidden: false))
+            .combinePrevious(LayoutState(order: [:], state: .Inactive, notifying: Set<Contact>(), hidden: false, mouseIdx: nil))
             .observeNext { last, this in self.relayout(last, this) };
 
         // show or hide contact labels as appropriate.
         tiles.combineLatestWith(sort) // ([ContactTile], [Contact:Int])
             .combineWithDefault(notifying.downcastToOptional(), defaultValue: nil) // (([ContactTile], [Contact:Int]), Set<Contact>?)
             .combineWithDefault(self.state, defaultValue: .Inactive) // ((([ContactTile], [Contact:Int]), Set<Contact>?), Contact?)
-            .map({ ($0.0.0, $0.0.1, $0.1, $1) }) // ([ContactTile], [Contact:Int], Set<Contact>?, Contact?)
-            .observeNext { (tiles, sort, notifying, state) in
+            .combineWithDefault(self.mouseIdx, defaultValue: nil) // (((([ContactTile], [Contact:Int]), Set<Contact>?), Contact?), Int?)
+            .map({ ($0.0.0.0, $0.0.0.1, $0.0.1, $0.1, $1) }) // ([ContactTile], [Contact:Int], Set<Contact>?, Contact?)
+            .observeNext { (tiles, sort, notifying, state, mouseIdx) in
                 for tile in tiles {
-                    tile.showLabel_ = (state != .Inactive) && (state.essentially != .Chatting) && (notifying == nil || notifying!.count == 0) && (sort[tile.contact] != nil);
+                    tile.showLabel_ = ((state != .Inactive) || (mouseIdx != nil)) && (state.essentially != .Chatting) &&
+                                      (notifying == nil || notifying!.count == 0) && (sort[tile.contact] != nil);
                 }
             };
 
-        // set contact select ring as appropriate.
+        // set contact select ring as appropriate. TODO: fix this awful reverse lookup everywhere.
         sort.combineWithDefault(self.state, defaultValue: .Inactive)
-            .map({ (sort, state) -> Contact? in
+            .combineWithDefault(self.mouseIdx, defaultValue: nil).map({ ($0.0, $0.1, $1) })
+            .map({ (sort, state, mouseIdx) -> Contact? in
+                if let idx = mouseIdx { return sort.filter({ _, sidx in idx == sidx }).first!.0; }
+
                 switch state {
                 case let .Selecting(idx):       return sort.filter({ _, sidx in idx == sidx }).first!.0;
                 case let .Searching(_, idx):    return sort.filter({ _, sidx in idx == sidx }).first!.0;
@@ -305,17 +363,15 @@ class MainView: NSView {
     private func relayout(lastState: LayoutState, _ thisState: LayoutState) {
         dispatch_async(dispatch_get_main_queue(), {
             // deal with self
-            if lastState.state.active != thisState.state.active {
-                let tile = self._statusTile;
-                let x = self.frame.width - self.tileSize.width - self.tilePadding;
-                let y = self.allPadding;
+            let tile = self._statusTile;
+            let x = self.frame.width - self.tileSize.width - self.tilePadding;
+            let y = self.allPadding;
 
-                animationWithDuration(thisState.state.active ? 0.03 : 0.2, {
-                    if (thisState.state.active) { tile.animator().frame.origin = NSPoint(x: x, y: y); }
-                    else if (thisState.hidden)  { tile.animator().frame.origin = NSPoint(x: x + self.tileSize.height + self.tilePadding, y: y); }
-                    else                        { tile.animator().frame.origin = NSPoint(x: x + (self.tileSize.height * 0.55), y: y); }
-                });
-            }
+            animationWithDuration(thisState.state.active ? 0.03 : 0.2, {
+                if (thisState.state.active || thisState.mouseIdx != nil) { tile.animator().frame.origin = NSPoint(x: x, y: y); }
+                else if (thisState.hidden) { tile.animator().frame.origin = NSPoint(x: x + self.tileSize.height + self.tilePadding, y: y); }
+                else                       { tile.animator().frame.origin = NSPoint(x: x + (self.tileSize.height * 0.55), y: y); }
+            });
 
             // deal with actual contacts
             for tile in self._contactTiles.all() {
@@ -344,26 +400,28 @@ class MainView: NSView {
                 let yThis = self.allPadding + self.listPadding + ((self.tileSize.height + self.tilePadding) * CGFloat((this ?? 0) + 1));
 
                 // TODO: repetitive.
-                switch (last, lastState.notifying.contains(tile.contact), lastState.state) {
-                case (nil, _, _):                                               from = NSPoint(x: xOff, y: yThis);
-                case (let lidx, _, let .Selecting(idx)) where lidx == idx:      from = NSPoint(x: xOn, y: yLast);
-                case (let lidx, _, let .Searching(_, idx)) where lidx == idx:   from = NSPoint(x: xOn, y: yLast);
-                case (_, _, let .Chatting(with, _)) where with == tile.contact: from = NSPoint(x: xOn, y: yLast);
-                case (_, _, .Normal), (_, true, _):                             from = NSPoint(x: xOn, y: yLast);
+                switch (last, lastState.notifying.contains(tile.contact), lastState.state, lastState.mouseIdx) {
+                case (nil, _, _, _):                                                from = NSPoint(x: xOff, y: yThis);
+                case (let lidx, _, let .Selecting(idx), _) where lidx == idx:       from = NSPoint(x: xOn, y: yLast);
+                case (let lidx, _, let .Searching(_, idx), _) where lidx == idx:    from = NSPoint(x: xOn, y: yLast);
+                case (_, _, let .Chatting(with, _), _) where with == tile.contact:  from = NSPoint(x: xOn, y: yLast);
+                case (_, _, .Normal, _), (_, true, _, _):                           from = NSPoint(x: xOn, y: yLast);
+                case (_, _, .Inactive, .Some(_)):                                   from = NSPoint(x: xOn, y: yLast);
                 default: switch (lastState.state == .Inactive, lastState.hidden) {
-                    case (true, true):                                          from = NSPoint(x: xOff, y: yLast);
-                    default:                                                    from = NSPoint(x: xHalf, y: yLast);
+                    case (true, true):                                              from = NSPoint(x: xOff, y: yLast);
+                    default:                                                        from = NSPoint(x: xHalf, y: yLast);
                 }}
 
-                switch (this, thisState.notifying.contains(tile.contact), thisState.state) {
-                case (nil, _, _):                                               to = NSPoint(x: xOff, y: yLast);
-                case (let tidx, _, let .Selecting(idx)) where tidx == idx:      to = NSPoint(x: xOn, y: yThis);
-                case (let tidx, _, let .Searching(_, idx)) where tidx == idx:   to = NSPoint(x: xOn, y: yThis);
-                case (_, _, let .Chatting(with, _)) where with == tile.contact: to = NSPoint(x: xOn, y: yThis);
-                case (_, _, .Normal), (_, true, _):                             to = NSPoint(x: xOn, y: yThis);
+                switch (this, thisState.notifying.contains(tile.contact), thisState.state, thisState.mouseIdx) {
+                case (nil, _, _, _):                                                to = NSPoint(x: xOff, y: yLast);
+                case (let tidx, _, let .Selecting(idx), _) where tidx == idx:       to = NSPoint(x: xOn, y: yThis);
+                case (let tidx, _, let .Searching(_, idx), _) where tidx == idx:    to = NSPoint(x: xOn, y: yThis);
+                case (_, _, let .Chatting(with, _), _) where with == tile.contact:  to = NSPoint(x: xOn, y: yThis);
+                case (_, _, .Normal, _), (_, true, _, _):                           to = NSPoint(x: xOn, y: yThis);
+                case (_, _, .Inactive, .Some(_)):                                   to = NSPoint(x: xOn, y: yThis);
                 default: switch (thisState.state == .Inactive, thisState.hidden) {
-                    case (true, true):                                          to = NSPoint(x: xOff, y: yThis);
-                    default:                                                    to = NSPoint(x: xHalf, y: yThis);
+                    case (true, true):                                              to = NSPoint(x: xOff, y: yThis);
+                    default:                                                        to = NSPoint(x: xHalf, y: yThis);
                 }}
 
                 if tile.layer!.position != to {
