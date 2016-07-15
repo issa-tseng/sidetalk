@@ -92,8 +92,11 @@ class ContactTile : NSView {
 
         // unread message count.
         let unread = conversation.latestMessage
-            .combineWithDefault(conversationView.lastShown, defaultValue: NSDate.distantPast())
-            .map({ (_, shown) -> Int in
+            .combineWithDefault(conversationView.lastShown, defaultValue: NSDate.distantPast()).map({ _, shown in shown })
+            .combineWithDefault(conversationView.active, defaultValue: false)
+            .map({ (shown, active) -> Int in
+                if active { return 0; }
+
                 var count = 0; // count this mutably and manually for perf (early exit).
                 for message in conversation.messages {
                     if message.at.isLessThanOrEqualTo(shown) { break; }
