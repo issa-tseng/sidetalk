@@ -5,8 +5,8 @@ import ReactiveCocoa
 import enum Result.NoError
 
 struct ContactState {
-    let chatState: ChatState?;
-    let lastShown: NSDate?;
+    let chatState: ChatState;
+    let lastShown: NSDate;
     let latestMessage: Message?;
     let active: Bool;
     let selected: Bool;
@@ -80,15 +80,18 @@ class ContactTile : NSView {
         // listen to various things.
         let conversation = conversationView.conversation;
 
-        // status ring.
+        // status ring. HACK: holy fuck the fucking swift compiler just couldn't even with this code so it looks like shit.
         self._simpleRingObserver?.dispose(); // we're replacing this logic with the full set.
-        conversation.chatState
+        let (dummy, dummyObserver) = Signal<Bool, NoError>.pipe();
+        dummy
+            .combineWithDefault(conversation.chatState, defaultValue: .Inactive).map({ _, state in state })
             .combineWithDefault(conversationView.lastShown, defaultValue: NSDate.distantPast())
             .combineWithDefault(conversationView.allMessages().filter({ message in message.from == self.contact }).downcastToOptional(), defaultValue: nil)
             .combineWithDefault(conversationView.active, defaultValue: false)
             .combineWithDefault(self.selected, defaultValue: false)
-            .map({ (tuple, selected) in ContactState(chatState: tuple.0.0.0, lastShown: tuple.0.0.1, latestMessage: tuple.0.1, active: tuple.1, selected: selected); })
-            .observeNext { all in self.updateRing(all) }
+            .map({ tuple, selected in ContactState(chatState: tuple.0.0.0, lastShown: tuple.0.0.1, latestMessage: tuple.0.1, active: tuple.1, selected: selected) })
+            .observeNext { all in self.updateRing(all); };
+        dummyObserver.sendNext(false);
 
         // unread message count.
         let unread = conversation.latestMessage
@@ -190,7 +193,7 @@ class ContactTile : NSView {
         // set up the simple version of ring color adjust. this gets overriden when
         // a conversation is attached.
         self._simpleRingObserver = self.selected.observeNext { selected in
-            self.updateRing(ContactState(chatState: nil, lastShown: NSDate.distantPast(), latestMessage: nil, active: false, selected: selected));
+            self.updateRing(ContactState(chatState: .Inactive, lastShown: NSDate.distantPast(), latestMessage: nil, active: false, selected: selected));
         };
 
         // adjust avatar opacity based on composite presence

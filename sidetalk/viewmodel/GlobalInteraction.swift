@@ -5,7 +5,7 @@ import ReactiveCocoa
 import enum Result.NoError
 
 enum Key : Impulsable {
-    case Up, Down, Return, LineBreak, Escape, GlobalToggle, Focus, Blur, None;
+    case Up, Down, Return, LineBreak, Escape, GlobalToggle, Focus, Blur, Click, None;
 
     static func noopValue() -> Key { return .None; }
 }
@@ -87,6 +87,9 @@ class GlobalInteraction {
             }
         }
     }
+
+    // HACK: i don't like that this is just sort of sitting around.
+    func clicked() { self._keyPress.observer.sendNext(self.keyGenerator.create(.Click)); }
 
     @objc internal func spaceChanged(notification: NSNotification) {
         self._keyPress.observer.sendNext(self.keyGenerator.create(.Blur));

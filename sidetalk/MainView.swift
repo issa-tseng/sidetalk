@@ -29,6 +29,7 @@ class MainView: NSView {
     var state: Signal<MainState, NoError> { get { return self._state!; } };
 
     private let _mouseIdx = MutableProperty<Int?>(nil);
+    var mouseIdx_: Int? { get { return self._mouseIdx.value; } };
     var mouseIdx: Signal<Int?, NoError> { get { return self._mouseIdx.signal.skipRepeats({ a, b in a == b }); } };
 
     private let _hiddenMode = MutableProperty<Bool>(false);
@@ -90,6 +91,10 @@ class MainView: NSView {
             self._mouseIdx.modify { _ in nil };
         }
     }
+    override func acceptsFirstMouse(theEvent: NSEvent?) -> Bool { return true; }
+    override func mouseDown(theEvent: NSEvent) {
+        if self.mouseIdx_ != nil { GlobalInteraction.sharedInstance.clicked(); }
+    }
 
     private func liveMouse() {
         if self.contactTracker == nil {
@@ -104,6 +109,13 @@ class MainView: NSView {
     private func killMouse() {
         if let tracker = self.contactTracker { self.removeTrackingArea(tracker); }
         self.contactTracker = nil;
+        self._mouseIdx.modify { _ in nil }; // unlike liveMouse, we always want to modify the idx, because it's an active flag of sorts.
+    }
+
+    // don't react to mouse clicks unless the pointer is in a relevant spot.
+    override func hitTest(point: NSPoint) -> NSView? {
+        if self.mouseIdx_ != nil { return self; }
+        else                     { return nil; }
     }
 
     private func prepare() {
@@ -175,7 +187,8 @@ class MainView: NSView {
                 switch (last, key) {
                 case (_, .Blur): return .Inactive;
 
-                // AOEU
+                case (let .Chatting(_, previous), .Click): return .Chatting(sort.filter({ _, sidx in self.mouseIdx_ == sidx }).first!.0, previous);
+                case (_, .Click): return .Chatting(sort.filter({ _, sidx in self.mouseIdx_ == sidx }).first!.0, .Normal);
 
                 case (.Normal, .Escape): return .Inactive;
                 case (.Normal, .Up): return .Selecting(0);
@@ -236,9 +249,8 @@ class MainView: NSView {
         self.state.skipRepeats({ $0 == $1 }).filter({ state in state == .Inactive }).observeNext({ _ in lastInactive = NSDate() });
 
         // wire/dewire mouse depending on our state:
-        self.state.skipRepeats({ $0 == $1 }).observeNext { state in
-            if state == .Inactive { self.killMouse(); }
-            else                  { self.liveMouse(); }
+        self.state.map({ $0 == .Inactive }).skipRepeats().observeNext { inactive in
+            if inactive { self.killMouse(); } else { self.liveMouse(); }
         };
 
         // figure out which contacts currently have notification bubbles.
@@ -294,12 +306,12 @@ class MainView: NSView {
         sort.combineWithDefault(self.state, defaultValue: .Inactive)
             .combineWithDefault(self.mouseIdx, defaultValue: nil).map({ ($0.0, $0.1, $1) })
             .map({ (sort, state, mouseIdx) -> Contact? in
-                if let idx = mouseIdx { return sort.filter({ _, sidx in idx == sidx }).first!.0; }
-
-                switch state {
-                case let .Selecting(idx):       return sort.filter({ _, sidx in idx == sidx }).first!.0;
-                case let .Searching(_, idx):    return sort.filter({ _, sidx in idx == sidx }).first!.0;
-                default:                        return nil;
+                switch (state, mouseIdx) {
+                case (let .Chatting(contact, _), let .Some(idx)) where sort[contact] == idx: return nil;
+                case (_, let .Some(idx)):           return sort.filter({ _, sidx in idx == sidx }).first!.0;
+                case (let .Selecting(idx), _):      return sort.filter({ _, sidx in idx == sidx }).first!.0;
+                case (let .Searching(_, idx), _):   return sort.filter({ _, sidx in idx == sidx }).first!.0;
+                default:                            return nil;
                 }
             })
             .skipRepeats({ a, b in a == b })
@@ -326,14 +338,12 @@ class MainView: NSView {
                 if let contact = this { self._conversationViews.get(contact, orElse: { self.drawConversation(contact.conversation) }).activate(); }
             };
 
-        // upon activate/deactivate, handle window focus and mouse events correctly.
+        // upon activate/deactivate, handle window focus correctly.
         self.state.combinePrevious(.Inactive).observeNext { last, this in
             if last == .Inactive && this != .Inactive {
                 NSApplication.sharedApplication().activateIgnoringOtherApps(true);
-                self.window!.ignoresMouseEvents = false;
             } else if last != .Inactive && this == .Inactive {
                 GlobalInteraction.sharedInstance.relinquish();
-                self.window!.ignoresMouseEvents = true;
             }
         };
     }
