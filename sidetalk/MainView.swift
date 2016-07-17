@@ -83,7 +83,8 @@ class MainView: NSView {
         }
     }
     override func mouseMoved(theEvent: NSEvent) {
-        self.processMouse(theEvent.locationInWindow.y);
+        guard let tracker = self.contactTracker else { return; }
+        if theEvent.locationInWindow.x > tracker.rect.minX { self.processMouse(theEvent.locationInWindow.y); }
     }
     override func mouseExited(theEvent: NSEvent) {
         if (theEvent.trackingArea == self.contactTracker) {
