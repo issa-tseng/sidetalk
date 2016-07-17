@@ -77,7 +77,7 @@ class MainView: NSView {
     func setMute(muted: Bool) { self._mutedMode.modify({ _ in muted }); }
 
     override func mouseEntered(theEvent: NSEvent) {
-        if (theEvent.trackingArea == self.marginTracker) {
+        if theEvent.trackingArea == self.marginTracker {
             self.liveMouse();
             self.processMouse(theEvent.locationInWindow.y);
         }
@@ -87,7 +87,7 @@ class MainView: NSView {
         if theEvent.locationInWindow.x > tracker.rect.minX { self.processMouse(theEvent.locationInWindow.y); }
     }
     override func mouseExited(theEvent: NSEvent) {
-        if (theEvent.trackingArea == self.contactTracker) {
+        if theEvent.trackingArea == self.contactTracker {
             if self.state_ == .Inactive { self.killMouse(); }
             self._mouseIdx.modify { _ in nil };
         }
@@ -113,9 +113,9 @@ class MainView: NSView {
         self._mouseIdx.modify { _ in nil }; // unlike liveMouse, we always want to modify the idx, because it's an active flag of sorts.
     }
 
-    // don't react to mouse clicks unless the pointer is in a relevant spot.
+    // don't react to mouse clicks unless the pointer is in a relevant spot at a relevant time.
     override func hitTest(point: NSPoint) -> NSView? {
-        if self.mouseIdx_ != nil { return self; }
+        if self.mouseIdx_ != nil { return super.hitTest(point); }
         else                     { return nil; }
     }
 
