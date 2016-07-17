@@ -6,7 +6,7 @@ import FuzzySearch;
 import enum Result.NoError;
 
 struct LayoutState {
-    let order: [ Contact : Int ];
+    let order: SortOf<Contact>;
     let state: MainState;
     let notifying: Set<Contact>;
     let hidden: Bool;
@@ -143,7 +143,7 @@ class MainView: NSView {
         let sort = self.connection.contacts
             .combineWithDefault(latestMessage.downcastToOptional(), defaultValue: nil).map({ contacts, _ in contacts })
             .combineWithDefault(self._statusTile.searchText, defaultValue: "")
-            .map({ contacts, search -> [ Contact : Int ] in
+            .map({ contacts, search -> SortOf<Contact> in
                 let (chattedContacts, restContacts) = contacts.part({ contact in contact.conversation.messages.count > 0 });
 
                 let sortedChattedContacts = chattedContacts.sort({ a, b in
@@ -167,11 +167,7 @@ class MainView: NSView {
                     sorted = scores.filter({ (_, score) in score > maxScore! - 0.2 && score > 0.1 }).map({ (contact, _) in contact });
                 }
 
-                var result = Dictionary<Contact, Int>();
-                for (idx, contact) in sorted.enumerate() {
-                    result[contact] = idx;
-                }
-                return result;
+                return SortOf(sorted);
             });
 
         // determine global state.
@@ -188,8 +184,8 @@ class MainView: NSView {
                 switch (last, key) {
                 case (_, .Blur): return .Inactive;
 
-                case (let .Chatting(_, previous), .Click): return .Chatting(sort.filter({ _, sidx in self.mouseIdx_ == sidx }).first!.0, previous);
-                case (_, .Click): return .Chatting(sort.filter({ _, sidx in self.mouseIdx_ == sidx }).first!.0, .Normal);
+                case (let .Chatting(_, previous), .Click): return .Chatting(sort[self.mouseIdx_]!, previous);
+                case (_, .Click): return .Chatting(sort[self.mouseIdx_]!, .Normal);
 
                 case (.Normal, .Escape): return .Inactive;
                 case (.Normal, .Up): return .Selecting(0);
@@ -197,13 +193,13 @@ class MainView: NSView {
                 case (.Selecting(0), .Down): return .Normal;
                 case (let .Selecting(idx), .Down): return .Selecting(idx - 1);
                 case (let .Selecting(idx), .Up): return .Selecting((idx + 1 == sort.count) ? idx : idx + 1);
-                case (let .Selecting(idx), .Return): return .Chatting(sort.filter({ _, sidx in idx == sidx }).first!.0, last);
+                case (let .Selecting(idx), .Return): return .Chatting(sort[idx]!, last);
                 case (.Selecting, .Escape): return .Normal;
 
                 case (let .Searching(text, 0), .Down): return .Searching(text, 0);
                 case (let .Searching(text, idx), .Down): return .Searching(text, idx - 1);
                 case (let .Searching(text, idx), .Up): return .Searching(text, (idx + 1 == sort.count) ? idx : idx + 1);
-                case (let .Searching(_, idx), .Return): return .Chatting(sort.filter({ _, sidx in idx == sidx }).first!.0, last);
+                case (let .Searching(_, idx), .Return): return .Chatting(sort[idx]!, last);
                 case (.Searching, .Escape): return .Normal;
 
                 case (let .Chatting(_, previous), .Escape): return previous;
@@ -287,7 +283,7 @@ class MainView: NSView {
             .combineWithDefault(self.mouseIdx, defaultValue: nil) // ((((Order, MainState), Set[Contact]), Bool), Int?)
             .map({ tuple, mouseIdx in LayoutState(order: tuple.0.0.0, state: tuple.0.0.1, notifying: tuple.0.1, hidden: tuple.1, mouseIdx: mouseIdx); })
             .debounce(NSTimeInterval(0.02), onScheduler: QueueScheduler.mainQueueScheduler)
-            .combinePrevious(LayoutState(order: [:], state: .Inactive, notifying: Set<Contact>(), hidden: false, mouseIdx: nil))
+            .combinePrevious(LayoutState(order: SortOf<Contact>(), state: .Inactive, notifying: Set<Contact>(), hidden: false, mouseIdx: nil))
             .observeNext { last, this in self.relayout(last, this) };
 
         // show or hide contact labels as appropriate.
@@ -309,9 +305,9 @@ class MainView: NSView {
             .map({ (sort, state, mouseIdx) -> Contact? in
                 switch (state, mouseIdx) {
                 case (let .Chatting(contact, _), let .Some(idx)) where sort[contact] == idx: return nil;
-                case (_, let .Some(idx)):           return sort.filter({ _, sidx in idx == sidx }).first!.0;
-                case (let .Selecting(idx), _):      return sort.filter({ _, sidx in idx == sidx }).first!.0;
-                case (let .Searching(_, idx), _):   return sort.filter({ _, sidx in idx == sidx }).first!.0;
+                case (_, let .Some(idx)):           return sort[idx];
+                case (let .Selecting(idx), _):      return sort[idx];
+                case (let .Searching(_, idx), _):   return sort[idx];
                 default:                            return nil;
                 }
             })
