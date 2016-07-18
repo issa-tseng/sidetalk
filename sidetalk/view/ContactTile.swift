@@ -72,6 +72,11 @@ class ContactTile : NSView {
         self.prepare();
     }
 
+    override func drawRect(dirtyRect: NSRect) {
+        NSColor(red: 0, green: 0.3, blue: 1, alpha: 0.4).set();
+        NSRectFill(dirtyRect);
+    }
+
     func attachConversation(conversationView: ConversationView) {
         // store it. if we already have one we fucked up.
         if self._conversationView != nil { fatalError("you fucked up"); }

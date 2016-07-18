@@ -13,6 +13,13 @@ struct LayoutState {
     let mouseIdx: Int?;
 }
 
+class RedView: NSView {
+    override func drawRect(dirtyRect: NSRect) {
+        NSColor(red: 1, green: 0.3, blue: 0, alpha: 0.4).set();
+        NSRectFill(dirtyRect);
+    }
+}
+
 // TODO: split into V/VM?
 class MainView: NSView {
     internal let connection: Connection;
@@ -20,6 +27,10 @@ class MainView: NSView {
     private let _statusTile: StatusTile;
     private var _contactTiles = QuickCache<Contact, ContactTile>();
     private var _conversationViews = QuickCache<Contact, ConversationView>();
+
+    private let scrollView = NSScrollView();
+    private let scrollContents = RedView();
+    private var scrollHeightConstraint: NSLayoutConstraint?;
 
     private var marginTracker: NSTrackingArea?;
     private var contactTracker: NSTrackingArea?;
@@ -54,20 +65,45 @@ class MainView: NSView {
     private let _pressedKey = ManagedSignal<Key>();
 
     init(frame: CGRect, connection: Connection) {
+        // store and init.
         self.connection = connection;
         self._statusTile = StatusTile(connection: connection, frame: NSRect(origin: NSPoint.zero, size: frame.size));
 
         super.init(frame: frame);
 
+        // status tile initial positioning.
         self.addSubview(self._statusTile);
         self._statusTile.frame.origin = NSPoint(
             x: frame.width - self.tileSize.width - self.tilePadding + (self.tileSize.height * 0.55),
             y: self.allPadding
         );
 
+        // scrollview basic properties and positioning.
+        self.scrollView.translatesAutoresizingMaskIntoConstraints = false;
+        self.scrollView.hasVerticalScroller = true;
+        self.scrollView.drawsBackground = false;
+        self.addSubview(self.scrollView);
+
+        self.addConstraints([
+            self.scrollView.constrain.bottom == self.constrain.bottom - (self.allPadding + self.listPadding + self.tileSize.height + self.tilePadding),
+            self.scrollView.constrain.right == self.constrain.right, // + 30
+            self.scrollView.constrain.top == self.constrain.top, self.scrollView.constrain.left == self.constrain.left
+        ]);
+
+        // scrollcontents basic properties.
+        self.scrollView.documentView = self.scrollContents;
+        self.scrollContents.frame = self.scrollView.contentView.bounds;
+        self.scrollContents.translatesAutoresizingMaskIntoConstraints = false;
+        self.scrollView.addConstraints([
+            self.scrollContents.constrain.left == self.scrollView.constrain.left, self.scrollContents.constrain.right == self.scrollView.constrain.right,
+            self.scrollContents.constrain.bottom == self.scrollView.constrain.bottom
+        ]);
+
+        // set up prepares.
         self.prepare();
         self._statusTile.prepare(self);
 
+        // mouse things.
         self.marginTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: frame.width - 2, y: 0), size: frame.size),
                                             options: [.MouseEnteredAndExited, .ActiveAlways], owner: self, userInfo: nil);
         self.addTrackingArea(self.marginTracker!);
@@ -299,7 +335,7 @@ class MainView: NSView {
                 }
             };
 
-        // set contact select ring as appropriate. TODO: fix this awful reverse lookup everywhere.
+        // set contact select ring as appropriate.
         sort.combineWithDefault(self.state, defaultValue: .Inactive)
             .combineWithDefault(self.mouseIdx, defaultValue: nil).map({ ($0.0, $0.1, $1) })
             .map({ (sort, state, mouseIdx) -> Contact? in
@@ -351,7 +387,10 @@ class MainView: NSView {
             size: tileSize,
             contact: contact
         );
-        dispatch_async(dispatch_get_main_queue(), { self.addSubview(newTile); });
+        dispatch_async(dispatch_get_main_queue(), {
+            self.scrollContents.addSubview(newTile);
+            newTile.translatesAutoresizingMaskIntoConstraints = true;
+        });
         return newTile;
     }
 
@@ -363,7 +402,7 @@ class MainView: NSView {
             mainView: self
         );
         self._contactTiles.get(conversation.with)!.attachConversation(newView);
-        dispatch_async(dispatch_get_main_queue(), { self.addSubview(newView); });
+        dispatch_async(dispatch_get_main_queue(), { self.scrollContents.addSubview(newView); });
         return newView;
     }
 
@@ -454,6 +493,11 @@ class MainView: NSView {
                     );
                 }
             }
+
+            // deal with scroll height.
+            if let constraint = self.scrollHeightConstraint { self.scrollView.removeConstraint(constraint); }
+            self.scrollHeightConstraint = (self.scrollContents.constrain.height == (CGFloat(thisState.order.count) * (self.tileSize.height + self.tilePadding)));
+            self.scrollView.addConstraint(self.scrollHeightConstraint!);
         });
     }
 
