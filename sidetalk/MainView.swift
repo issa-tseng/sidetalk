@@ -137,7 +137,7 @@ class MainView: NSView {
         }
     }
     private func processMouse(location: CGFloat) {
-        self._mouseIdx.modify { _ in Int(max(0, floor((location - self.allPadding - self.listPadding) / (self.tileSize.height + self.tilePadding)) - 1)) }; // TODO/HACK: why -1?
+        self._mouseIdx.modify { _ in Int(max(0, floor((location + self.scrollView.contentView.documentVisibleRect.origin.y - self.allPadding - self.listPadding) / (self.tileSize.height + self.tilePadding)) - 1)) }; // TODO/HACK: why -1?
     }
     private func killMouse() {
         if let tracker = self.contactTracker { self.removeTrackingArea(tracker); }
