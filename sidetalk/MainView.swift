@@ -468,7 +468,7 @@ class MainView: NSView {
                 if let conversationView = self._conversationViews.get(tile.contact) {
                     conversationView.animator().frame.origin = NSPoint(
                         x: self.frame.width - self.tileSize.height - self.tilePadding - self.conversationPadding - self.conversationWidth,
-                        y: yThis + self.conversationVOffset
+                        y: self.allPadding + self.listPadding + self.tileSize.height + yThis + self.conversationVOffset
                     );
                     conversationView.animator().frame.size = NSSize(
                         width: self.conversationWidth,
