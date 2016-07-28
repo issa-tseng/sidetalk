@@ -75,6 +75,7 @@ class MainView: NSView {
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false;
         self.scrollView.hasVerticalScroller = true;
         self.scrollView.drawsBackground = false;
+        self.scrollView.horizontalScrollElasticity = .None;
         self.addSubview(self.scrollView);
 
         self.addConstraints([
@@ -88,7 +89,8 @@ class MainView: NSView {
         self.scrollContents.frame = self.scrollView.contentView.bounds;
         self.scrollView.documentView = self.scrollContents;
         self.scrollView.addConstraints([
-            self.scrollContents.constrain.left == self.scrollView.constrain.left, self.scrollContents.constrain.right == self.scrollView.constrain.right,
+            self.scrollContents.constrain.left == self.scrollView.constrain.left,
+            self.scrollContents.constrain.right == self.scrollView.constrain.right - 30,
             self.scrollContents.constrain.bottom == self.scrollView.constrain.bottom
         ]);
 
@@ -459,10 +461,8 @@ class MainView: NSView {
 
                 // actually animate the tile. set its from directly, then after letting the layout settle set the to on the animator.
                 tile.setFrameOrigin(from);
-                dispatch_async(dispatch_get_main_queue(), {
-                    let duration = NSTimeInterval((!lastState.state.active && thisState.state.active ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
-                    animationWithDuration(duration, { tile.animator().setFrameOrigin(to); });
-                });
+                let duration = NSTimeInterval((!lastState.state.active && thisState.state.active ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
+                dispatch_async(dispatch_get_main_queue(), { animationWithDuration(duration, { tile.animator().setFrameOrigin(to); }); });
 
                 // if we have a conversation as well, position that appropriately.
                 if let conversationView = self._conversationViews.get(tile.contact) {
