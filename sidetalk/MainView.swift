@@ -13,13 +13,6 @@ struct LayoutState {
     let mouseIdx: Int?;
 }
 
-class RedView: NSView {
-    override func drawRect(dirtyRect: NSRect) {
-        NSColor(red: 1, green: 0.3, blue: 0, alpha: 0.4).set();
-        NSRectFill(dirtyRect);
-    }
-}
-
 // TODO: split into V/VM?
 class MainView: NSView {
     internal let connection: Connection;
@@ -27,9 +20,10 @@ class MainView: NSView {
     private let _statusTile: StatusTile;
     private var _contactTiles = QuickCache<Contact, ContactTile>();
     private var _conversationViews = QuickCache<Contact, ConversationView>();
+    private var tileConstraints = [Contact : (NSLayoutConstraint, NSLayoutConstraint)]();
 
     private let scrollView = NSScrollView();
-    private let scrollContents = RedView();
+    private let scrollContents = NSView();
     private var scrollHeightConstraint: NSLayoutConstraint?;
 
     private var marginTracker: NSTrackingArea?;
@@ -86,14 +80,14 @@ class MainView: NSView {
 
         self.addConstraints([
             self.scrollView.constrain.bottom == self.constrain.bottom - (self.allPadding + self.listPadding + self.tileSize.height + self.tilePadding),
-            self.scrollView.constrain.right == self.constrain.right, // + 30
+            self.scrollView.constrain.right == self.constrain.right + 30,
             self.scrollView.constrain.top == self.constrain.top, self.scrollView.constrain.left == self.constrain.left
         ]);
 
         // scrollcontents basic properties.
-        self.scrollView.documentView = self.scrollContents;
-        self.scrollContents.frame = self.scrollView.contentView.bounds;
         self.scrollContents.translatesAutoresizingMaskIntoConstraints = false;
+        self.scrollContents.frame = self.scrollView.contentView.bounds;
+        self.scrollView.documentView = self.scrollContents;
         self.scrollView.addConstraints([
             self.scrollContents.constrain.left == self.scrollView.constrain.left, self.scrollContents.constrain.right == self.scrollView.constrain.right,
             self.scrollContents.constrain.bottom == self.scrollView.constrain.bottom
@@ -141,7 +135,7 @@ class MainView: NSView {
         }
     }
     private func processMouse(location: CGFloat) {
-        self._mouseIdx.modify { _ in Int(max(0, floor((location - self.allPadding - self.listPadding) / (self.tileSize.height + self.tilePadding)) - 1)) };
+        self._mouseIdx.modify { _ in Int(max(0, floor((location - self.allPadding - self.listPadding) / (self.tileSize.height + self.tilePadding)) - 1)) }; // TODO/HACK: why -1?
     }
     private func killMouse() {
         if let tracker = self.contactTracker { self.removeTrackingArea(tracker); }
@@ -383,13 +377,13 @@ class MainView: NSView {
 
     private func drawContact(contact: Contact) -> ContactTile {
         let newTile = ContactTile(
-            frame: self.frame,
-            size: tileSize,
+            frame: NSRect(origin: NSPoint.zero, size: self.tileSize),
             contact: contact
         );
         dispatch_async(dispatch_get_main_queue(), {
+            newTile.translatesAutoresizingMaskIntoConstraints = false;
             self.scrollContents.addSubview(newTile);
-            newTile.translatesAutoresizingMaskIntoConstraints = true;
+            self.scrollContents.addConstraints([ newTile.constrain.width == self.tileSize.width, newTile.constrain.height == self.tileSize.height ]);
         });
         return newTile;
     }
@@ -402,7 +396,7 @@ class MainView: NSView {
             mainView: self
         );
         self._contactTiles.get(conversation.with)!.attachConversation(newView);
-        dispatch_async(dispatch_get_main_queue(), { self.scrollContents.addSubview(newView); });
+        dispatch_async(dispatch_get_main_queue(), { self.addSubview(newView); });
         return newView;
     }
 
@@ -442,8 +436,8 @@ class MainView: NSView {
                 let xHalf = self.frame.width - self.tileSize.width + (self.tileSize.height * 0.55);
                 let xOff = self.frame.width - self.tileSize.width + self.tileSize.height;
 
-                let yLast = self.allPadding + self.listPadding + ((self.tileSize.height + self.tilePadding) * CGFloat((last ?? 0) + 1));
-                let yThis = self.allPadding + self.listPadding + ((self.tileSize.height + self.tilePadding) * CGFloat((this ?? 0) + 1));
+                let yLast = (self.tileSize.height + self.tilePadding) * CGFloat(last ?? 0);
+                let yThis = (self.tileSize.height + self.tilePadding) * CGFloat(this ?? 0);
 
                 // TODO: repetitive.
                 switch (last, lastState.notifying.contains(tile.contact), lastState.state, lastState.mouseIdx) {
@@ -470,7 +464,7 @@ class MainView: NSView {
                     default:                                                        to = NSPoint(x: xHalf, y: yThis);
                 }}
 
-                if tile.layer!.position != to {
+/*                if tile.layer!.position != to {
                     anim.fromValue = NSValue.init(point: from);
                     anim.toValue = NSValue.init(point: to);
                     anim.duration = NSTimeInterval((!lastState.state.active && thisState.state.active ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
@@ -479,7 +473,16 @@ class MainView: NSView {
                     tile.layer!.removeAnimationForKey("contacttile-layout");
                     tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
                     tile.layer!.position = to;
+                }*/
+
+                if let (cx, cy) = self.tileConstraints[tile.contact] {
+                    self.scrollContents.removeConstraint(cx);
+                    self.scrollContents.removeConstraint(cy);
                 }
+                let constraints = ((tile.constrain.left == self.scrollContents.constrain.left + to.x), (tile.constrain.bottom == self.scrollContents.constrain.bottom - to.y));
+                self.tileConstraints[tile.contact] = constraints;
+                self.scrollContents.addConstraints([ constraints.0, constraints.1 ]);
+
 
                 // if we have a conversation as well, position that appropriately.
                 if let conversationView = self._conversationViews.get(tile.contact) {
