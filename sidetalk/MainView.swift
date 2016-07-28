@@ -20,7 +20,6 @@ class MainView: NSView {
     private let _statusTile: StatusTile;
     private var _contactTiles = QuickCache<Contact, ContactTile>();
     private var _conversationViews = QuickCache<Contact, ConversationView>();
-    private var tileConstraints = [Contact : (NSLayoutConstraint, NSLayoutConstraint)]();
 
     private let scrollView = NSScrollView();
     private let scrollContents = NSView();
@@ -380,11 +379,7 @@ class MainView: NSView {
             frame: NSRect(origin: NSPoint.zero, size: self.tileSize),
             contact: contact
         );
-        dispatch_async(dispatch_get_main_queue(), {
-            newTile.translatesAutoresizingMaskIntoConstraints = false;
-            self.scrollContents.addSubview(newTile);
-            self.scrollContents.addConstraints([ newTile.constrain.width == self.tileSize.width, newTile.constrain.height == self.tileSize.height ]);
-        });
+        dispatch_async(dispatch_get_main_queue(), { self.scrollContents.addSubview(newTile); });
         return newTile;
     }
 
@@ -415,8 +410,6 @@ class MainView: NSView {
 
             // deal with actual contacts
             for tile in self._contactTiles.all() {
-                let anim = CABasicAnimation.init(keyPath: "position");
-
                 let last = lastState.order[tile.contact];
                 let this = thisState.order[tile.contact];
 
@@ -464,25 +457,12 @@ class MainView: NSView {
                     default:                                                        to = NSPoint(x: xHalf, y: yThis);
                 }}
 
-/*                if tile.layer!.position != to {
-                    anim.fromValue = NSValue.init(point: from);
-                    anim.toValue = NSValue.init(point: to);
-                    anim.duration = NSTimeInterval((!lastState.state.active && thisState.state.active ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
-                    anim.fillMode = kCAFillModeForwards; // HACK: i don't like this or the next line.
-                    anim.removedOnCompletion = false;
-                    tile.layer!.removeAnimationForKey("contacttile-layout");
-                    tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
-                    tile.layer!.position = to;
-                }*/
-
-                if let (cx, cy) = self.tileConstraints[tile.contact] {
-                    self.scrollContents.removeConstraint(cx);
-                    self.scrollContents.removeConstraint(cy);
-                }
-                let constraints = ((tile.constrain.left == self.scrollContents.constrain.left + to.x), (tile.constrain.bottom == self.scrollContents.constrain.bottom - to.y));
-                self.tileConstraints[tile.contact] = constraints;
-                self.scrollContents.addConstraints([ constraints.0, constraints.1 ]);
-
+                // actually animate the tile. set its from directly, then after letting the layout settle set the to on the animator.
+                tile.setFrameOrigin(from);
+                dispatch_async(dispatch_get_main_queue(), {
+                    let duration = NSTimeInterval((!lastState.state.active && thisState.state.active ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
+                    animationWithDuration(duration, { tile.animator().setFrameOrigin(to); });
+                });
 
                 // if we have a conversation as well, position that appropriately.
                 if let conversationView = self._conversationViews.get(tile.contact) {
@@ -497,9 +477,10 @@ class MainView: NSView {
                 }
             }
 
-            // deal with scroll height.
+            // deal with scroll height. make sure it's at least the full scroll height.
             if let constraint = self.scrollHeightConstraint { self.scrollView.removeConstraint(constraint); }
-            self.scrollHeightConstraint = (self.scrollContents.constrain.height == (CGFloat(thisState.order.count) * (self.tileSize.height + self.tilePadding)));
+            let newHeight = max(self.scrollView.frame.height, CGFloat(thisState.order.count) * (self.tileSize.height + self.tilePadding));
+            self.scrollHeightConstraint = (self.scrollContents.constrain.height == newHeight);
             self.scrollView.addConstraint(self.scrollHeightConstraint!);
         });
     }
