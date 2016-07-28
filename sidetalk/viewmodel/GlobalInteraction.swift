@@ -89,7 +89,7 @@ class GlobalInteraction {
     }
 
     // HACK: i don't like that this is just sort of sitting around.
-    func clicked() { self._keyPress.observer.sendNext(self.keyGenerator.create(.Click)); }
+    func send(key: Key) { self._keyPress.observer.sendNext(self.keyGenerator.create(key)); }
 
     @objc internal func spaceChanged(notification: NSNotification) {
         self._keyPress.observer.sendNext(self.keyGenerator.create(.Blur));

@@ -94,6 +94,10 @@ class MainView: NSView {
             self.scrollContents.constrain.bottom == self.scrollView.constrain.bottom
         ]);
 
+        // scrollclip events.
+        self.scrollView.contentView.postsBoundsChangedNotifications = true;
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(scrolled), name: NSViewBoundsDidChangeNotification, object: self.scrollView.contentView);
+
         // set up prepares.
         self.prepare();
         self._statusTile.prepare(self);
@@ -125,7 +129,7 @@ class MainView: NSView {
     }
     override func acceptsFirstMouse(theEvent: NSEvent?) -> Bool { return true; }
     override func mouseDown(theEvent: NSEvent) {
-        if self.mouseIdx_ != nil { GlobalInteraction.sharedInstance.clicked(); }
+        if self.mouseIdx_ != nil { GlobalInteraction.sharedInstance.send(.Click); }
     }
 
     private func liveMouse() {
@@ -144,6 +148,11 @@ class MainView: NSView {
         self.contactTracker = nil;
         self._mouseIdx.modify { _ in nil }; // unlike liveMouse, we always want to modify the idx, because it's an active flag of sorts.
         self.window!.ignoresMouseEvents = true;
+    }
+
+    @objc private func scrolled() {
+        if self.state_.essentially == .Chatting { GlobalInteraction.sharedInstance.send(.Escape); } // HACK: feels like a sloppy way to do this.
+        self.processMouse(NSEvent.mouseLocation().y);
     }
 
     // don't react to mouse clicks unless the pointer is in a relevant spot at a relevant time.
