@@ -133,6 +133,7 @@ class MainView: NSView {
             self.contactTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: frame.width - self.tileSize.height - self.tilePadding, y: 0), size: frame.size),
                                                  options: [.MouseEnteredAndExited, .MouseMoved, .ActiveAlways], owner: self, userInfo: nil);
             self.addTrackingArea(self.contactTracker!);
+            self.window!.ignoresMouseEvents = false;
         }
     }
     private func processMouse(location: CGFloat) {
@@ -142,6 +143,7 @@ class MainView: NSView {
         if let tracker = self.contactTracker { self.removeTrackingArea(tracker); }
         self.contactTracker = nil;
         self._mouseIdx.modify { _ in nil }; // unlike liveMouse, we always want to modify the idx, because it's an active flag of sorts.
+        self.window!.ignoresMouseEvents = true;
     }
 
     // don't react to mouse clicks unless the pointer is in a relevant spot at a relevant time.
