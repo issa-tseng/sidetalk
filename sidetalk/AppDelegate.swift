@@ -43,6 +43,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // shadows are currently causing problems w core animation.
         window.hasShadow = false;
 
+        // ignore mouse events by default.
+        self.window!.ignoresMouseEvents = true;
+
         // position our window.
         let screenFrame = NSScreen.mainScreen()!.visibleFrame;
         let frame = CGRect(

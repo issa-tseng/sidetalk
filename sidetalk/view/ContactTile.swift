@@ -41,18 +41,20 @@ class ContactTile : NSView {
     private var _simpleRingObserver: Disposable?;
     private var _conversationView: ConversationView?;
 
-    init(frame: CGRect, size: CGSize, contact: Contact) {
+    init(frame: CGRect, contact: Contact) {
         // save props.
         self.contact = contact;
-        self.size = size;
+        self.size = frame.size;
         self.avatarLayer.contact = self.contact;
 
         // actually init.
         super.init(frame: frame);
+
+        // need to set layer-backing here, or else the view just never draws.
+        dispatch_async(dispatch_get_main_queue(), { self.wantsLayer = true; });
     }
 
     override func viewWillMoveToSuperview(newSuperview: NSView?) {
-        self.wantsLayer = true;
         super.viewWillMoveToSuperview(newSuperview);
 
         // now draw everything, and add the layers.

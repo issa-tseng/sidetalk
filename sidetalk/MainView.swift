@@ -21,6 +21,10 @@ class MainView: NSView {
     private var _contactTiles = QuickCache<Contact, ContactTile>();
     private var _conversationViews = QuickCache<Contact, ConversationView>();
 
+    private let scrollView = NSScrollView();
+    private let scrollContents = NSView();
+    private var scrollHeightConstraint: NSLayoutConstraint?;
+
     private var marginTracker: NSTrackingArea?;
     private var contactTracker: NSTrackingArea?;
 
@@ -54,20 +58,51 @@ class MainView: NSView {
     private let _pressedKey = ManagedSignal<Key>();
 
     init(frame: CGRect, connection: Connection) {
+        // store and init.
         self.connection = connection;
         self._statusTile = StatusTile(connection: connection, frame: NSRect(origin: NSPoint.zero, size: frame.size));
 
         super.init(frame: frame);
 
+        // status tile initial positioning.
         self.addSubview(self._statusTile);
         self._statusTile.frame.origin = NSPoint(
             x: frame.width - self.tileSize.width - self.tilePadding + (self.tileSize.height * 0.55),
             y: self.allPadding
         );
 
+        // scrollview basic properties and positioning.
+        self.scrollView.translatesAutoresizingMaskIntoConstraints = false;
+        self.scrollView.hasVerticalScroller = true;
+        self.scrollView.drawsBackground = false;
+        self.scrollView.horizontalScrollElasticity = .None;
+        self.addSubview(self.scrollView);
+
+        self.addConstraints([
+            self.scrollView.constrain.bottom == self.constrain.bottom - (self.allPadding + self.listPadding + self.tileSize.height + self.tilePadding),
+            self.scrollView.constrain.right == self.constrain.right + 30,
+            self.scrollView.constrain.top == self.constrain.top, self.scrollView.constrain.left == self.constrain.left
+        ]);
+
+        // scrollcontents basic properties.
+        self.scrollContents.translatesAutoresizingMaskIntoConstraints = false;
+        self.scrollContents.frame = self.scrollView.contentView.bounds;
+        self.scrollView.documentView = self.scrollContents;
+        self.scrollView.addConstraints([
+            self.scrollContents.constrain.left == self.scrollView.constrain.left,
+            self.scrollContents.constrain.right == self.scrollView.constrain.right - 30,
+            self.scrollContents.constrain.bottom == self.scrollView.constrain.bottom
+        ]);
+
+        // scrollclip events.
+        self.scrollView.contentView.postsBoundsChangedNotifications = true;
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(scrolled), name: NSViewBoundsDidChangeNotification, object: self.scrollView.contentView);
+
+        // set up prepares.
         self.prepare();
         self._statusTile.prepare(self);
 
+        // mouse things.
         self.marginTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: frame.width - 2, y: 0), size: frame.size),
                                             options: [.MouseEnteredAndExited, .ActiveAlways], owner: self, userInfo: nil);
         self.addTrackingArea(self.marginTracker!);
@@ -94,7 +129,7 @@ class MainView: NSView {
     }
     override func acceptsFirstMouse(theEvent: NSEvent?) -> Bool { return true; }
     override func mouseDown(theEvent: NSEvent) {
-        if self.mouseIdx_ != nil { GlobalInteraction.sharedInstance.clicked(); }
+        if self.mouseIdx_ != nil { GlobalInteraction.sharedInstance.send(.Click); }
     }
 
     private func liveMouse() {
@@ -102,15 +137,22 @@ class MainView: NSView {
             self.contactTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: frame.width - self.tileSize.height - self.tilePadding, y: 0), size: frame.size),
                                                  options: [.MouseEnteredAndExited, .MouseMoved, .ActiveAlways], owner: self, userInfo: nil);
             self.addTrackingArea(self.contactTracker!);
+            self.window!.ignoresMouseEvents = false;
         }
     }
     private func processMouse(location: CGFloat) {
-        self._mouseIdx.modify { _ in Int(max(0, floor((location - self.allPadding - self.listPadding) / (self.tileSize.height + self.tilePadding)) - 1)) };
+        self._mouseIdx.modify { _ in Int(max(0, floor((location + self.scrollView.contentView.documentVisibleRect.origin.y - self.allPadding - self.listPadding) / (self.tileSize.height + self.tilePadding)) - 1)) }; // TODO/HACK: why -1?
     }
     private func killMouse() {
         if let tracker = self.contactTracker { self.removeTrackingArea(tracker); }
         self.contactTracker = nil;
         self._mouseIdx.modify { _ in nil }; // unlike liveMouse, we always want to modify the idx, because it's an active flag of sorts.
+        self.window!.ignoresMouseEvents = true;
+    }
+
+    @objc private func scrolled() {
+        if self.state_.essentially == .Chatting { GlobalInteraction.sharedInstance.send(.Escape); } // HACK: feels like a sloppy way to do this.
+        self.processMouse(NSEvent.mouseLocation().y);
     }
 
     // don't react to mouse clicks unless the pointer is in a relevant spot at a relevant time.
@@ -299,7 +341,7 @@ class MainView: NSView {
                 }
             };
 
-        // set contact select ring as appropriate. TODO: fix this awful reverse lookup everywhere.
+        // set contact select ring as appropriate.
         sort.combineWithDefault(self.state, defaultValue: .Inactive)
             .combineWithDefault(self.mouseIdx, defaultValue: nil).map({ ($0.0, $0.1, $1) })
             .map({ (sort, state, mouseIdx) -> Contact? in
@@ -347,11 +389,10 @@ class MainView: NSView {
 
     private func drawContact(contact: Contact) -> ContactTile {
         let newTile = ContactTile(
-            frame: self.frame,
-            size: tileSize,
+            frame: NSRect(origin: NSPoint.zero, size: self.tileSize),
             contact: contact
         );
-        dispatch_async(dispatch_get_main_queue(), { self.addSubview(newTile); });
+        dispatch_async(dispatch_get_main_queue(), { self.scrollContents.addSubview(newTile); });
         return newTile;
     }
 
@@ -382,8 +423,6 @@ class MainView: NSView {
 
             // deal with actual contacts
             for tile in self._contactTiles.all() {
-                let anim = CABasicAnimation.init(keyPath: "position");
-
                 let last = lastState.order[tile.contact];
                 let this = thisState.order[tile.contact];
 
@@ -403,8 +442,8 @@ class MainView: NSView {
                 let xHalf = self.frame.width - self.tileSize.width + (self.tileSize.height * 0.55);
                 let xOff = self.frame.width - self.tileSize.width + self.tileSize.height;
 
-                let yLast = self.allPadding + self.listPadding + ((self.tileSize.height + self.tilePadding) * CGFloat((last ?? 0) + 1));
-                let yThis = self.allPadding + self.listPadding + ((self.tileSize.height + self.tilePadding) * CGFloat((this ?? 0) + 1));
+                let yLast = (self.tileSize.height + self.tilePadding) * CGFloat(last ?? 0);
+                let yThis = (self.tileSize.height + self.tilePadding) * CGFloat(this ?? 0);
 
                 // TODO: repetitive.
                 switch (last, lastState.notifying.contains(tile.contact), lastState.state, lastState.mouseIdx) {
@@ -431,22 +470,16 @@ class MainView: NSView {
                     default:                                                        to = NSPoint(x: xHalf, y: yThis);
                 }}
 
-                if tile.layer!.position != to {
-                    anim.fromValue = NSValue.init(point: from);
-                    anim.toValue = NSValue.init(point: to);
-                    anim.duration = NSTimeInterval((!lastState.state.active && thisState.state.active ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
-                    anim.fillMode = kCAFillModeForwards; // HACK: i don't like this or the next line.
-                    anim.removedOnCompletion = false;
-                    tile.layer!.removeAnimationForKey("contacttile-layout");
-                    tile.layer!.addAnimation(anim, forKey: "contacttile-layout");
-                    tile.layer!.position = to;
-                }
+                // actually animate the tile. set its from directly, then after letting the layout settle set the to on the animator.
+                tile.setFrameOrigin(from);
+                let duration = NSTimeInterval((!lastState.state.active && thisState.state.active ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
+                dispatch_async(dispatch_get_main_queue(), { animationWithDuration(duration, { tile.animator().setFrameOrigin(to); }); });
 
                 // if we have a conversation as well, position that appropriately.
                 if let conversationView = self._conversationViews.get(tile.contact) {
                     conversationView.animator().frame.origin = NSPoint(
                         x: self.frame.width - self.tileSize.height - self.tilePadding - self.conversationPadding - self.conversationWidth,
-                        y: yThis + self.conversationVOffset
+                        y: self.allPadding + self.listPadding + self.tileSize.height + yThis + self.conversationVOffset
                     );
                     conversationView.animator().frame.size = NSSize(
                         width: self.conversationWidth,
@@ -454,6 +487,12 @@ class MainView: NSView {
                     );
                 }
             }
+
+            // deal with scroll height. make sure it's at least the full scroll height.
+            if let constraint = self.scrollHeightConstraint { self.scrollView.removeConstraint(constraint); }
+            let newHeight = max(self.scrollView.frame.height, CGFloat(thisState.order.count) * (self.tileSize.height + self.tilePadding));
+            self.scrollHeightConstraint = (self.scrollContents.constrain.height == newHeight);
+            self.scrollView.addConstraint(self.scrollHeightConstraint!);
         });
     }
 

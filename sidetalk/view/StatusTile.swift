@@ -143,7 +143,6 @@ class StatusTile: NSView {
     private func drawContact(contact: Contact) -> ContactTile {
         let tile = ContactTile(
             frame: NSRect(origin: NSPoint.init(x: 0, y: self.iconMargin), size: self.tileSize),
-            size: self.tileSize,
             contact: contact
         );
         dispatch_async(dispatch_get_main_queue(), {
