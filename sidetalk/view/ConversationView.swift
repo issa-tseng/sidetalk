@@ -34,6 +34,7 @@ class ConversationView: NSView {
     private var _initiallyActivated = false;
     private let _active = MutableProperty<Bool>(false);
     var active: Signal<Bool, NoError> { get { return self._active.signal; } };
+    var active_: Bool { get { return self._active.value; } };
 
     private let _lastShown = MutableProperty<NSDate>(NSDate.distantPast());
     var lastShown: Signal<NSDate, NoError> { get { return self._lastShown.signal; } };

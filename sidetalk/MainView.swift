@@ -13,6 +13,14 @@ struct LayoutState {
     let mouseIdx: Int?;
 }
 
+class NotifyingScrollView: NSScrollView {
+    var onScroll: (() -> ())?;
+    override func scrollWheel(event: NSEvent) {
+        super.scrollWheel(event);
+        self.onScroll?();
+    }
+}
+
 // TODO: split into V/VM?
 class MainView: NSView {
     internal let connection: Connection;
@@ -21,7 +29,7 @@ class MainView: NSView {
     private var _contactTiles = QuickCache<Contact, ContactTile>();
     private var _conversationViews = QuickCache<Contact, ConversationView>();
 
-    private let scrollView = NSScrollView();
+    private let scrollView = NotifyingScrollView();
     private let scrollContents = NSView();
     private var scrollHeightConstraint: NSLayoutConstraint?;
 
@@ -78,6 +86,8 @@ class MainView: NSView {
         self.scrollView.horizontalScrollElasticity = .None;
         self.addSubview(self.scrollView);
 
+        self.scrollView.onScroll = { self.scrolled(); };
+
         self.addConstraints([
             self.scrollView.constrain.bottom == self.constrain.bottom - (self.allPadding + self.listPadding + self.tileSize.height + self.tilePadding),
             self.scrollView.constrain.right == self.constrain.right + 30,
@@ -93,10 +103,6 @@ class MainView: NSView {
             self.scrollContents.constrain.right == self.scrollView.constrain.right - 30,
             self.scrollContents.constrain.bottom == self.scrollView.constrain.bottom
         ]);
-
-        // scrollclip events.
-        self.scrollView.contentView.postsBoundsChangedNotifications = true;
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(scrolled), name: NSViewBoundsDidChangeNotification, object: self.scrollView.contentView);
 
         // set up prepares.
         self.prepare();
@@ -477,13 +483,24 @@ class MainView: NSView {
 
                 // if we have a conversation as well, position that appropriately.
                 if let conversationView = self._conversationViews.get(tile.contact) {
+                    var scrollY = self.scrollView.contentView.documentVisibleRect.origin.y; // TODO: gross; mutable.
+                    // if the conversation is active and its contact is offscreen, we want to scroll the list.
+                    if conversationView.active_ {
+                        let frameHeight = self.scrollView.frame.height;
+                        if (yThis < scrollY) || (yThis > (scrollY + frameHeight)) {
+                            scrollY = (yThis < scrollY) ? yThis : floor(yThis - (frameHeight / 2));
+                            self.scrollView.contentView.animator().setBoundsOrigin(NSPoint(x: 0, y: scrollY));
+                        }
+                    }
+
+                    // position the conversation.
                     conversationView.animator().frame.origin = NSPoint(
                         x: self.frame.width - self.tileSize.height - self.tilePadding - self.conversationPadding - self.conversationWidth,
-                        y: self.allPadding + self.listPadding + self.tileSize.height + yThis + self.conversationVOffset
+                        y: self.allPadding + self.listPadding + self.tileSize.height + yThis + self.conversationVOffset - scrollY
                     );
                     conversationView.animator().frame.size = NSSize(
                         width: self.conversationWidth,
-                        height: self.frame.height - (yThis + self.conversationVOffset)
+                        height: self.frame.height - (yThis - self.scrollView.contentView.documentVisibleRect.origin.y + self.conversationVOffset)
                     );
                 }
             }
