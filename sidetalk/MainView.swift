@@ -34,6 +34,7 @@ class MainView: NSView {
     private var scrollHeightConstraint: NSLayoutConstraint?;
 
     private var marginTracker: NSTrackingArea?;
+    private var notifyingTracker: NSTrackingArea?;
     private var contactTracker: NSTrackingArea?;
 
     private var _state: Signal<MainState, NoError>?;
@@ -120,22 +121,44 @@ class MainView: NSView {
     override func mouseEntered(theEvent: NSEvent) {
         if theEvent.trackingArea == self.marginTracker {
             self.liveMouse();
-            self.processMouse(theEvent.locationInWindow.y);
+            self._mouseIdx.modify { _ in self.idxForMouse(theEvent.locationInWindow.y) };
         }
     }
     override func mouseMoved(theEvent: NSEvent) {
-        guard let tracker = self.contactTracker else { return; }
-        if theEvent.locationInWindow.x > tracker.rect.minX { self.processMouse(theEvent.locationInWindow.y); }
+        if let tracker = self.contactTracker {
+            if theEvent.locationInWindow.x > tracker.rect.minX {
+                self._mouseIdx.modify { _ in self.idxForMouse(theEvent.locationInWindow.y); };
+                self.window!.ignoresMouseEvents = false;
+            }
+        } else if let tracker = self.notifyingTracker {
+            guard let notifyingIdx = tracker.userInfo?["notifying"] as? Set<Int> else { return; }
+            let idx = self.idxForMouse(theEvent.locationInWindow.y);
+            self.window!.ignoresMouseEvents = !notifyingIdx.contains(idx);
+        }
     }
     override func mouseExited(theEvent: NSEvent) {
         if theEvent.trackingArea == self.contactTracker {
             if self.state_ == .Inactive { self.killMouse(); }
             self._mouseIdx.modify { _ in nil };
         }
+
+        if theEvent.trackingArea != self.marginTracker {
+            self.window!.ignoresMouseEvents = true;
+        }
     }
     override func acceptsFirstMouse(theEvent: NSEvent?) -> Bool { return true; }
     override func mouseDown(theEvent: NSEvent) {
-        if self.mouseIdx_ != nil { GlobalInteraction.sharedInstance.send(.Click); }
+        if self.mouseIdx_ != nil {
+            GlobalInteraction.sharedInstance.send(.Click);
+        } else if let tracker = self.notifyingTracker {
+            // only process the notifying tracker on mousedown so we don't pop the whole frame.
+            guard let notifyingIdx = tracker.userInfo?["notifying"] as? Set<Int> else { return; }
+            let idx = self.idxForMouse(theEvent.locationInWindow.y);
+            if notifyingIdx.contains(idx) {
+                self._mouseIdx.modify { _ in idx };
+                GlobalInteraction.sharedInstance.send(.Click);
+            }
+        }
     }
 
     private func liveMouse() {
@@ -143,11 +166,10 @@ class MainView: NSView {
             self.contactTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: frame.width - self.tileSize.height - self.tilePadding, y: 0), size: frame.size),
                                                  options: [.MouseEnteredAndExited, .MouseMoved, .ActiveAlways], owner: self, userInfo: nil);
             self.addTrackingArea(self.contactTracker!);
-            self.window!.ignoresMouseEvents = false;
         }
     }
-    private func processMouse(location: CGFloat) {
-        self._mouseIdx.modify { _ in Int(max(0, floor((location + self.scrollView.contentView.documentVisibleRect.origin.y - self.allPadding - self.listPadding) / (self.tileSize.height + self.tilePadding)) - 1)) }; // TODO/HACK: why -1?
+    private func idxForMouse(location: CGFloat) -> Int {
+        return Int(max(0, floor((location + self.scrollView.contentView.documentVisibleRect.origin.y - self.allPadding - self.listPadding) / (self.tileSize.height + self.tilePadding)) - 1)); // TODO/HACK: why -1?
     }
     private func killMouse() {
         if let tracker = self.contactTracker { self.removeTrackingArea(tracker); }
@@ -158,13 +180,20 @@ class MainView: NSView {
 
     @objc private func scrolled() {
         if self.state_.essentially == .Chatting { GlobalInteraction.sharedInstance.send(.Escape); } // HACK: feels like a sloppy way to do this.
-        self.processMouse(NSEvent.mouseLocation().y);
+        self._mouseIdx.modify { _ in self.idxForMouse(NSEvent.mouseLocation().y) };
     }
 
     // don't react to mouse clicks unless the pointer is in a relevant spot at a relevant time.
     override func hitTest(point: NSPoint) -> NSView? {
-        if self.mouseIdx_ != nil { return super.hitTest(point); }
-        else                     { return nil; }
+        if self.mouseIdx_ != nil {
+            return super.hitTest(point);
+        } else if let tracker = self.notifyingTracker {
+            // TODO/HACK: repetitive from mouseDown.
+            guard let notifyingIdx = tracker.userInfo?["notifying"] as? Set<Int> else { return nil; }
+            if notifyingIdx.contains(self.idxForMouse(point.y)) { return super.hitTest(point); }
+        }
+
+        return nil;
     }
 
     private func prepare() {
@@ -321,6 +350,22 @@ class MainView: NSView {
 
                 return result;
             };
+
+        // if there are any contacts currently notifying and we are inactive, create or update a tracking area.
+        notifying
+            .combineLatestWith(sort)
+            .combineLatestWith(self.state).map({ ($0.0, $0.1, $1) })
+            .observeNext { notifying, sort, state in
+                if (notifying.count > 0) && (state == .Inactive) {
+                    if let tracker = self.notifyingTracker { self.removeTrackingArea(tracker); }
+
+                    self.notifyingTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: self.frame.width - self.tileSize.height - self.tilePadding, y: 0), size: self.frame.size),
+                        options: [ .MouseEnteredAndExited, .MouseMoved, .ActiveAlways ], owner: self, userInfo: [ "notifying": Set(notifying.map({ contact in sort[contact]! })) ]);
+                    self.addTrackingArea(self.notifyingTracker!);
+                } else if let tracker = self.notifyingTracker {
+                    self.removeTrackingArea(tracker);
+                }
+            }
 
         // relayout as required.
         sort.combineLatestWith(tiles).map { order, _ in order } // (Order)
