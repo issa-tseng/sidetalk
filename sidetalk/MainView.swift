@@ -391,6 +391,16 @@ class MainView: NSView {
                 GlobalInteraction.sharedInstance.relinquish();
             }
         };
+
+        // if we have been idle and inactive for 10 seconds, revert scroll to the bottom.
+        self.state.skipRepeats({ $0 == $1 }).filter({ state in state == .Inactive }).always(0)
+            .merge(self.mouseIdx.filter({ $0 == nil }).always(0))
+            .delay(ST.main.inactiveDelay, onScheduler: scheduler)
+            .observeNext { _ in
+                if (self.state_ == .Inactive) && (self.mouseIdx_ == nil) && (self.scrollView.contentView.documentVisibleRect.origin.y != 0) {
+                    dispatch_async(dispatch_get_main_queue(), { self.scrollView.contentView.animator().setBoundsOrigin(NSPoint.zero); });
+                }
+            }
     }
 
     private func drawContact(contact: Contact) -> ContactTile {

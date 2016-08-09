@@ -5,6 +5,7 @@ import p2_OAuth2;
 class ST {
     static let avatar = AvatarConst();
     static let conversation = ConversationConst();
+    static let main = MainConst();
     static let message = MessageConst();
     static let oauth = OAuthConst();
 
@@ -55,6 +56,10 @@ class ST {
         let composeBg = NSColor.init(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.9).CGColor;
 
         let sendLockout = NSTimeInterval(0.1);
+    }
+
+    internal class MainConst {
+        let inactiveDelay = NSTimeInterval(10.0);
     }
 
     internal class MessageConst {
