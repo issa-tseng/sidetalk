@@ -37,6 +37,10 @@ class MainView: NSView {
     private var notifyingTracker: NSTrackingArea?;
     private var contactTracker: NSTrackingArea?;
 
+    private var wantsMouseMain = MutableProperty<Bool>(false);
+    private var wantsMouseNotifying = MutableProperty<Bool>(false);
+    private var wantsMouseConversation = MutableProperty<Bool>(false);
+
     private var _state: Signal<MainState, NoError>?;
     private var state_: MainState = .Inactive;
     var state: Signal<MainState, NoError> { get { return self._state!; } };
@@ -121,30 +125,28 @@ class MainView: NSView {
     override func mouseEntered(theEvent: NSEvent) {
         if theEvent.trackingArea == self.marginTracker {
             self.liveMouse();
-            self._mouseIdx.modify { _ in self.idxForMouse(theEvent.locationInWindow.y) };
+            self._mouseIdx.modify({ _ in self.idxForMouse(theEvent.locationInWindow.y) });
         }
     }
     override func mouseMoved(theEvent: NSEvent) {
         if let tracker = self.contactTracker {
             if theEvent.locationInWindow.x > tracker.rect.minX {
-                self._mouseIdx.modify { _ in self.idxForMouse(theEvent.locationInWindow.y); };
-                self.window!.ignoresMouseEvents = false;
+                self._mouseIdx.modify({ _ in self.idxForMouse(theEvent.locationInWindow.y) });
+                self.wantsMouseMain.modify({ _ in true });
             }
         } else if let tracker = self.notifyingTracker {
             guard let notifyingIdx = tracker.userInfo?["notifying"] as? Set<Int> else { return; }
             let idx = self.idxForMouse(theEvent.locationInWindow.y);
-            self.window!.ignoresMouseEvents = !notifyingIdx.contains(idx);
+            self.wantsMouseNotifying.modify({ _ in notifyingIdx.contains(idx) });
         }
     }
     override func mouseExited(theEvent: NSEvent) {
         if theEvent.trackingArea == self.contactTracker {
             if self.state_ == .Inactive { self.killMouse(); }
-            self._mouseIdx.modify { _ in nil };
+            self._mouseIdx.modify({ _ in nil });
         }
 
-        if theEvent.trackingArea != self.marginTracker {
-            self.window!.ignoresMouseEvents = true;
-        }
+        if theEvent.trackingArea != self.marginTracker { self.wantsMouseMain.modify({ _ in false }); }
     }
     override func acceptsFirstMouse(theEvent: NSEvent?) -> Bool { return true; }
     override func mouseDown(theEvent: NSEvent) {
@@ -174,8 +176,8 @@ class MainView: NSView {
     private func killMouse() {
         if let tracker = self.contactTracker { self.removeTrackingArea(tracker); }
         self.contactTracker = nil;
-        self._mouseIdx.modify { _ in nil }; // unlike liveMouse, we always want to modify the idx, because it's an active flag of sorts.
-        self.window!.ignoresMouseEvents = true;
+        self._mouseIdx.modify({ _ in nil }); // unlike liveMouse, we always want to modify the idx, because it's an active flag of sorts.
+        self.wantsMouseMain.modify({ _ in false });
     }
 
     @objc private func scrolled() {
@@ -185,12 +187,20 @@ class MainView: NSView {
 
     // don't react to mouse clicks unless the pointer is in a relevant spot at a relevant time.
     override func hitTest(point: NSPoint) -> NSView? {
+        // normal mouse behaviour any time we're within a conversation view.
+        if let view = super.hitTest(point) {
+            if view.ancestors().find({ view in (view as? ConversationView) != nil }) != nil {
+                return view;
+            }
+        }
+
+        // otherwise always return scrollview if we have a hit, so that subsequent calls (click, mousewheel) go to the right place.
         if self.mouseIdx_ != nil {
-            return super.hitTest(point);
+            return self.scrollView;
         } else if let tracker = self.notifyingTracker {
             // TODO/HACK: repetitive from mouseDown.
             guard let notifyingIdx = tracker.userInfo?["notifying"] as? Set<Int> else { return nil; }
-            if notifyingIdx.contains(self.idxForMouse(point.y)) { return super.hitTest(point); }
+            if notifyingIdx.contains(self.idxForMouse(point.y)) { return self.scrollView; }
         }
 
         return nil;
@@ -411,15 +421,18 @@ class MainView: NSView {
                 if let tile = self._contactTiles.get(this) { tile.selected_ = true; }
             };
 
-        // render only the conversation for the active contact.
-        self.state
+        // determine who we're actively chatting with.
+        let activeConversation = self.state
             .combineLatestWith(sort)
             .map({ (state, sort) -> Contact? in
                 switch state {
                 case let .Chatting(with, _): return with;
                 default: return nil;
                 }
-            })
+            });
+
+        // render only the conversation for the active contact.
+        activeConversation
             .combinePrevious(nil)
             .observeNext { (last, this) in
                 if last == this { return; }
@@ -427,6 +440,9 @@ class MainView: NSView {
 
                 if let contact = this { self._conversationViews.get(contact, orElse: { self.drawConversation(contact.conversation) }).activate(); }
             };
+
+        // we want to trap mouse events if a conversation is open.
+        activeConversation.observeNext({ contact in self.wantsMouseConversation.modify({ _ in contact != nil }) });
 
         // upon activate/deactivate, handle window focus correctly.
         self.state.combinePrevious(.Inactive).observeNext { last, this in
@@ -446,6 +462,14 @@ class MainView: NSView {
                     dispatch_async(dispatch_get_main_queue(), { self.scrollView.contentView.animator().setBoundsOrigin(NSPoint.zero); });
                 }
             }
+
+        // if anyone wants mouse events, give it to them.
+        let (dummy, dummyObserver) = Signal<Bool, NoError>.pipe();
+        dummy.combineWithDefault(self.wantsMouseMain.signal, defaultValue: false).map({ _, x in x })
+            .combineWithDefault(self.wantsMouseNotifying.signal, defaultValue: false).map({ a, b in a || b })
+            .combineWithDefault(self.wantsMouseConversation.signal, defaultValue: false).map({ a, b in a || b })
+            .observeNext({ wantsMouse in self.window?.ignoresMouseEvents = !wantsMouse });
+        dummyObserver.sendNext(false);
     }
 
     private func drawContact(contact: Contact) -> ContactTile {
