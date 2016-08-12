@@ -1,4 +1,4 @@
-Sidetalk (alpha 1)
+Sidetalk (alpha 2)
 ==================
 
 Thanks for helping me test this thing! It wasn't ever meant to be more than an experiment and something for myself to use, but people seem to like the idea so if it's not too difficult to make it generally applicable, then why not? Here are some basic instructions:
@@ -22,9 +22,11 @@ Usage
 
 I don't have any help material in the application yet, so you'll have to either experiment a bit or read below to figure out what's what.
 
-Any time you want to use sidetalk, click the dock icon or hit the shortcut. It'll pop out from the side. From here, you can either start searching for someone to chat with simply by starting to type their name, or you can use the arrow keys to select someone you already see. People with which you're actively chatting will float to the bottom so you can always see them. Press Enter while someone is highlighted to start a conversation.
+The fastest way to use sidetalk is to hit the shortcut, or click the dock icon. It'll pop out from the side. From here, you can either start searching for someone to chat with simply by starting to type their name, or you can use the arrow keys to select someone you already see. People with which you're actively chatting will float to the bottom so you can always see them. Press Enter while someone is highlighted to start a conversation.
 
-To back out of a conversation or a search, press Escape. If you press Escape enough times, the whole thing will go away and you'll go back to what you were doing. A neat little trick is that if instead of pressing Escape you press the global shortcut, then sidetalk will remember what you were doing and go back to it when you reactivate it.
+Alternatively, you can simply pop out the contact list by mousing over to the side of your screen, then clicking on whomever you wish to chat with. You won't be able to search this way, though.
+
+To back out of a conversation or a search, press Escape. If you press Escape enough times, the whole thing will go away and you'll go back to what you were doing. A neat little trick is that if instead of pressing Escape you press the global shortcut, then sidetalk will remember what you were doing and go back to it when you reactivate it. You can always just click away, too.
 
 The last thing to point out are the Mute and Hide modes. These are accessible via the sidetalk menu in the main Mac menubar, or by pressing ⌘M and ⌘H, respectively, while sidetalk is open. Mute will prevent messages from popping up in bubbles, though the contact circle will still light up to let you know to pay attention to it when you have a chance. Hide will make it so that when sidetalk is in the background, the bubbles go all the way offscreen instead of only halfway. Icons appear in the bottom-right to let you know when these have been turned on. These make it quick and easy to shut sidetalk up if you're having a sensitive conversation and someone walks by.
 
@@ -44,10 +46,9 @@ What's next
 Here is the list of what I'd love to tackle next. I'd love feedback on what would be most helpful to you.
 
 1. Pinned contacts, so the most important people you always chat with are always at hand.
-2. Mouse support on the contact list.
-3. More customization: colors, placements, sizes, etc. What do you most want to customize? A lot is possible.
-4. Setting your presence. Right now sidetalk doesn't even set you to available or away or anything like that.
-5. Formatted messages. Bold, italics, etc. Probably not colors.
+2. More customization: colors, placements, sizes, etc. What do you most want to customize? A lot is possible.
+3. Setting your presence. Right now sidetalk doesn't even set you to available or away or anything like that.
+4. Formatted messages. Bold, italics, etc. Probably not colors.
 
 There are many more much, much larger things (stored conversation history; detachable conversation windows; multiple accounts; etc) that I'm also thinking about, but they're too numerous to list here.
 
