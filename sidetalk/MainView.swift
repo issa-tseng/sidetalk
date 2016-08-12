@@ -581,7 +581,7 @@ class MainView: NSView {
                     );
                     conversationView.animator().frame.size = NSSize(
                         width: self.conversationWidth,
-                        height: self.frame.height - (yThis - self.scrollView.contentView.documentVisibleRect.origin.y + self.conversationVOffset)
+                        height: max(ST.conversation.minHeight, self.frame.height - (yThis - self.scrollView.contentView.documentVisibleRect.origin.y + self.conversationVOffset))
                     );
                 }
             }

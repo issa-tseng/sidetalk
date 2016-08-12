@@ -49,6 +49,8 @@ class ST {
     }
 
     internal class ConversationConst {
+        let minHeight = CGFloat(150);
+
         let composeHeight = CGFloat(80);
         let composeMargin = CGFloat(6);
         let composeTextSize = CGFloat(12);

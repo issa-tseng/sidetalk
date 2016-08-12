@@ -58,6 +58,7 @@ class ConversationView: NSView {
         self.wantsLayer = true;
         super.viewWillMoveToSuperview(newSuperview);
 
+        self.autoresizesSubviews = false;
         self.prepare();
 
         // draw bubble.
