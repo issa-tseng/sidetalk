@@ -13,12 +13,14 @@ struct LayoutState {
     let mouseIdx: Int?;
 }
 
-class NotifyingScrollView: NSScrollView {
+class STScrollView: NSScrollView {
     var onScroll: (() -> ())?;
     override func scrollWheel(event: NSEvent) {
         super.scrollWheel(event);
         self.onScroll?();
     }
+
+    override func acceptsFirstMouse(theEvent: NSEvent?) -> Bool { return true; }
 }
 
 // TODO: split into V/VM?
@@ -29,7 +31,7 @@ class MainView: NSView {
     private var _contactTiles = QuickCache<Contact, ContactTile>();
     private var _conversationViews = QuickCache<Contact, ConversationView>();
 
-    private let scrollView = NotifyingScrollView();
+    private let scrollView = STScrollView();
     private let scrollContents = NSView();
     private var scrollHeightConstraint: NSLayoutConstraint?;
 
