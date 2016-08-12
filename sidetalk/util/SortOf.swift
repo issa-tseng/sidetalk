@@ -1,6 +1,11 @@
 
 import Foundation
 
+struct Clamped {
+    let idx: Int;
+    init(_ idx: Int) { self.idx = idx; }
+}
+
 // it goes both ways.
 class SortOf<T: Hashable> {
     let array: [T];
@@ -23,6 +28,9 @@ class SortOf<T: Hashable> {
     subscript(i: Int?) -> T? {
         if let j = i { return self.array[j]; }
         else         { return nil; }
+    }
+    subscript(c: Clamped) -> T? {
+        return self[min(c.idx, self.count - 1)];
     }
 
     var count: Int { get { return self.array.count; } };

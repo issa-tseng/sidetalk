@@ -410,9 +410,9 @@ class MainView: NSView {
             .map({ (sort, state, mouseIdx) -> Contact? in
                 switch (state, mouseIdx) {
                 case (let .Chatting(contact, _), let .Some(idx)) where sort[contact] == idx: return nil;
-                case (_, let .Some(idx)):           return sort[idx];
-                case (let .Selecting(idx), _):      return sort[idx];
-                case (let .Searching(_, idx), _):   return sort[idx];
+                case (_, let .Some(idx)):           return sort[Clamped(idx)];
+                case (let .Selecting(idx), _):      return sort[Clamped(idx)];
+                case (let .Searching(_, idx), _):   return sort[Clamped(idx)];
                 default:                            return nil;
                 }
             })
