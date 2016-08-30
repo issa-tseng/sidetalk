@@ -38,6 +38,14 @@ class StatusTile: NSView {
         self._searchField.alignment = NSTextAlignment.Right;
         self._searchField.lineBreakMode = .ByTruncatingHead;
         self._searchField.alphaValue = 0.0;
+
+        /*var pixelFormat: CGLPixelFormatObj;
+        var formats: GLint;
+        var glContext: CGLContextObj;
+        CGLChoosePixelFormat([ kCGLPFAAccelerated, _CGLPixelFormatAttribute(kCGLOGLPVersion_3_2_Core), 0 ], pixelFormat, formats);
+        CGLCreateContext(pixelFormat, nil, glContext);*/
+        self._searchField.contentFilters = [ STCIShadow() ];
+
         self._searchLeecher = STTextDelegate(field: self._searchField);
 
         let searchIconLayer = RoundIconLayer();
