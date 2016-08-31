@@ -148,7 +148,10 @@ class MainView: NSView {
             self._mouseIdx.modify({ _ in nil });
         }
 
-        if theEvent.trackingArea != self.marginTracker { self.wantsMouseMain.modify({ _ in false }); }
+        if theEvent.trackingArea != self.marginTracker {
+            self.wantsMouseMain.modify({ _ in false });
+            self.wantsMouseNotifying.modify({ _ in false });
+        }
     }
     override func acceptsFirstMouse(theEvent: NSEvent?) -> Bool { return true; }
     override func mouseDown(theEvent: NSEvent) {
