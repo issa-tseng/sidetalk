@@ -64,6 +64,14 @@ I'd love to know three things:
 Changelog
 ---------
 
+alpha-2
+* mouse and scrolling support on conversation scrollbacks.
+* mouse and scrolling support on contact list.
+* more definite selection highlight on contact list.
+* unread message count on contacts.
+* fix a somewhat rare autolayout conflict bug (could occur if an active conversation drifted past the top of the screen).
+* backing out of a conversation is more likely to land you somewhere you want to be.
+
 alpha-1.1
 * redid text layout system so you can select text to copy/paste across multiple messages.
 * this also enables you to scroll back through messages in a conversation.
