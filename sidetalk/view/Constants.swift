@@ -56,6 +56,7 @@ class ST {
         let composeTextSize = CGFloat(12);
 
         let composeBg = NSColor.init(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.9).CGColor;
+        let composeOutline = NSColor.init(red: 0, green: 0, blue: 0, alpha: 0.1).CGColor;
 
         let sendLockout = NSTimeInterval(0.1);
     }
@@ -70,16 +71,21 @@ class ST {
             NSFontAttributeName: NSFont.systemFontOfSize(12)
         ];
 
-        let bg = NSColor(red: 0.1, green: 0.12, blue: 0.15, alpha: 0.85).CGColor;
+        let bgForeign = NSColor(red: 0.0391, green: 0.2305, blue: 0.3516, alpha: 0.85).CGColor;
+        let outlineForeign = NSColor(red: 0.7813, green: 0.8672, blue: 0.9297, alpha: 0.2).CGColor;
+
+        let bgOwn = NSColor(red: 0.1719, green: 0.1719, blue: 0.1719, alpha: 0.95).CGColor;
+        let outlineOwn = NSColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.15).CGColor;
 
         let margin = CGFloat(2);
+        let outlineWidth = CGFloat(2);
 
         let paddingX = CGFloat(4);
         let paddingY = CGFloat(4);
-        let radius = CGFloat(3);
+        let radius = CGFloat(6);
 
         let calloutSize = CGFloat(4);
-        let calloutVline = CGFloat(11);
+        let calloutVline = CGFloat(11.5);
 
         let shownFor = NSTimeInterval(5.0);
     }

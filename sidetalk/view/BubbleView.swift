@@ -1,6 +1,7 @@
 
 import Foundation
 
+enum BubbleColor { case Foreign, Own, Compose; }
 enum CalloutSide { case Left, Right; }
 class BubbleView: NSView {
     private let shapeLayer = CAShapeLayer();
@@ -17,12 +18,20 @@ class BubbleView: NSView {
         set { self._calloutShown = newValue; self.relayout(); }
     };
 
-    private var _bubbleColor: CGColor?;
-    var bubbleColor: CGColor? {
-        get { return self._bubbleColor; }
+    private var _color: BubbleColor?;
+    var color: BubbleColor? {
+        get { return self._color; }
         set {
-            self._bubbleColor = newValue;
-            self.shapeLayer.fillColor = newValue;
+            self._color = newValue;
+            switch newValue {
+            case .None:             fallthrough;
+            case .Some(.Foreign):   self.shapeLayer.fillColor = ST.message.bgForeign;
+                                    self.shapeLayer.strokeColor = ST.message.outlineForeign;
+            case .Some(.Own):       self.shapeLayer.fillColor = ST.message.bgOwn;
+                                    self.shapeLayer.strokeColor = ST.message.outlineOwn;
+            case .Some(.Compose):   self.shapeLayer.fillColor = ST.conversation.composeBg;
+                                    self.shapeLayer.strokeColor = ST.conversation.composeOutline;
+            }
         }
     };
 
@@ -30,7 +39,8 @@ class BubbleView: NSView {
         self.wantsLayer = true;
         super.viewWillMoveToSuperview(view);
 
-        if self.bubbleColor == nil { self.bubbleColor = ST.message.bg };
+        if self._color == nil { self.color = .Foreign; }
+        self.shapeLayer.lineWidth = ST.message.outlineWidth;
         self.layer!.addSublayer(self.shapeLayer);
     }
 
@@ -40,25 +50,51 @@ class BubbleView: NSView {
     }
 
     private func relayout() {
+        // bail if we're not going to get real numbers. TODO: just bail, or bail and clearpath?
+        if self.frame.width == 0 || self.frame.height == 0 { return; }
+
         // draw bubble.
         let origin = NSPoint(x: (self.calloutSide == .Left) ? ST.message.calloutSize : 0, y: 0);
-        let size = NSSize(width: self.frame.size.width - ST.message.calloutSize, height: self.frame.size.height);
-        let path = NSBezierPath(roundedRect: NSRect(origin: origin, size: size), cornerRadius: ST.message.radius);
+        let size = NSSize(width: self.frame.size.width - ST.message.calloutSize - ((self.calloutSide == .Right) ? ST.message.outlineWidth : 0), height: self.frame.size.height);
+        let rect = NSRect(origin: origin, size: size).insetBy(dx: ST.message.outlineWidth, dy: ST.message.outlineWidth);
 
-        // draw callout.
-        if self.calloutShown {
-            let (edge, sign) = (self.calloutSide == .Left) ? (ST.message.calloutSize, CGFloat(-1)) : (self.frame.width - ST.message.calloutSize, CGFloat(1));
+        // draw the entire path manually on account of no merge operations for the callout.
+        let path = NSBezierPath();
 
-            let calloutPts = NSPointArray.alloc(3);
-            calloutPts[0] = NSPoint(x: edge, y: ST.message.calloutVline + ST.message.calloutSize);
-            calloutPts[1] = NSPoint(x: edge + (ST.message.calloutSize * sign), y: ST.message.calloutVline);
-            calloutPts[2] = NSPoint(x: edge, y: ST.message.calloutVline - ST.message.calloutSize);
+        // start at the top-right, before the curve.
+        let topRight = CGPoint(x: rect.origin.x + rect.width, y: rect.origin.y + rect.height);
+        path.moveToPoint(CGPoint(x: topRight.x - ST.message.radius, y: topRight.y));
+        path.curveToPoint(CGPoint(x: topRight.x, y: topRight.y - ST.message.radius), controlPoint1: topRight, controlPoint2: topRight)
 
-            let calloutPath = NSBezierPath();
-            calloutPath.appendBezierPathWithPoints(calloutPts, count: 3);
-
-            path.appendPath(calloutPath);
+        // draw callout if it's on the right.
+        if self.calloutShown && self.calloutSide == .Right {
+            path.addLineToPoint(CGPoint(x: topRight.x, y: ST.message.calloutVline + ST.message.calloutSize));
+            path.addLineToPoint(CGPoint(x: topRight.x + ST.message.calloutSize, y: ST.message.calloutVline));
+            path.addLineToPoint(CGPoint(x: topRight.x, y: ST.message.calloutVline - ST.message.calloutSize));
         }
+
+        // now the bottom-right.
+        let bottomRight = CGPoint(x: topRight.x, y: rect.origin.y);
+        path.addLineToPoint(CGPoint(x: bottomRight.x, y: bottomRight.y + ST.message.radius));
+        path.curveToPoint(CGPoint(x: bottomRight.x - ST.message.radius, y: bottomRight.y), controlPoint1: bottomRight, controlPoint2: bottomRight);
+
+        // and the bottom-left.
+        let bottomLeft = rect.origin;
+        path.addLineToPoint(CGPoint(x: bottomLeft.x + ST.message.radius, y: bottomLeft.y));
+        path.curveToPoint(CGPoint(x: bottomLeft.x, y: bottomLeft.y + ST.message.radius), controlPoint1: bottomLeft, controlPoint2: bottomLeft);
+
+        // now draw callout if it's on the left.
+        if self.calloutShown && self.calloutSide == .Left {
+            path.addLineToPoint(CGPoint(x: bottomLeft.x, y: ST.message.calloutVline - ST.message.calloutSize));
+            path.addLineToPoint(CGPoint(x: bottomLeft.x - ST.message.calloutSize, y: ST.message.calloutVline));
+            path.addLineToPoint(CGPoint(x: bottomLeft.x, y: ST.message.calloutVline + ST.message.calloutSize));
+        }
+
+        // top-left, and close.
+        let topLeft = CGPoint(x: rect.origin.x, y: topRight.y);
+        path.addLineToPoint(CGPoint(x: topLeft.x, y: topLeft.y - ST.message.radius));
+        path.curveToPoint(CGPoint(x: topLeft.x + ST.message.radius, y: topLeft.y), controlPoint1: topLeft, controlPoint2: topLeft);
+        path.closePath();
 
         self.shapeLayer.path = path.CGPath;
     }

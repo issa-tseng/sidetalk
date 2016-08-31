@@ -63,7 +63,7 @@ class ConversationView: NSView {
 
         // draw bubble.
         self.updateComposeHeight();
-        self.composeBubble.bubbleColor = ST.conversation.composeBg;
+        self.composeBubble.color = .Compose;
 
         // set up textfield.
         self.textField.backgroundColor = NSColor.clearColor();
@@ -207,6 +207,7 @@ class ConversationView: NSView {
             bubbleView.translatesAutoresizingMaskIntoConstraints = false;
             bubbleView.calloutSide = foreign ? .Right : .Left;
             bubbleView.calloutShown = foreign ? true : false;
+            bubbleView.color = foreign ? .Foreign : .Own;
 
             // save off the objects.
             self.messageViews.insert(MessageViews(container: textContainer, textView: textView, bubble: bubbleView, message: message), atIndex: 0);
@@ -248,10 +249,10 @@ class ConversationView: NSView {
 
             // position the bubble.
             self.scrollContents.addConstraints([
-                bubbleView.constrain.top == textView.constrain.top - ST.message.paddingY,
-                bubbleView.constrain.bottom == textView.constrain.bottom + ST.message.paddingY,
-                bubbleView.constrain.left == textView.constrain.left - (ST.message.paddingX + (foreign ? 0 : ST.message.calloutSize)),
-                bubbleView.constrain.right == textView.constrain.right + (ST.message.paddingX + (foreign ? ST.message.calloutSize : 0))
+                bubbleView.constrain.top == textView.constrain.top - ST.message.paddingY - (ST.message.outlineWidth / 2),
+                bubbleView.constrain.bottom == textView.constrain.bottom + ST.message.paddingY + (ST.message.outlineWidth / 2),
+                bubbleView.constrain.left == textView.constrain.left - (ST.message.paddingX + (foreign ? 0 : ST.message.calloutSize + ST.message.outlineWidth)) - (ST.message.outlineWidth / 2),
+                bubbleView.constrain.right == textView.constrain.right + (ST.message.paddingX + (foreign ? ST.message.calloutSize + ST.message.outlineWidth : 0)) + (ST.message.outlineWidth / 2)
             ]);
         });
     }
