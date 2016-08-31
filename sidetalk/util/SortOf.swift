@@ -30,8 +30,9 @@ class SortOf<T: Hashable> {
         else         { return nil; }
     }
     subscript(c: Clamped) -> T? {
-        if let i = c.idx { return self[min(i, self.count - 1)]; }
-        else             { return nil; }
+        if self.count == 0      { return nil; }
+        else if let i = c.idx   { return self[min(i, self.count - 1)]; }
+        else                    { return nil; }
     }
 
     var count: Int { get { return self.array.count; } };
