@@ -3,8 +3,7 @@ import Foundation
 
 enum CalloutSide { case Left, Right; }
 class BubbleView: NSView {
-    private let bubbleLayer = CAShapeLayer();
-    private let calloutLayer = CAShapeLayer();
+    private let shapeLayer = CAShapeLayer();
 
     private var _calloutSide: CalloutSide = .Left;
     var calloutSide: CalloutSide {
@@ -23,8 +22,7 @@ class BubbleView: NSView {
         get { return self._bubbleColor; }
         set {
             self._bubbleColor = newValue;
-            self.bubbleLayer.fillColor = newValue;
-            self.calloutLayer.fillColor = newValue;
+            self.shapeLayer.fillColor = newValue;
         }
     };
 
@@ -33,8 +31,7 @@ class BubbleView: NSView {
         super.viewWillMoveToSuperview(view);
 
         if self.bubbleColor == nil { self.bubbleColor = ST.message.bg };
-        self.layer!.addSublayer(self.bubbleLayer);
-        self.layer!.addSublayer(self.calloutLayer);
+        self.layer!.addSublayer(self.shapeLayer);
     }
 
     override func setFrameSize(newSize: NSSize) {
@@ -46,7 +43,7 @@ class BubbleView: NSView {
         // draw bubble.
         let origin = NSPoint(x: (self.calloutSide == .Left) ? ST.message.calloutSize : 0, y: 0);
         let size = NSSize(width: self.frame.size.width - ST.message.calloutSize, height: self.frame.size.height);
-        self.bubbleLayer.path = NSBezierPath(roundedRect: NSRect(origin: origin, size: size), cornerRadius: ST.message.radius).CGPath;
+        let path = NSBezierPath(roundedRect: NSRect(origin: origin, size: size), cornerRadius: ST.message.radius);
 
         // draw callout.
         if self.calloutShown {
@@ -60,10 +57,9 @@ class BubbleView: NSView {
             let calloutPath = NSBezierPath();
             calloutPath.appendBezierPathWithPoints(calloutPts, count: 3);
 
-            self.calloutLayer.path = calloutPath.CGPath;
-            self.calloutLayer.hidden = false;
-        } else {
-            self.calloutLayer.hidden = true;
+            path.appendPath(calloutPath);
         }
+
+        self.shapeLayer.path = path.CGPath;
     }
 }
