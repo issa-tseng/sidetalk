@@ -372,8 +372,9 @@ class MainView: NSView {
                 if (notifying.count > 0) && (state == .Inactive) {
                     if let tracker = self.notifyingTracker { self.removeTrackingArea(tracker); }
 
+                    let notifyingContacts = Set(notifying.filter({ contact in sort[contact] != nil }).map({ contact in sort[contact]! })); // TODO: cleaner upcast?
                     self.notifyingTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: self.frame.width - self.tileSize.height - self.tilePadding, y: 0), size: self.frame.size),
-                        options: [ .MouseEnteredAndExited, .MouseMoved, .ActiveAlways ], owner: self, userInfo: [ "notifying": Set(notifying.map({ contact in sort[contact]! })) ]);
+                        options: [ .MouseEnteredAndExited, .MouseMoved, .ActiveAlways ], owner: self, userInfo: [ "notifying": notifyingContacts ]);
                     self.addTrackingArea(self.notifyingTracker!);
                 } else if let tracker = self.notifyingTracker {
                     self.removeTrackingArea(tracker);
