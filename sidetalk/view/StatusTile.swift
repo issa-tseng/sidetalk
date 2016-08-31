@@ -1,7 +1,7 @@
 
-import Foundation
-import ReactiveCocoa
-import enum Result.NoError
+import Foundation;
+import ReactiveCocoa;
+import enum Result.NoError;
 
 class StatusTile: NSView {
     internal let connection: Connection;
@@ -11,6 +11,7 @@ class StatusTile: NSView {
     private let _hiddenModeIcon: IconView;
     private let _muteModeIcon: IconView;
     private let _presenceIndicator: PresenceIndicator;
+    private let _shadowLayer = ShadowLayer();
 
     private let _searchLeecher: STTextDelegate;
     var searchText: Signal<String, NoError> { get { return self._searchLeecher.text; } };
@@ -79,6 +80,15 @@ class StatusTile: NSView {
         self.wantsLayer = true;
         super.viewWillMoveToSuperview(newSuperview);
 
+        // add calayers directly.
+        let radius: CGFloat = 8;
+        self._shadowLayer.frame = NSRect(origin: NSPoint(x: searchFrame.origin.x - (3 * radius), y: searchFrame.origin.y - radius),
+                                        size: NSSize(width: searchFrame.width + (6 * radius), height: searchFrame.height + (2.5 * radius)));
+        self._shadowLayer.radius = radius;
+        self._shadowLayer.opacity = 0.18;
+        self.layer!.addSublayer(self._shadowLayer);
+
+        // add full subviews.
         self.addSubview(self._searchField);
         self.addSubview(self._searchIcon);
         self.addSubview(self._hiddenModeIcon);
@@ -120,6 +130,12 @@ class StatusTile: NSView {
             self._searchField.alphaValue = hasContent ? 1.0 : 0.0;
             self._searchIcon.iconLayer.opacity = hasContent ? 1.0 : 0.0;
         }); };
+
+        // update our shadow layer when the text changes.
+        self.searchText.observeNext { text in
+            let width = NSAttributedString(string: text, attributes: [ NSFontAttributeName: NSFont.systemFontOfSize(20) ]).size().width;
+            self._shadowLayer.width = width;
+        };
 
         // update our presence when network connectivity changes (TODO: temporary until unified?)
         self.connection.authenticated

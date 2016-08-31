@@ -48,6 +48,7 @@
 		45AEC0161CFD58AA00203967 /* ContactTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0151CFD58AA00203967 /* ContactTile.swift */; };
 		45AEC01A1CFD59CF00203967 /* AvatarLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45AEC0191CFD59CF00203967 /* AvatarLayer.swift */; };
 		45CB879E1D5BE5820079E892 /* ViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45CB879D1D5BE5820079E892 /* ViewExtensions.swift */; };
+		45CB87A21D76430C0079E892 /* ShadowLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45CB87A11D76430C0079E892 /* ShadowLayer.swift */; };
 		45F18EE61D3B3F18008A8182 /* SortOf.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45F18EE51D3B3F18008A8182 /* SortOf.swift */; };
 		90AA672577DACDA911E88D99 /* Pods_sidetalk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8D154A4621A69E3A2385A355 /* Pods_sidetalk.framework */; };
 /* End PBXBuildFile section */
@@ -132,6 +133,7 @@
 		45AEC0151CFD58AA00203967 /* ContactTile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContactTile.swift; path = view/ContactTile.swift; sourceTree = "<group>"; };
 		45AEC0191CFD59CF00203967 /* AvatarLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AvatarLayer.swift; path = view/AvatarLayer.swift; sourceTree = "<group>"; };
 		45CB879D1D5BE5820079E892 /* ViewExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewExtensions.swift; path = util/ViewExtensions.swift; sourceTree = "<group>"; };
+		45CB87A11D76430C0079E892 /* ShadowLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ShadowLayer.swift; path = view/ShadowLayer.swift; sourceTree = "<group>"; };
 		45F18EE51D3B3F18008A8182 /* SortOf.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SortOf.swift; path = util/SortOf.swift; sourceTree = "<group>"; };
 		5ABBCA9B60EDB56B8AD71D06 /* Pods-sidetalk.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sidetalk.debug.xcconfig"; path = "Pods/Target Support Files/Pods-sidetalk/Pods-sidetalk.debug.xcconfig"; sourceTree = "<group>"; };
 		8D154A4621A69E3A2385A355 /* Pods_sidetalk.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_sidetalk.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -312,6 +314,7 @@
 				4558523A1D29DAEB00ECE93C /* Constants.swift */,
 				455852421D2A06D800ECE93C /* IconView.swift */,
 				450180471D3493A4001DD4ED /* BubbleView.swift */,
+				45CB87A11D76430C0079E892 /* ShadowLayer.swift */,
 			);
 			name = view;
 			sourceTree = "<group>";
@@ -514,6 +517,7 @@
 				4558524B1D2DBAB600ECE93C /* Settings.swift in Sources */,
 				454DBB981D08E4C30065DA1B /* QuickCache.swift in Sources */,
 				458A73451D0A51E20061FAFD /* SignalExtensions.swift in Sources */,
+				45CB87A21D76430C0079E892 /* ShadowLayer.swift in Sources */,
 				45CB879E1D5BE5820079E892 /* ViewExtensions.swift in Sources */,
 				45AEC00E1CFD1F6700203967 /* XUIView.m in Sources */,
 				45AEC00D1CFD1F6700203967 /* XUIValueAdditions.m in Sources */,
