@@ -471,6 +471,9 @@ class MainView: NSView {
         // also if a conversation is open we want to pop in the background gradient. TODO: animation seems to drop the framerate :/
         hasConversation.observeNext({ isOpen in self.gradientView.alphaValue = (isOpen ? 1.0 : 0); });
 
+        // if a conversation is open, all other conversations go to compact mode for notifications.
+        hasConversation.observeNext({ isOpen in for conversation in self._conversationViews.all() { conversation.displayMode_ = (isOpen ? .Compact : .Normal); } });
+
         // upon activate/deactivate, handle window focus correctly.
         self.state.combinePrevious(.Inactive).observeNext { last, this in
             if last == .Inactive && this != .Inactive {

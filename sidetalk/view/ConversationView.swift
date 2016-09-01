@@ -8,7 +8,9 @@ struct MessageViews {
     let textView: NSTextView;
     let bubble: BubbleView;
     let message: Message;
-}
+};
+
+enum DisplayMode { case Normal, Compact; };
 
 class ConversationView: NSView {
     internal let conversation: Conversation;
@@ -42,6 +44,13 @@ class ConversationView: NSView {
     private let _lastShown = MutableProperty<NSDate>(NSDate.distantPast());
     var lastShown: Signal<NSDate, NoError> { get { return self._lastShown.signal; } };
     var lastShown_: NSDate { get { return self._lastShown.value; } };
+
+    private let _displayMode = MutableProperty<DisplayMode>(.Normal);
+    var displayMode: Signal<DisplayMode, NoError> { get { return self._displayMode.signal; } };
+    var displayMode_: DisplayMode {
+        get { return self._displayMode.value; }
+        set { self._displayMode.modify({ _ in newValue }) }
+    };
 
     private let _searchLeecher: STTextDelegate;
     var text: Signal<String, NoError> { get { return self._searchLeecher.text; } };
@@ -289,6 +298,12 @@ class ConversationView: NSView {
                 bubbleView.constrain.left == textView.constrain.left - (ST.message.paddingX + (foreign ? 0 : ST.message.calloutSize + ST.message.outlineWidth)) - (ST.message.outlineWidth / 2),
                 bubbleView.constrain.right == textView.constrain.right + (ST.message.paddingX + (foreign ? ST.message.calloutSize + ST.message.outlineWidth : 0)) + (ST.message.outlineWidth / 2)
             ]);
+
+            // if we're inactive and in compact mode, clear out the previous bubble.
+            if !self.active_ && self.displayMode_ == .Compact && self.messageViews.count > 1 {
+                self.messageViews[1].textView.alphaValue = 0;
+                self.messageViews[1].bubble.alphaValue = 0;
+            }
         });
     }
 
