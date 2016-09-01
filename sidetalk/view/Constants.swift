@@ -55,7 +55,7 @@ class ST {
         let composeMargin = CGFloat(6);
         let composeTextSize = CGFloat(12);
 
-        let composeBg = NSColor.init(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.9).CGColor;
+        let composeBg = NSColor.init(red: 0.88, green: 0.88, blue: 0.88, alpha: 0.9).CGColor;
         let composeOutline = NSColor.init(red: 0, green: 0, blue: 0, alpha: 0.1).CGColor;
 
         let sendLockout = NSTimeInterval(0.1);

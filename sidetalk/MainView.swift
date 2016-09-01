@@ -27,6 +27,7 @@ class STScrollView: NSScrollView {
 class MainView: NSView {
     internal let connection: Connection;
 
+    private let gradientView = GradientView();
     private let _statusTile: StatusTile;
     private var _contactTiles = QuickCache<Contact, ContactTile>();
     private var _conversationViews = QuickCache<Contact, ConversationView>();
@@ -78,6 +79,11 @@ class MainView: NSView {
         self._statusTile = StatusTile(connection: connection, frame: NSRect(origin: NSPoint.zero, size: frame.size));
 
         super.init(frame: frame);
+
+        // background gradient initial state and addition.
+        self.gradientView.frame = NSRect(origin: NSPoint.zero, size: self.frame.size);
+        self.gradientView.alphaValue = 0;
+        self.addSubview(self.gradientView);
 
         // status tile initial positioning.
         self.addSubview(self._statusTile);
@@ -448,8 +454,13 @@ class MainView: NSView {
                 if let contact = this { self._conversationViews.get(contact, orElse: { self.drawConversation(contact.conversation) }).activate(); }
             };
 
+        let hasConversation = activeConversation.map({ x in x != nil });
+
         // we want to trap mouse events if a conversation is open.
-        activeConversation.observeNext({ contact in self.wantsMouseConversation.modify({ _ in contact != nil }) });
+        hasConversation.observeNext({ isOpen in self.wantsMouseConversation.modify({ _ in isOpen }) });
+
+        // also if a conversation is open we want to fade in the background gradient.
+        hasConversation.observeNext({ isOpen in self.gradientView.animator().alphaValue = (isOpen ? 1.0 : 0); });
 
         // upon activate/deactivate, handle window focus correctly.
         self.state.combinePrevious(.Inactive).observeNext { last, this in
