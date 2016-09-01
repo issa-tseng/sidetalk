@@ -44,9 +44,9 @@ class MainView: NSView {
     private var wantsMouseNotifying = MutableProperty<Bool>(false);
     private var wantsMouseConversation = MutableProperty<Bool>(false);
 
-    private var _state: Signal<MainState, NoError>?;
-    private var state_: MainState = .Inactive;
-    var state: Signal<MainState, NoError> { get { return self._state!; } };
+    private var _state = MutableProperty<MainState>(.Inactive);
+    private var state_: MainState { get { return self._state.value; } };
+    var state: Signal<MainState, NoError> { get { return self._state.signal; } };
 
     private let _mouseIdx = MutableProperty<Int?>(nil);
     var mouseIdx_: Int? { get { return self._mouseIdx.value; } };
@@ -220,6 +220,8 @@ class MainView: NSView {
     private func prepare() {
         let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "mainview-scheduler");
         let latestMessage = self.connection.latestMessage;
+        var lastState: (MainState, NSDate) = (.Normal, NSDate());
+        var lastInactive = NSDate.distantPast();
 
         // draw new contacts as required.
         let tiles = self.connection.contacts.map({ (contacts) -> [ContactTile] in
@@ -236,6 +238,30 @@ class MainView: NSView {
         var latestForeignMessage_: Message?; // sort of a deviation from pattern. but i think it's better?
         let latestForeignMessage = latestMessage.filter({ message in message.isForeign() });
         latestForeignMessage.observeNext { message in latestForeignMessage_ = message };
+
+        // figure out which contacts currently have notification bubbles.
+        let notifying = latestForeignMessage.always(0)
+            .merge(latestForeignMessage.always(0).delay(self.messageShown, onScheduler: scheduler))
+            .merge(self.state.always(0))
+            .map { _ -> Set<Contact> in
+                var result = Set<Contact>();
+                let now = NSDate();
+
+                // MAYBE HACK: i *think* we don't actually need to react based on mute, just readonce it.
+                if !self.mutedMode_ {
+                    // conversation states have changed. let's look at which have recent messages since the last dismissal.
+                    for conversationView in self._conversationViews.all() {
+                        let conversation = conversationView.conversation;
+                        if let message = conversation.messages.find({ message in message.isForeign() }) {
+                            if message.at.isGreaterThanOrEqualTo(lastInactive) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThanOrEqualTo(now) {
+                                result.insert(conversation.with);
+                            }
+                        }
+                    }
+                }
+
+                return result;
+        };
 
         // calculate the correct sort (and implicitly visibility) of all contacts.
         let sort = self.connection.contacts
@@ -270,9 +296,7 @@ class MainView: NSView {
 
         // determine global state.
         let keyTracker = Impulse.track(Key);
-        var lastState: (MainState, NSDate) = (.Normal, NSDate());
-        var lastInactive = NSDate.distantPast();
-        self._state = GlobalInteraction.sharedInstance.keyPress
+        GlobalInteraction.sharedInstance.keyPress
             .combineLatestWith(sort)
             .combineWithDefault(self._statusTile.searchText, defaultValue: "").map({ ($0.0, $0.1, $1); })
             .scan(.Inactive, { (last, args) -> MainState in
@@ -335,11 +359,11 @@ class MainView: NSView {
                 }
 
                 return last;
-            });
+            })
+            .observeNext({ state in self._state.modify({ _ in state }) });
 
         // keep track of our last state:
         self.state.filter({ state in state != .Inactive }).observeNext({ state in lastState = (state, NSDate()); });
-        self.state.observeNext { state in self.state_ = state };
 
         // keep track of our last dismissal:
         self.state.skipRepeats({ $0 == $1 }).filter({ state in state == .Inactive }).observeNext({ _ in lastInactive = NSDate() });
@@ -348,30 +372,6 @@ class MainView: NSView {
         self.state.map({ $0 == .Inactive }).skipRepeats().observeNext { inactive in
             if inactive { self.killMouse(); } else { self.liveMouse(); }
         };
-
-        // figure out which contacts currently have notification bubbles.
-        let notifying = latestForeignMessage.always(0)
-            .merge(latestForeignMessage.always(0).delay(self.messageShown, onScheduler: scheduler))
-            .merge(self.state.always(0))
-            .map { _ -> Set<Contact> in
-                var result = Set<Contact>();
-                let now = NSDate();
-
-                // MAYBE HACK: i *think* we don't actually need to react based on mute, just readonce it.
-                if !self.mutedMode_ {
-                    // conversation states have changed. let's look at which have recent messages since the last dismissal.
-                    for conversationView in self._conversationViews.all() {
-                        let conversation = conversationView.conversation;
-                        if let message = conversation.messages.find({ message in message.isForeign() }) {
-                            if message.at.isGreaterThanOrEqualTo(lastInactive) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThanOrEqualTo(now) {
-                                result.insert(conversation.with);
-                            }
-                        }
-                    }
-                }
-
-                return result;
-            };
 
         // if there are any contacts currently notifying and we are inactive, create or update a tracking area.
         notifying
