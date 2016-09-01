@@ -25,6 +25,9 @@ class ConversationView: NSView {
     private let scrollContents = NSView();
     private var bottomConstraint: NSLayoutConstraint?;
 
+    private let titleText = NSTextView();
+    private let titleBubble = BubbleView();
+
     private let textLayout = NSLayoutManager();
     private let textStorage = NSTextStorage();
     private let textMeasurer = NSTextView();
@@ -101,6 +104,38 @@ class ConversationView: NSView {
             options: NSLayoutFormatOptions(), metrics: nil, views: views));
         self.scrollView.contentView.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:[scrollContents]|",
             options: NSLayoutFormatOptions(), metrics: nil, views: views));
+
+        // set up the bubble underlying the title.
+        self.titleBubble.color = .Title;
+        self.titleBubble.calloutShown = false;
+        self.titleBubble.alphaValue = 0.6;
+        self.titleBubble.translatesAutoresizingMaskIntoConstraints = false;
+        self.scrollContents.addSubview(self.titleBubble);
+
+        // set up the title inside the scroll area.
+        let title = NSAttributedString(string: "Conversation with \(self.conversation.with.displayName)", attributes: ST.conversation.titleTextAttr);
+        self.titleText.drawsBackground = false;
+        self.titleText.selectable = false;
+        self.titleText.textStorage!.setAttributedString(title);
+        self.titleText.translatesAutoresizingMaskIntoConstraints = false;
+        self.titleText.alphaValue = 0;
+        self.scrollContents.addSubview(self.titleText);
+
+        // layout both title objects.
+        self.scrollContents.addConstraints([
+            self.scrollContents.constrain.top == self.titleText.constrain.top - ST.message.paddingY,
+            self.scrollContents.constrain.left == self.titleText.constrain.left - ST.message.paddingX,
+            self.scrollContents.constrain.right == self.titleText.constrain.right + ST.message.paddingX,
+            self.titleText.constrain.height == ST.conversation.titleTextHeight
+        ]);
+        self.bottomConstraint = (self.scrollContents.constrain.bottom == self.titleText.constrain.bottom + ST.message.paddingY);
+        self.scrollContents.addConstraint(self.bottomConstraint!);
+        self.scrollContents.addConstraints([
+            self.titleBubble.constrain.top == self.titleText.constrain.top - ST.message.paddingY,
+            self.titleBubble.constrain.right == self.titleText.constrain.right + ST.message.paddingX,
+            self.titleBubble.constrain.bottom == self.titleText.constrain.bottom + ST.message.paddingY,
+            self.titleBubble.constrain.left == self.titleText.constrain.left - ST.message.paddingX
+        ]);
 
         // set up an invisible field we'll use to measure message sizes.
         self.textMeasurer.frame = NSRect(origin: NSPoint.zero, size: NSSize(width: 250, height: 0));
@@ -232,8 +267,8 @@ class ConversationView: NSView {
             if let constraint = self.bottomConstraint { self.scrollContents.removeConstraint(constraint); }
 
             if self.messageViews.count == 1 {
-                // lock the top of the scroll contents to the first message.
-                self.scrollContents.addConstraint(self.scrollContents.constrain.top == textView.constrain.top - ST.message.paddingY);
+                // lock the bottom of the title text to the first message.
+                self.scrollContents.addConstraint(self.titleText.constrain.bottom == textView.constrain.top - (2.5 * ST.message.paddingY));
             } else if self.messageViews.count > 1 {
                 // space vertically the new message with the old.
                 let vdist = ST.message.margin + ST.message.paddingY * 2;
@@ -313,8 +348,10 @@ class ConversationView: NSView {
                 }
             }
 
-            // handle compose area.
+            // handle other elements.
             if this {
+                self.titleText.alphaValue = 1.0;
+                self.titleBubble.alphaValue = 0.6;
                 if online {
                     self.textField.alphaValue = 1.0;
                     self.composeBubble.alphaValue = 1.0;
@@ -325,6 +362,8 @@ class ConversationView: NSView {
                 self.window!.makeFirstResponder(self.textField);
                 self.textField.currentEditor()!.moveToEndOfLine(nil); // TODO: actually, remembering where they were would be better.
             } else {
+                self.titleText.alphaValue = 0.0;
+                self.titleBubble.alphaValue = 0.0;
                 self.textField.alphaValue = 0.0;
                 self.composeBubble.alphaValue = 0.0;
             }

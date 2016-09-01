@@ -2,7 +2,7 @@
 import Foundation
 
 class GradientView: NSView {
-    let gradient = NSGradient(startingColor: NSColor(red: 0, green: 0, blue: 0, alpha: 0.18), endingColor: NSColor(red: 0, green: 0, blue: 0, alpha: 0.02))!;
+    let gradient = NSGradient(startingColor: NSColor(red: 0, green: 0, blue: 0, alpha: 0.14), endingColor: NSColor(red: 0, green: 0, blue: 0, alpha: 0.02))!;
 
     override func drawRect(dirtyRect: NSRect) {
         let fullGradient = NSImage(size: self.frame.size, flipped: false) { rect in

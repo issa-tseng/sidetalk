@@ -1,7 +1,7 @@
 
 import Foundation
 
-enum BubbleColor { case Foreign, Own, Compose; }
+enum BubbleColor { case Foreign, Own, Compose, Title; }
 enum CalloutSide { case Left, Right; }
 class BubbleView: NSView {
     private let shapeLayer = CAShapeLayer();
@@ -31,6 +31,8 @@ class BubbleView: NSView {
                                     self.shapeLayer.strokeColor = ST.message.outlineOwn;
             case .Some(.Compose):   self.shapeLayer.fillColor = ST.conversation.composeBg;
                                     self.shapeLayer.strokeColor = ST.conversation.composeOutline;
+            case .Some(.Title):     self.shapeLayer.fillColor = ST.message.bgTitle;
+                                    self.shapeLayer.strokeColor = ST.message.outlineTitle;
             }
         }
     };

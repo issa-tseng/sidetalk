@@ -51,6 +51,9 @@ class ST {
     internal class ConversationConst {
         let minHeight = CGFloat(150);
 
+        let titleTextAttr: [String : AnyObject];
+        let titleTextHeight = CGFloat(19);
+
         let composeHeight = CGFloat(80);
         let composeMargin = CGFloat(6);
         let composeTextSize = CGFloat(12);
@@ -59,6 +62,24 @@ class ST {
         let composeOutline = NSColor.init(red: 0, green: 0, blue: 0, alpha: 0.1).CGColor;
 
         let sendLockout = NSTimeInterval(0.1);
+
+        private init() {
+            let paragraphStyle: NSMutableParagraphStyle = NSParagraphStyle.defaultParagraphStyle().mutableCopy() as! NSMutableParagraphStyle;
+            paragraphStyle.alignment = .Center;
+
+            let shadow = NSShadow();
+            shadow.shadowColor = NSColor(red: 0, green: 0, blue: 0, alpha: 0.3);
+            shadow.shadowBlurRadius = 2;
+            shadow.shadowOffset = NSSize(width: 0, height: 0);
+
+            self.titleTextAttr = [
+                NSForegroundColorAttributeName: NSColor(red: 1, green: 1, blue: 1, alpha: 1),
+                NSKernAttributeName: -0.1,
+                NSFontAttributeName: NSFont.systemFontOfSize(13),
+                NSParagraphStyleAttributeName: paragraphStyle,
+                NSShadowAttributeName: shadow
+            ];
+        }
     }
 
     internal class MainConst {
@@ -76,6 +97,9 @@ class ST {
 
         let bgOwn = NSColor(red: 0.1719, green: 0.1719, blue: 0.1719, alpha: 0.95).CGColor;
         let outlineOwn = NSColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.15).CGColor;
+
+        let bgTitle = NSColor(red: 0.25, green: 0.25, blue: 0.25, alpha: 0.95).CGColor;
+        let outlineTitle = NSColor.clearColor().CGColor;
 
         let margin = CGFloat(2);
         let outlineWidth = CGFloat(2);
