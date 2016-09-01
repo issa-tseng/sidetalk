@@ -270,7 +270,8 @@ class MainView: NSView {
         let sort = self.connection.contacts
             .combineWithDefault(latestMessage.downcastToOptional(), defaultValue: nil).map({ contacts, _ in contacts })
             .combineWithDefault(self._statusTile.searchText, defaultValue: "")
-            .map({ contacts, search -> SortOf<Contact> in
+            .combineWithDefault(notifying, defaultValue: Set<Contact>()).map({ ($0.0, $0.1, $1) })
+            .map({ contacts, search, notifying -> SortOf<Contact> in
                 let (chattedContacts, restContacts) = contacts.part({ contact in contact.conversation.messages.count > 0 });
 
                 let sortedChattedContacts = chattedContacts.sort({ a, b in
@@ -291,7 +292,10 @@ class MainView: NSView {
                     };
 
                     let maxScore = scores.map({ (_, score) in score }).maxElement();
-                    sorted = scores.filter({ (_, score) in score > maxScore! - 0.2 && score > 0.1 }).map({ (contact, _) in contact });
+                    let matches = scores.filter({ (_, score) in score > maxScore! - 0.2 && score > 0.1 }).map({ (contact, _) in contact });
+
+                    let notifyingOverrides = sortedChattedContacts.filter({ contact in notifying.contains(contact) });
+                    sorted = notifyingOverrides + matches.filter({ contact in !notifying.contains(contact) });
                 }
 
                 return SortOf(sorted);
