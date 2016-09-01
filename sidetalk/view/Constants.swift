@@ -92,7 +92,7 @@ class ST {
             NSFontAttributeName: NSFont.systemFontOfSize(12)
         ];
 
-        let bgForeign = NSColor(red: 0.0391, green: 0.2305, blue: 0.3516, alpha: 0.85).CGColor;
+        let bgForeign = NSColor(red: 0, green: 0.4102, blue: 0.6484, alpha: 0.85).CGColor;
         let outlineForeign = NSColor(red: 0.7813, green: 0.8672, blue: 0.9297, alpha: 0.2).CGColor;
 
         let bgOwn = NSColor(red: 0.1719, green: 0.1719, blue: 0.1719, alpha: 0.95).CGColor;
