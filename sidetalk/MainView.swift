@@ -48,6 +48,10 @@ class MainView: NSView {
     private var state_: MainState { get { return self._state.value; } };
     var state: Signal<MainState, NoError> { get { return self._state.signal; } };
 
+    private var _lastInactive = MutableProperty<NSDate>(NSDate.distantPast());
+    private var lastInactive_: NSDate { get { return self._lastInactive.value; } };
+    private var lastInactive: Signal<NSDate, NoError> { get { return self._lastInactive.signal; } };
+
     private let _mouseIdx = MutableProperty<Int?>(nil);
     var mouseIdx_: Int? { get { return self._mouseIdx.value; } };
     var mouseIdx: Signal<Int?, NoError> { get { return self._mouseIdx.signal.skipRepeats({ a, b in a == b }); } };
@@ -221,7 +225,6 @@ class MainView: NSView {
         let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "mainview-scheduler");
         let latestMessage = self.connection.latestMessage;
         var lastState: (MainState, NSDate) = (.Normal, NSDate());
-        var lastInactive = NSDate.distantPast();
 
         // draw new contacts as required.
         let tiles = self.connection.contacts.map({ (contacts) -> [ContactTile] in
@@ -242,7 +245,7 @@ class MainView: NSView {
         // figure out which contacts currently have notification bubbles.
         let notifying = latestForeignMessage.always(0)
             .merge(latestForeignMessage.always(0).delay(self.messageShown, onScheduler: scheduler))
-            .merge(self.state.always(0))
+            .merge(self.lastInactive.always(0))
             .map { _ -> Set<Contact> in
                 var result = Set<Contact>();
                 let now = NSDate();
@@ -253,7 +256,7 @@ class MainView: NSView {
                     for conversationView in self._conversationViews.all() {
                         let conversation = conversationView.conversation;
                         if let message = conversation.messages.find({ message in message.isForeign() }) {
-                            if message.at.isGreaterThanOrEqualTo(lastInactive) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThanOrEqualTo(now) {
+                            if message.at.isGreaterThanOrEqualTo(self.lastInactive_) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThanOrEqualTo(now) {
                                 result.insert(conversation.with);
                             }
                         }
@@ -261,7 +264,7 @@ class MainView: NSView {
                 }
 
                 return result;
-        };
+            };
 
         // calculate the correct sort (and implicitly visibility) of all contacts.
         let sort = self.connection.contacts
@@ -294,7 +297,7 @@ class MainView: NSView {
                 return SortOf(sorted);
             });
 
-        // determine global state.
+        // determine global state (gets pushed into MainState._state at the end).
         let keyTracker = Impulse.track(Key);
         GlobalInteraction.sharedInstance.keyPress
             .combineLatestWith(sort)
@@ -334,7 +337,7 @@ class MainView: NSView {
                     let shouldRestore = time.dateByAddingTimeInterval(self.restoreInterval).isGreaterThan(now)
 
                     if let message = latestForeignMessage_ {
-                        if message.at.isGreaterThan(lastInactive) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThan(now) {
+                        if message.at.isGreaterThan(self.lastInactive_) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThan(now) {
                             switch (shouldRestore, state) {
                             case (true, let .Chatting(_, previous)): return .Chatting(message.conversation.with, previous);
                             case (true, .Searching(_, _)): return .Chatting(message.conversation.with, .Normal);
@@ -366,7 +369,9 @@ class MainView: NSView {
         self.state.filter({ state in state != .Inactive }).observeNext({ state in lastState = (state, NSDate()); });
 
         // keep track of our last dismissal:
-        self.state.skipRepeats({ $0 == $1 }).filter({ state in state == .Inactive }).observeNext({ _ in lastInactive = NSDate() });
+        self.state.skipRepeats({ $0 == $1 }).filter({ state in state == .Inactive }).observeNext({ _ in
+            dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), { self._lastInactive.modify({ _ in NSDate() }) });
+        });
 
         // wire/dewire mouse depending on our state:
         self.state.map({ $0 == .Inactive }).skipRepeats().observeNext { inactive in
