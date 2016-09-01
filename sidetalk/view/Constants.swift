@@ -52,7 +52,7 @@ class ST {
         let minHeight = CGFloat(150);
 
         let titleTextAttr: [String : AnyObject];
-        let titleTextHeight = CGFloat(19);
+        let titleTextHeight = CGFloat(14);
 
         let composeHeight = CGFloat(80);
         let composeMargin = CGFloat(6);
@@ -75,7 +75,7 @@ class ST {
             self.titleTextAttr = [
                 NSForegroundColorAttributeName: NSColor(red: 1, green: 1, blue: 1, alpha: 1),
                 NSKernAttributeName: -0.1,
-                NSFontAttributeName: NSFont.systemFontOfSize(13),
+                NSFontAttributeName: NSFont.systemFontOfSize(10),
                 NSParagraphStyleAttributeName: paragraphStyle,
                 NSShadowAttributeName: shadow
             ];
@@ -98,7 +98,7 @@ class ST {
         let bgOwn = NSColor(red: 0.1719, green: 0.1719, blue: 0.1719, alpha: 0.95).CGColor;
         let outlineOwn = NSColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.15).CGColor;
 
-        let bgTitle = NSColor(red: 0.25, green: 0.25, blue: 0.25, alpha: 0.95).CGColor;
+        let bgTitle = NSColor(red: 0, green: 0, blue: 0, alpha: 0.9).CGColor;
         let outlineTitle = NSColor.clearColor().CGColor;
 
         let margin = CGFloat(2);

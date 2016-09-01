@@ -459,8 +459,8 @@ class MainView: NSView {
         // we want to trap mouse events if a conversation is open.
         hasConversation.observeNext({ isOpen in self.wantsMouseConversation.modify({ _ in isOpen }) });
 
-        // also if a conversation is open we want to fade in the background gradient.
-        hasConversation.observeNext({ isOpen in self.gradientView.animator().alphaValue = (isOpen ? 1.0 : 0); });
+        // also if a conversation is open we want to pop in the background gradient. TODO: animation seems to drop the framerate :/
+        hasConversation.observeNext({ isOpen in self.gradientView.alphaValue = (isOpen ? 1.0 : 0); });
 
         // upon activate/deactivate, handle window focus correctly.
         self.state.combinePrevious(.Inactive).observeNext { last, this in
