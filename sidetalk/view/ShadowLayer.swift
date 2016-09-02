@@ -44,8 +44,7 @@ class ShadowLayer: CALayer {
         blurFilter.setValue(self._radius, forKey: "inputRadius");
 
         // feed the image into the filter.
-        var cgRect = CGRect(origin: CGPoint.zero, size: box.size); // mutable so it can be passed by addr.
-        let cgImage = box.CGImageForProposedRect(&cgRect, context: nil, hints: nil)!;
+        let cgImage = box.CGImageForProposedRect(nil, context: NSGraphicsContext.currentContext(), hints: nil)!;
         let ciImage = CIImage(CGImage: cgImage);
         blurFilter.setValue(ciImage, forKey: "inputImage");
 
