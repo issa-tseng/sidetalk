@@ -64,6 +64,18 @@ I'd love to know three things:
 Changelog
 ---------
 
+alpha-2.1
+* some improvements to conversation appearance:
+  * add outline to message bubbles.
+  * colorize bubbles differently.
+  * add a bit of a background to conversations.
+  * add an initial title to each conversation.
+* also improve search text appearance by giving it a bit of a shadow.
+* fix some rare but lethal bugs:
+  * sidetalk could end up trapping the mouse excessively if a notification is clicked.
+  * possible crash when receiving messages (race condition).
+  * mousing above the top of the contact list would crash.
+
 alpha-2
 * mouse and scrolling support on conversation scrollbacks.
 * mouse and scrolling support on contact list.
