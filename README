@@ -35,10 +35,9 @@ Known issues
 
 Most of what's wrong with the app are what it doesn't already do; that's covered below. Here's what -is- in there that doesn't work so well:
 
-1. The conversation view looks bad, especially when you first initiate a conversation with someone. I need to do something about it.
-2. When someone chats you when you're already talking to someone else, the messages can overlap in odd ways.
-3. If you get chatted while you're in search mode and that person doesn't match your search, the notification appears in a sort of arbitrary spot.
-4. I don't think I'm loading everyone's names in the optimal way. I seem to pick up some but not others.
+1. I don't think I'm loading everyone's names in the optimal way. I seem to pick up some but not others.
+2. If you're scrolled upwards and you are messaged, the resulting notification is still offscreen at the bottom.
+3. It's still possible for a notification to overlap with your current conversation if you've typed out more than one line.
 
 What's next
 -----------
