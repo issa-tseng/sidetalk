@@ -112,6 +112,8 @@ class ST {
         let calloutVline = CGFloat(11.5);
 
         let shownFor = NSTimeInterval(5.0);
+
+        let multilineCutoff = CGFloat(15);
     }
 
     internal class OAuthConst {

@@ -30,6 +30,10 @@ class ConversationView: NSView {
     private let titleText = NSTextView();
     private let titleBubble = BubbleView();
 
+    private let truncateText = NSTextField();
+    private let truncateBubble = BubbleView();
+    private var truncateMessage: NSTextView?;
+
     private let textLayout = NSLayoutManager();
     private let textStorage = NSTextStorage();
     private let textMeasurer = NSTextView();
@@ -145,6 +149,27 @@ class ConversationView: NSView {
             self.titleBubble.constrain.bottom == self.titleText.constrain.bottom + ST.message.paddingY,
             self.titleBubble.constrain.left == self.titleText.constrain.left - ST.message.paddingX
         ]);
+
+        // set up the truncated text+bubble for overlong notifications.
+        let truncateBounds = NSRect(origin: NSPoint(x: 0, y: ST.conversation.composeHeight + ST.conversation.composeMargin), size: NSSize(width: self.width, height: 25));
+        self.truncateBubble.calloutShown = true;
+        self.truncateBubble.calloutSide = .Right;
+        self.truncateBubble.color = .Foreign;
+        self.truncateBubble.frame = truncateBounds;
+        self.truncateText.editable = false;
+        self.truncateText.usesSingleLineMode = true;
+        self.truncateText.lineBreakMode = .ByTruncatingTail;
+        self.truncateText.backgroundColor = NSColor.clearColor();
+        self.truncateText.font = NSFont.systemFontOfSize(12);
+        self.truncateText.drawsBackground = false;
+        self.truncateText.bezeled = false;
+        self.truncateText.textColor = NSColor.whiteColor();
+        self.truncateText.frame = NSRect(origin: truncateBounds.insetBy(dx: ST.message.paddingX, dy: ST.message.paddingY).origin,
+                                         size: NSSize(width: self.width - (2 * ST.message.paddingX) - ST.message.calloutSize, height: 16));
+        self.truncateBubble.alphaValue = 0;
+        self.truncateText.alphaValue = 0;
+        self.addSubview(self.truncateBubble);
+        self.addSubview(self.truncateText);
 
         // set up an invisible field we'll use to measure message sizes.
         self.textMeasurer.frame = NSRect(origin: NSPoint.zero, size: NSSize(width: 250, height: 0));
@@ -299,10 +324,25 @@ class ConversationView: NSView {
                 bubbleView.constrain.right == textView.constrain.right + (ST.message.paddingX + (foreign ? ST.message.calloutSize + ST.message.outlineWidth : 0)) + (ST.message.outlineWidth / 2)
             ]);
 
+            // hide the fallback bubble.
+            self.truncateText.alphaValue = 0;
+            self.truncateBubble.alphaValue = 0;
+
             // if we're inactive and in compact mode, clear out the previous bubble.
             if !self.active_ && self.displayMode_ == .Compact && self.messageViews.count > 1 {
                 self.messageViews[1].textView.alphaValue = 0;
                 self.messageViews[1].bubble.alphaValue = 0;
+
+                // and if we're too tall, show the fallback bubble instead.
+                if size.height > ST.message.multilineCutoff {
+                    textView.alphaValue = 0;
+                    bubbleView.alphaValue = 0;
+
+                    self.truncateText.stringValue = message.body;
+                    self.truncateText.animator().alphaValue = 1;
+                    self.truncateBubble.animator().alphaValue = 1;
+                    self.truncateMessage = textView;
+                }
             }
         });
     }
@@ -352,10 +392,17 @@ class ConversationView: NSView {
                 let now = NSDate();
                 for messagePack in self.messageViews {
                     if messagePack.message.at.dateByAddingTimeInterval(ST.message.shownFor).isLessThanOrEqualTo(now) {
-                        animationWithDuration(0.15, {
-                            messagePack.textView.animator().alphaValue = 0.0;
-                            messagePack.bubble.animator().alphaValue = 0.0;
-                        });
+                        if messagePack.textView == self.truncateMessage {
+                            animationWithDuration(0.15, {
+                                self.truncateText.animator().alphaValue = 0.0;
+                                self.truncateBubble.animator().alphaValue = 0.0;
+                            });
+                        } else {
+                            animationWithDuration(0.15, {
+                                messagePack.textView.animator().alphaValue = 0.0;
+                                messagePack.bubble.animator().alphaValue = 0.0;
+                            });
+                        }
                     } else {
                         // no point in running through the rest.
                         break;
@@ -374,6 +421,8 @@ class ConversationView: NSView {
                     self.textField.alphaValue = 0.3;
                     self.composeBubble.alphaValue = 0.4;
                 }
+                self.truncateText.alphaValue = 0;
+                self.truncateBubble.alphaValue = 0;
                 self.window!.makeFirstResponder(self.textField);
                 self.textField.currentEditor()!.moveToEndOfLine(nil); // TODO: actually, remembering where they were would be better.
             } else {
