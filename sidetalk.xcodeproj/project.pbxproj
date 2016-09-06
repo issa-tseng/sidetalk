@@ -27,6 +27,7 @@
 		455852431D2A06D800ECE93C /* IconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455852421D2A06D800ECE93C /* IconView.swift */; };
 		455852451D2DAE4C00ECE93C /* Settings.xib in Resources */ = {isa = PBXBuildFile; fileRef = 455852441D2DAE4C00ECE93C /* Settings.xib */; };
 		4558524B1D2DBAB600ECE93C /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4558524A1D2DBAB600ECE93C /* Settings.swift */; };
+		45691A8C1D7F826200ABD571 /* ModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45691A8B1D7F826200ABD571 /* ModeView.swift */; };
 		457A783E1D0F74DF005D58EF /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A783D1D0F74DF005D58EF /* Conversation.swift */; };
 		457A78401D0F8B57005D58EF /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A783F1D0F8B57005D58EF /* ConversationView.swift */; };
 		457DF9801D0CB0C4008BE043 /* StatusTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457DF97F1D0CB0C4008BE043 /* StatusTile.swift */; };
@@ -98,6 +99,7 @@
 		455852421D2A06D800ECE93C /* IconView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = IconView.swift; path = view/IconView.swift; sourceTree = "<group>"; };
 		455852441D2DAE4C00ECE93C /* Settings.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = Settings.xib; path = ui/Settings.xib; sourceTree = "<group>"; };
 		4558524A1D2DBAB600ECE93C /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Settings.swift; path = ui/Settings.swift; sourceTree = "<group>"; };
+		45691A8B1D7F826200ABD571 /* ModeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ModeView.swift; path = view/ModeView.swift; sourceTree = "<group>"; };
 		457A783D1D0F74DF005D58EF /* Conversation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Conversation.swift; path = viewmodel/Conversation.swift; sourceTree = "<group>"; };
 		457A783F1D0F8B57005D58EF /* ConversationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ConversationView.swift; path = view/ConversationView.swift; sourceTree = "<group>"; };
 		457DF97F1D0CB0C4008BE043 /* StatusTile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = StatusTile.swift; path = view/StatusTile.swift; sourceTree = "<group>"; };
@@ -318,6 +320,7 @@
 				450180471D3493A4001DD4ED /* BubbleView.swift */,
 				45CB87A11D76430C0079E892 /* ShadowLayer.swift */,
 				45CB87A31D77A2DD0079E892 /* GradientView.swift */,
+				45691A8B1D7F826200ABD571 /* ModeView.swift */,
 			);
 			name = view;
 			sourceTree = "<group>";
@@ -522,6 +525,7 @@
 				458A73451D0A51E20061FAFD /* SignalExtensions.swift in Sources */,
 				45CB87A21D76430C0079E892 /* ShadowLayer.swift in Sources */,
 				45CB879E1D5BE5820079E892 /* ViewExtensions.swift in Sources */,
+				45691A8C1D7F826200ABD571 /* ModeView.swift in Sources */,
 				45AEC00E1CFD1F6700203967 /* XUIView.m in Sources */,
 				45AEC00D1CFD1F6700203967 /* XUIValueAdditions.m in Sources */,
 				451282661CFA6F100088DEDE /* MainView.swift in Sources */,

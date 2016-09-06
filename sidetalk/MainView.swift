@@ -29,6 +29,7 @@ class MainView: NSView {
 
     private let gradientView = GradientView();
     private let _statusTile: StatusTile;
+    private let modeView: ModeView;
     private var _contactTiles = QuickCache<Contact, ContactTile>();
     private var _conversationViews = QuickCache<Contact, ConversationView>();
 
@@ -81,6 +82,8 @@ class MainView: NSView {
         // store and init.
         self.connection = connection;
         self._statusTile = StatusTile(connection: connection, frame: NSRect(origin: NSPoint.zero, size: frame.size));
+        self.modeView = ModeView(frame: NSRect(origin: NSPoint(x: frame.width - ST.mode.marginRight - ST.mode.iconSize, y: ST.mode.marginBottom),
+                                               size: NSSize(width: ST.mode.iconSize, height: ST.mode.iconSize * 2)));
 
         super.init(frame: frame);
 
@@ -95,6 +98,7 @@ class MainView: NSView {
             x: frame.width - self.tileSize.width - self.tilePadding + (self.tileSize.height * 0.55),
             y: self.allPadding
         );
+        self.addSubview(self.modeView);
 
         // scrollview basic properties and positioning.
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false;
@@ -124,6 +128,7 @@ class MainView: NSView {
         // set up prepares.
         self.prepare();
         self._statusTile.prepare(self);
+        self.modeView.prepare(self);
 
         // mouse things.
         self.marginTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: frame.width - 2, y: 0), size: frame.size),

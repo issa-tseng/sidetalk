@@ -7,6 +7,7 @@ class ST {
     static let conversation = ConversationConst();
     static let main = MainConst();
     static let message = MessageConst();
+    static let mode = ModeConst();
     static let oauth = OAuthConst();
 
     internal class AvatarConst {
@@ -114,6 +115,14 @@ class ST {
         let shownFor = NSTimeInterval(5.0);
 
         let multilineCutoff = CGFloat(15);
+    }
+
+    internal class ModeConst {
+        let marginBottom = CGFloat(10);
+        let marginRight = CGFloat(4);
+        let iconSize = CGFloat(20);
+        let icon1Y = CGFloat(20);
+        let icon2Y = CGFloat(0);
     }
 
     internal class OAuthConst {
