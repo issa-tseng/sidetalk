@@ -102,11 +102,11 @@ class ST {
         let bgTitle = NSColor(red: 0, green: 0, blue: 0, alpha: 0.9).CGColor;
         let outlineTitle = NSColor.clearColor().CGColor;
 
-        let margin = CGFloat(2);
+        let margin = CGFloat(3);
         let outlineWidth = CGFloat(1.5);
 
         let paddingX = CGFloat(4);
-        let paddingY = CGFloat(4);
+        let paddingY = CGFloat(5);
         let radius = CGFloat(6);
 
         let calloutSize = CGFloat(4);
