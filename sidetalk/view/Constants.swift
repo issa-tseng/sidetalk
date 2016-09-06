@@ -58,7 +58,7 @@ class ST {
         let composeMargin = CGFloat(6);
         let composeTextSize = CGFloat(12);
 
-        let composeBg = NSColor.init(red: 0.88, green: 0.88, blue: 0.88, alpha: 0.9).CGColor;
+        let composeBg = NSColor.init(red: 0.97, green: 0.97, blue: 0.97, alpha: 0.9).CGColor;
         let composeOutline = NSColor.init(red: 0, green: 0, blue: 0, alpha: 0.1).CGColor;
 
         let sendLockout = NSTimeInterval(0.1);
@@ -102,7 +102,7 @@ class ST {
         let outlineTitle = NSColor.clearColor().CGColor;
 
         let margin = CGFloat(2);
-        let outlineWidth = CGFloat(2);
+        let outlineWidth = CGFloat(1.5);
 
         let paddingX = CGFloat(4);
         let paddingY = CGFloat(4);

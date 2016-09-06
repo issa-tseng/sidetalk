@@ -302,7 +302,7 @@ class ConversationView: NSView {
 
             if self.messageViews.count == 1 {
                 // lock the bottom of the title text to the first message.
-                self.scrollContents.addConstraint(self.titleText.constrain.bottom == textView.constrain.top - (2.5 * ST.message.paddingY));
+                self.scrollContents.addConstraint(self.titleText.constrain.bottom == textView.constrain.top - (3 * ST.message.paddingY));
             } else if self.messageViews.count > 1 {
                 // space vertically the new message with the old.
                 let vdist = ST.message.margin + ST.message.paddingY * 2;
