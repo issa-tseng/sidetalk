@@ -436,7 +436,7 @@ class ConversationView: NSView {
 
     private var lastHeight = CGFloat(0);
     private func updateComposeHeight() {
-        let height = (self.textField.stringValue == "") ? 24.0 : min(ST.conversation.composeHeight,
+        let height = (self.textField.stringValue == "") ? 26.0 : min(ST.conversation.composeHeight,
                                                                      self.textField.cell!.cellSizeForBounds(self.textField.bounds).height) + (ST.message.paddingY * 2);
         if height == lastHeight { return; }
         lastHeight = height;
