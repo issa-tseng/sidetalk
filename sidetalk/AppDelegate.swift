@@ -21,6 +21,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var _settingsController: SettingsController?;
     private var _settingsWindow: NSWindow?;
 
+    private var _helpController: HelpController?;
+    private var _helpWindow: NSWindow?;
+
     let WIDTH: CGFloat = 400;
 
     override init() {
@@ -97,12 +100,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self._settingsController = SettingsController(nibName: "Settings", bundle: nil)!;
             self._settingsWindow = NSWindow(contentViewController: self._settingsController!);
 
-            self._settingsWindow?.title = "Sidetalk Preferences";
+            self._settingsWindow!.title = "Sidetalk Preferences";
             self._settingsWindow!.nextResponder = self.window;
             NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(windowClosing), name: NSWindowWillCloseNotification, object: nil);
         }
         self._settingsWindow!.makeKeyAndOrderFront(nil);
         self._settingsShown.modify { _ in true };
+    }
+
+    @IBAction func showHelp(sender: AnyObject) {
+        if self._helpWindow == nil {
+            self._helpController = HelpController(nibName: "Help", bundle: nil)!;
+            self._helpWindow = NSWindow(contentViewController: self._helpController!);
+
+            self._helpWindow!.title = "Getting Started";
+            self._helpWindow!.nextResponder = self.window;
+            self._helpWindow!.minSize = NSSize(width: 700, height: 400);
+        }
+        self._helpWindow!.makeKeyAndOrderFront(nil);
     }
 
     @objc private func windowClosing(notification: NSNotification) {

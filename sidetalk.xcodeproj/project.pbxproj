@@ -28,6 +28,9 @@
 		455852451D2DAE4C00ECE93C /* Settings.xib in Resources */ = {isa = PBXBuildFile; fileRef = 455852441D2DAE4C00ECE93C /* Settings.xib */; };
 		4558524B1D2DBAB600ECE93C /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4558524A1D2DBAB600ECE93C /* Settings.swift */; };
 		45691A8C1D7F826200ABD571 /* ModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45691A8B1D7F826200ABD571 /* ModeView.swift */; };
+		45691A901D7F94FD00ABD571 /* Help.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45691A8F1D7F94FD00ABD571 /* Help.swift */; };
+		45691A921D7FF0D700ABD571 /* Help.xib in Resources */ = {isa = PBXBuildFile; fileRef = 45691A911D7FF0D700ABD571 /* Help.xib */; };
+		45691A941D80CE4B00ABD571 /* web in Resources */ = {isa = PBXBuildFile; fileRef = 45691A931D80CE4B00ABD571 /* web */; };
 		457A783E1D0F74DF005D58EF /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A783D1D0F74DF005D58EF /* Conversation.swift */; };
 		457A78401D0F8B57005D58EF /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A783F1D0F8B57005D58EF /* ConversationView.swift */; };
 		457DF9801D0CB0C4008BE043 /* StatusTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457DF97F1D0CB0C4008BE043 /* StatusTile.swift */; };
@@ -100,6 +103,9 @@
 		455852441D2DAE4C00ECE93C /* Settings.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = Settings.xib; path = ui/Settings.xib; sourceTree = "<group>"; };
 		4558524A1D2DBAB600ECE93C /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Settings.swift; path = ui/Settings.swift; sourceTree = "<group>"; };
 		45691A8B1D7F826200ABD571 /* ModeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ModeView.swift; path = view/ModeView.swift; sourceTree = "<group>"; };
+		45691A8F1D7F94FD00ABD571 /* Help.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Help.swift; path = ui/Help.swift; sourceTree = "<group>"; };
+		45691A911D7FF0D700ABD571 /* Help.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = Help.xib; path = ui/Help.xib; sourceTree = "<group>"; };
+		45691A931D80CE4B00ABD571 /* web */ = {isa = PBXFileReference; lastKnownFileType = folder; path = web; sourceTree = "<group>"; };
 		457A783D1D0F74DF005D58EF /* Conversation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Conversation.swift; path = viewmodel/Conversation.swift; sourceTree = "<group>"; };
 		457A783F1D0F8B57005D58EF /* ConversationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ConversationView.swift; path = view/ConversationView.swift; sourceTree = "<group>"; };
 		457DF97F1D0CB0C4008BE043 /* StatusTile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = StatusTile.swift; path = view/StatusTile.swift; sourceTree = "<group>"; };
@@ -205,6 +211,7 @@
 		4512823B1CF9295C0088DEDE /* sidetalk */ = {
 			isa = PBXGroup;
 			children = (
+				45691A931D80CE4B00ABD571 /* web */,
 				455852491D2DBAA800ECE93C /* ui */,
 				454DBB961D08E47F0065DA1B /* util */,
 				45AEC0141CFD589600203967 /* view */,
@@ -258,6 +265,8 @@
 			children = (
 				455852441D2DAE4C00ECE93C /* Settings.xib */,
 				4558524A1D2DBAB600ECE93C /* Settings.swift */,
+				45691A911D7FF0D700ABD571 /* Help.xib */,
+				45691A8F1D7F94FD00ABD571 /* Help.swift */,
 			);
 			name = ui;
 			sourceTree = "<group>";
@@ -441,8 +450,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				45691A941D80CE4B00ABD571 /* web in Resources */,
 				455852451D2DAE4C00ECE93C /* Settings.xib in Resources */,
 				4512823F1CF9295C0088DEDE /* Assets.xcassets in Resources */,
+				45691A921D7FF0D700ABD571 /* Help.xib in Resources */,
 				451282421CF9295C0088DEDE /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -543,6 +554,7 @@
 				45AEC0061CFD1F6700203967 /* XUIBezierPathAdditions.m in Sources */,
 				452591CE1D222329000CF9F1 /* MainState.swift in Sources */,
 				457DF9801D0CB0C4008BE043 /* StatusTile.swift in Sources */,
+				45691A901D7F94FD00ABD571 /* Help.swift in Sources */,
 				45AEC0081CFD1F6700203967 /* XUIFontAdditions.m in Sources */,
 				458A73431D0A43FB0061FAFD /* GlobalInteraction.swift in Sources */,
 				457A78401D0F8B57005D58EF /* ConversationView.swift in Sources */,
