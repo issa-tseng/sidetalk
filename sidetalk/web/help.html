@@ -2,6 +2,260 @@
 <html>
 <head>
   <style>
+    html, body {
+      font-family: -apple-system, "lucida grande", helvetica, arial;
+      font-size: 62.5%;
+      overflow: hidden;
+      -webkit-user-select: none;
+    }
+
+    div, ul, li, h1, h2, p {
+      border: 0;
+      cursor: default;
+      list-style: none;
+      margin: 0;
+      outline: none;
+      padding: 0;
+      vertical-align: baseline;
+    }
+
+    #left, #right {
+      bottom: 0;
+      position: absolute;
+      top: 0;
+    }
+
+    #left {
+      background-color: #f6f6f6;
+      left: 0;
+      padding: 1em;
+      width: 23em;
+    }
+
+    #left h2 {
+      color: #727272;
+      font-size: 1.6em;
+      font-weight: bold;
+      margin: 1.3em 0 0.3em;
+    }
+
+    #left li {
+      color: #262729;
+      font-size: 2em;
+      margin: 0 -1em;
+      padding: 0.4em 0.8em;
+      padding-left: 1.5em;
+    }
+
+    #left li#getting-started {
+      padding-left: 1em;
+    }
+
+    #right {
+      background-color: #467c97;
+      border-left: 1px solid #ddd;
+      color: #fff;
+      left: 25em;
+      right: 0;
+      padding: 1em;
+    }
+
+    #right h2 {
+      font-size: 3em;
+      margin-bottom: 0.7em;
+    }
+
+    #right p {
+      font-size: 2em;
+      padding-bottom: 1em;
+    }
+
+    #right > div {
+      display: none;
+    }
+
+    #a-getting-started {
+      padding: 1.5em;
+    }
+
+    .b-getting-started #a-getting-started,
+    .b-activate-keyboard #a-activate-keyboard, .b-activate-mouse #a-activate-mouse,
+    .b-finding #a-finding, .b-conversation #a-conversation,
+    .b-mute #a-mute, .b-hide #a-hide {
+      display: block;
+    }
+
+    .b-getting-started #getting-started,
+    .b-activate-keyboard #activate-keyboard, .b-activate-mouse #activate-mouse,
+    .b-finding #finding, .b-conversation #conversation,
+    .b-mute #mute, .b-hide #hide {
+      background: #8e8f92;
+      color: #fff;
+    }
+
+    .mouse, .mouse:before {
+      border: 0 solid transparent;
+      border-bottom-color: #fff;
+      border-bottom-width: 2.2em;
+      border-left-width: 0.8em;
+      border-right-width: 0.8em;
+      height: 0;
+      position: absolute;
+      transform: rotate(-20deg);
+      transition: 0.5s all;
+      width: 0;
+      z-index: 9;
+    }
+
+    .mouse:before {
+      border-bottom-color: #222;
+      border-bottom-width: 1.7em;
+      border-left-width: 0.7em;
+      border-right-width: 0.7em;
+      content: '';
+      left: -0.7em;
+      top: 0.4em;
+      transform: none;
+    }
+
+    .mouse:after {
+      background-color: #222;
+      box-shadow: 0.2em 0.2em 0 #fff, -0.2em 0.2em 0 #fff;
+      content: '';
+      height: 0.5em;
+      left: -0.2em;
+      position: absolute;
+      top: 2em;
+      width: 0.4em;
+    }
+
+    #contacts {
+      bottom: 0;
+      padding-top: 1em;
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 20em;
+    }
+
+    #contacts div {
+      clear: right;
+      float: right;
+      font-size: 1.2em;
+      margin: 1.5em 0;
+      margin-right: 2.6em;
+      position: relative;
+      transition: 0.4s all;
+    }
+
+    #contacts div:first-child { transition-duration: 0.55s; }
+    #contacts div:first-child + div { transition-duration: 0.5s; }
+    #contacts div:first-child + div + div { transition-duration: 0.45s; }
+    #contacts div:first-child + div + div + div { transition-duration: 0.4s; }
+    #contacts div:first-child + div + div + div + div { transition-duration: 0.35s; }
+    #contacts div:first-child + div + div + div + div + div { transition-duration: 0.3s; }
+    #contacts div:first-child + div + div + div + div + div + div { transition-duration: 0.25s; }
+    #contacts div:first-child + div + div + div + div + div + div + div { transition-duration: 0.2s; }
+
+    #contacts div:after {
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      border-radius: 999px;
+      content: "";
+      display: block;
+      height: 3.7em;
+      position: absolute;
+      right: -4.8em;
+      top: -1.1em;
+      width: 3.7em;
+    }
+
+    #contacts div span {
+      background-color: rgba(0, 0, 0, 0.3);
+      border-radius: 0.2em;
+      display: block;
+      opacity: 0;
+      padding: 0.3em 0.4em;
+      text-align: right;
+      transition: 0.6s all;
+    }
+
+    #contacts div.self {
+      margin-top: 3.4em;
+    }
+    #contacts div.self:after {
+      border-color: rgba(170, 255, 255, 0.95);
+    }
+    #contacts div.self:before {
+      background-color: #28cb3d;
+      border: 1px solid #fff;
+      border-radius: 99px;
+      bottom: -0.7em;
+      content: '';
+      display: block;
+      height: 0.6em;
+      left: 4.4em;
+      position: absolute;
+      width: 0.6em;
+      z-index: 1;
+    }
+
+    #contacts.activated div {
+      transform: translateX(-3em);
+    }
+    #contacts.activated div span {
+      opacity: 1;
+    }
+
+    #dock {
+      background: rgba(50, 50, 50, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 0.4em;
+      bottom: -0.4em;
+      left: calc(50% - 8.65em);
+      overflow: hidden;
+      padding: 1em;
+      position: absolute;
+      width: 17.3em;
+    }
+
+    #dock * {
+      float: left;
+      height: 32px;
+      margin-right: 1em;
+      width: 32px;
+    }
+
+    #dock div {
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 1em;
+    }
+
+    #dock img {
+      margin-right: 0;
+    }
+
+    /* PAGE-SPECIFIC */
+    @keyframes mouse-click {
+      0% { transform: scale(0.7) rotate(-20deg); }
+      100% { transform: scale(1.0) rotate(-20deg); }
+    }
+
+    @keyframes activate-mouse-icon-click {
+      0% { filter: brightness(0.7); }
+      100% { filter: brightness(1); }
+    }
+    #a-activate-mouse { padding-top: 4em; padding-left: 3em; }
+    #a-activate-mouse p { opacity: 0.4; transition: 0.3s all; }
+    .b-activate-mouse #a-activate-mouse ~ #contacts { display: block; }
+    .b-activate-mouse #a-activate-mouse ~ #dock { display: block; }
+    .b-activate-mouse #a-activate-mouse .mouse { left: 70%; top: 70%; }
+    .b-activate-mouse #a-activate-mouse.right-edge .mouse { left: calc(100% - 0.6em); top: 65%; }
+    .b-activate-mouse #a-activate-mouse.right-edge .p1 { opacity: 1; }
+    .b-activate-mouse #a-activate-mouse.at-dock .mouse { left: calc(50% + 8em); top: calc(100% - 2.6em); }
+    .b-activate-mouse #a-activate-mouse.dock .p2 { opacity: 1; }
+    .b-activate-mouse #a-activate-mouse.click1 .mouse { animation: 0.2s ease-out 0 "mouse-click"; }
+    .b-activate-mouse #a-activate-mouse.click1 ~ #dock img { animation: 0.2s ease-out 0 "activate-mouse-icon-click"; }
+    .b-activate-mouse #a-activate-mouse.click2 .mouse { animation: 0.2s ease-out 0 "mouse-click"; }
   </style>
 </head>
 <body class="b-getting-started">
@@ -27,14 +281,84 @@
   </div>
   <div id="right">
     <div id="a-getting-started">
-      <h2>Getting Started</h2>
-      <p>Welcome to Sidetalk!</p>
-      <p>Here you'll find some quick tips on how Sidetalk works. They're worth looking over &mdash; Sidetalk is a little different from other apps you may have used, and it should only take a minute.</p>
-      <p>If you ever want to see them again, you can pull this screen up from the Help menu.</p>
-      <p>Once you're done here, you'll be taken to the preferences screen to set up your account and get chatting.</p>
-      <p>Happy Sidetalking!</p>
+      <h2>Welcome to Sidetalk!</h2>
+      <p>Here you'll find some quick tips on how Sidetalk works. They're worth looking over, and it should only take a minute.</p>
+      <p>If you want to see this screen again, use the Help menu above.</p>
+      <p>Once you're done here, you'll be taken to the preferences screen to set up your account.</p>
+    </div>
+    <div id="a-activate-mouse">
+      <div class="mouse"></div>
+      <h2>To activate Sidetalk by mouse,</h2>
+      <p class="p1">mouse over to the right</p>
+      <p class="p2">or click on the dock icon.</p>
+    </div>
+    <div id="contacts">
+      <div><span>Annie</span></div>
+      <div><span>Shirley</span></div>
+      <div><span>Pierce</span></div>
+      <div><span>Troy</span></div>
+      <div><span>Abed</span></div>
+      <div><span>Britta</span></div>
+      <div><span>Jeff</span></div>
+      <div class="self"><span>Craig</span></div>
+    </div>
+    <div id="dock">
+      <div></div>
+      <div></div>
+      <div></div>
+      <img src="appicon.png" alt="sidetalk dock icon"/>
     </div>
   </div>
+
+  <script>
+    var keyframes = {
+      'activate-mouse': {
+        at: 1, set: { 'a-activate-mouse': 'right-edge' }, then: {
+        at: 1.4, set: { contacts: 'activated' }, then: {
+        at: 4, set: { 'a-activate-mouse': null, contacts: null }, then: {
+        at: 6.5, set: { 'a-activate-mouse': 'at-dock' }, then: {
+        at: 7, set: { 'a-activate-mouse': 'at-dock dock click1', contacts: 'activated' }, then: {
+        at: 8, set: { 'a-activate-mouse': 'dock' }, then: {
+        at: 9.5, set: { 'a-activate-mouse': 'click2', contacts: null }, then: {
+        at: 10, reset: true } } } } } } } }
+    };
+
+    var timer = null;
+    var current = null;
+    var dirty = [];
+    var items = document.querySelectorAll('#left li');
+    for (var i = 0; i < items.length; i++) {
+      items[i].addEventListener('click', function() {
+        // set state class.
+        document.body.className = 'b-' + this.id;
+
+        // clear previous animation timer and state.
+        if (timer) window.clearTimeout(timer);
+        dirty.forEach(function(elem) { elem.className = ''; });
+        dirty = [];
+
+        // start the new animation timer.
+        current = keyframes[this.id];
+        startTimer();
+      });
+    }
+
+    var startTimer = function() { timer = window.setTimeout(interrupt(current), current.at * 1000); };
+    var interrupt = function(frame) {
+      return function() {
+        if (frame.set) {
+          for (var id in frame.set) {
+            var elem = document.getElementById(id);
+            elem.className = frame.set[id];
+            if (dirty.indexOf(elem) < 0) dirty.push(elem);
+          }
+        }
+
+        if (frame.reset) startTimer();
+        else timer = window.setTimeout(interrupt(frame.then), (frame.then.at - frame.at) * 1000);
+      };
+    };
+  </script>
 </body>
 </html>
 
