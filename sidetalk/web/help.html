@@ -2,9 +2,10 @@
 <html>
 <head>
   <style>
+    /* CORE */
     html, body {
       font-family: -apple-system, "lucida grande", helvetica, arial;
-      font-size: 62.5%;
+      font-size: 62.5%; /* whoops. this cascaded twice. */
       overflow: hidden;
       -webkit-user-select: none;
     }
@@ -18,6 +19,8 @@
       padding: 0;
       vertical-align: baseline;
     }
+
+    /* BASIC LAYOUT */
 
     #left, #right {
       bottom: 0;
@@ -78,20 +81,24 @@
       padding: 1.5em;
     }
 
+    /* STATE MANAGEMENT */
+
     .b-getting-started #a-getting-started,
     .b-activate-keyboard #a-activate-keyboard, .b-activate-mouse #a-activate-mouse,
-    .b-finding #a-finding, .b-conversation #a-conversation,
+    .b-finding #a-finding, .b-chatting #a-chatting,
     .b-mute #a-mute, .b-hide #a-hide {
       display: block;
     }
 
     .b-getting-started #getting-started,
     .b-activate-keyboard #activate-keyboard, .b-activate-mouse #activate-mouse,
-    .b-finding #finding, .b-conversation #conversation,
+    .b-finding #finding, .b-chatting #chatting,
     .b-mute #mute, .b-hide #hide {
       background: #8e8f92;
       color: #fff;
     }
+
+    /* REUSABLE CLASSES */
 
     .mouse, .mouse:before {
       border: 0 solid transparent;
@@ -128,6 +135,8 @@
       top: 2em;
       width: 0.4em;
     }
+
+    /* COMMON CONTENT ELEMENTS */
 
     #contacts {
       bottom: 0;
@@ -234,11 +243,149 @@
       margin-right: 0;
     }
 
+    #shortcut {
+      position: absolute;
+    }
+
+    #shortcut-keys {
+      margin-bottom: 0.4em;
+    }
+
+    .keys {
+      overflow: hidden;
+    }
+
+    .keys div {
+      background: linear-gradient(to bottom, #eee, #d7d7d7);
+      border: 2px solid #555;
+      border-radius: 0.3em;
+      color: #555;
+      float: left;
+      font-size: 2em;
+      font-weight: bold;
+      margin-right: 0.8em;
+      padding: 1em 1.2em;
+    }
+
+    #shortcut p {
+      font-size: 1em;
+    }
+
+    #conversation {
+      bottom: calc(100% - 37.4em);
+      position: absolute;
+      right: 6em;
+      width: 16em;
+    }
+
+    #conversation div {
+      clear: both;
+      color: #fff;
+      border-radius: 0.2em;
+      display: inline-block;
+      font-size: 1.4em;
+      margin-top: 0.8em;
+      opacity: 0;
+      padding: 0.8em 1em;
+      position: relative;
+      transition: 0.3s opacity;
+    }
+
+    #conversation .own { background-color: #555; float: left; }
+    #conversation .foreign { background-color: #126295; float: right; }
+
+    #conversation .tail:after {
+      border: 0.5em solid transparent;
+      border-left-color: #126295;
+      border-right: none;
+      content: "";
+      display: block;
+      height: 0;
+      right: -0.5em;
+      position: absolute;
+      top: 1em;
+      width: 0;
+    }
+
+    #conversation .compose {
+      background-color: #f7f7f7;
+      color: #333;
+      width: calc(100% - 2em);
+    }
+
+    #conversation .compose:after {
+      border: 0.5em solid transparent;
+      border-left: none;
+      border-right-color: #f7f7f7;
+      content: "";
+      display: block;
+      height: 0;
+      left: -0.5em;
+      position: absolute;
+      top: 1em;
+      width: 0;
+    }
+
+    @keyframes blink { 0% { opacity: 0; } 38% { opacity: 0; } 40% { opacity: 1; } 98% { opacity: 1; } 100% { opacity: 0; } }
+    #conversation .compose span { animation: 1.8s linear 0 infinite forwards blink; }
+
+    #conversation.active div { opacity: 1; }
+    #conversation div { transition-duration: 0.6s; }
+    #conversation div + div { transition-duration: 0.5s; }
+    #conversation div + div + div { transition-duration: 0.4s; }
+    #conversation div + div + div + div { transition-duration: 0.3s; }
+    #conversation div + div + div + div + div { transition-duration: 0.2s; }
+
     /* PAGE-SPECIFIC */
     @keyframes mouse-click {
       0% { transform: scale(0.7) rotate(-20deg); }
       100% { transform: scale(1.0) rotate(-20deg); }
     }
+    @keyframes key-press { 0% { opacity: 0.5; } 5% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0.5; } }
+
+    #a-activate-keyboard { padding-top: 4em; padding-left: 3em; }
+    #a-activate-keyboard p { opacity: 0.4; transition: 0.3s all; }
+    .b-activate-keyboard #a-activate-keyboard ~ #contacts { display: block; }
+    .b-activate-keyboard #a-activate-keyboard ~ #conversation { display: block; }
+    #a-activate-keyboard .p1 { margin-bottom: 6em; }
+    #a-activate-keyboard .keys { margin-bottom: 2em; }
+    #a-activate-keyboard .keys div { opacity: 0.1; transition: 0.6s opacity; }
+    .b-activate-keyboard #a-activate-keyboard ~ #shortcut { display: block; top: 12em; left: 4em; }
+    .b-activate-keyboard #a-activate-keyboard ~ #shortcut .keys div { opacity: 0.1; transition: 0.6s opacity; }
+    .b-activate-keyboard #a-activate-keyboard ~ #shortcut p { opacity: 0.1; transition: 0.6s opacity; }
+    .b-activate-keyboard #a-activate-keyboard.global .p1 { opacity: 1; }
+    .b-activate-keyboard #a-activate-keyboard.global ~ #shortcut .keys div { opacity: 0.4; }
+    .b-activate-keyboard #a-activate-keyboard.global ~ #shortcut p { opacity: 0.9; }
+    .b-activate-keyboard #a-activate-keyboard.global-pressed ~ #shortcut .keys div { opacity: 1; transition-duration: 0.05s; }
+    .b-activate-keyboard #a-activate-keyboard.global-pressed ~ #shortcut .keys div:first-child + div { transition-delay: 0.1s; }
+    .b-activate-keyboard #a-activate-keyboard.global-pressed ~ #shortcut .keys div:first-child + div + div { transition-delay: 0.2s; }
+    .b-activate-keyboard #a-activate-keyboard.global-pressed ~ #shortcut .keys div:first-child + div + div + div { transition-delay: 0.3s; }
+    .b-activate-keyboard #a-activate-keyboard.global-pressed ~ #shortcut .keys div:first-child + div + div + div + div { transition-delay: 0.4s; }
+    .b-activate-keyboard #a-activate-keyboard.navigate .p2 { opacity: 1; }
+    .b-activate-keyboard #a-activate-keyboard.navigate .p2 + .keys div { opacity: 0.4; }
+    .b-activate-keyboard #a-activate-keyboard.navigate.up1t .keys .up { animation: 0.6s linear 0 "key-press"; }
+    .b-activate-keyboard #a-activate-keyboard.navigate.up1 ~ #contacts div { transform: translateX(-0.5em); }
+    .b-activate-keyboard #a-activate-keyboard.navigate.up1 ~ #contacts div.jeff { transform: translateX(-3em); }
+    .b-activate-keyboard #a-activate-keyboard.navigate.up1 ~ #contacts div.self { transform: translateX(-3em); }
+    .b-activate-keyboard #a-activate-keyboard.navigate.up2 .keys .up { animation: 0.6s linear 0 "key-press"; }
+    .b-activate-keyboard #a-activate-keyboard.navigate.up2 ~ #contacts div { transform: translateX(-0.5em); }
+    .b-activate-keyboard #a-activate-keyboard.navigate.up2 ~ #contacts div.britta { transform: translateX(-3em); }
+    .b-activate-keyboard #a-activate-keyboard.navigate.up2 ~ #contacts div.self { transform: translateX(-3em); }
+    .b-activate-keyboard #a-activate-keyboard.navigate.down .keys .down { animation: 0.6s linear 0 "key-press"; }
+    .b-activate-keyboard #a-activate-keyboard.navigate.down ~ #contacts div { transform: translateX(-0.5em); }
+    .b-activate-keyboard #a-activate-keyboard.navigate.down ~ #contacts div.jeff { transform: translateX(-3em); }
+    .b-activate-keyboard #a-activate-keyboard.navigate.down ~ #contacts div.self { transform: translateX(-3em); }
+    .b-activate-keyboard #a-activate-keyboard.navigate.select .keys .enter { animation: 0.6s linear 0 "key-press"; }
+    .b-activate-keyboard #a-activate-keyboard.select ~ #contacts div { transform: translateX(-0.5em); }
+    .b-activate-keyboard #a-activate-keyboard.select ~ #contacts div span { opacity: 0; }
+    .b-activate-keyboard #a-activate-keyboard.select ~ #contacts div.jeff { transform: translateX(-3em); }
+    .b-activate-keyboard #a-activate-keyboard.select ~ #contacts div.self { transform: translateX(-3em); }
+    .b-activate-keyboard #a-activate-keyboard.away .p3 { opacity: 1; }
+    .b-activate-keyboard #a-activate-keyboard.away .p3 + .keys div { opacity: 0.4; }
+    .b-activate-keyboard #a-activate-keyboard.away.esc .keys .escape { animation: 0.6s linear 0 "key-press"; }
+    .b-activate-keyboard #a-activate-keyboard.away.esc1 ~ #contacts div { transform: translateX(-0.5em); }
+    .b-activate-keyboard #a-activate-keyboard.away.esc1 ~ #contacts div.jeff { transform: translateX(-3em); }
+    .b-activate-keyboard #a-activate-keyboard.away.esc1 ~ #contacts div.self { transform: translateX(-3em); }
 
     @keyframes activate-mouse-icon-click {
       0% { filter: brightness(0.7); }
@@ -263,15 +410,15 @@
     <ul>
       <li id="getting-started">Getting started</li>
     </ul>
-    <h2>Activating Sidetalk</h2>
+    <h2>Navigating Sidetalk</h2>
     <ul>
-      <li id="activate-keyboard">By keyboard</li>
       <li id="activate-mouse">By mouse</li>
+      <li id="activate-keyboard">By keyboard</li>
     </ul>
     <h2>Chatting</h2>
     <ul>
-      <li id="finding">Finding a contact</li>
-      <li id="conversation">Chatting</li>
+      <li id="finding">Searching for a contact</li>
+      <li id="chatting">Chatting</li>
     </ul>
     <h2>More features</h2>
     <ul>
@@ -286,6 +433,14 @@
       <p>If you want to see this screen again, use the Help menu above.</p>
       <p>Once you're done here, you'll be taken to the preferences screen to set up your account.</p>
     </div>
+    <div id="a-activate-keyboard">
+      <h2>To navigate Sidetalk by keyboard,</h2>
+      <p class="p1">press the global keyboard shortcut,</p>
+      <p class="p2">then use the arrow keys and enter to chat.</p>
+      <div class="keys"><div class="up">&uarr;</div><div class="down">&darr;</div><div class="enter">Enter</div></div>
+      <p class="p3">Escape or the global shortcut puts Sidetalk away.</p>
+      <div class="keys"><div class="escape">Esc</div></div>
+    </div>
     <div id="a-activate-mouse">
       <div class="mouse"></div>
       <h2>To activate Sidetalk by mouse,</h2>
@@ -298,8 +453,8 @@
       <div><span>Pierce</span></div>
       <div><span>Troy</span></div>
       <div><span>Abed</span></div>
-      <div><span>Britta</span></div>
-      <div><span>Jeff</span></div>
+      <div class="britta"><span>Britta</span></div>
+      <div class="jeff"><span>Jeff</span></div>
       <div class="self"><span>Craig</span></div>
     </div>
     <div id="dock">
@@ -308,10 +463,61 @@
       <div></div>
       <img src="appicon.png" alt="sidetalk dock icon"/>
     </div>
+    <div id="shortcut">
+      <div id="shortcut-keys" class="keys"></div>
+      <p>(customizable in preferences)</p>
+    </div>
+    <div id="conversation">
+      <div class="own">hi jeff!</div>
+      <div class="foreign">what do you want?</div>
+      <div class="own">i'm having a party tonight</div>
+      <div class="foreign tail">no.</div>
+      <div class="compose"><span>|</span></div>
+    </div>
   </div>
 
   <script>
+    var shortcutKeys = document.getElementById("shortcut-keys");
+    var shortcut = window.globalActivation || '\u2303Enter';
+    var modifiers = [ '\u2303', '\u2325', '\u2318', '\u21e7' ]; // ctrl opt cmd shift
+    var addShortcutKey = function(contents) {
+      var elem = document.createElement('div');
+      elem.innerText = contents;
+      shortcutKeys.appendChild(elem);
+    };
+    while (true) {
+      if (modifiers.indexOf(shortcut.charAt(0)) >= 0 ) {
+        addShortcutKey(shortcut.charAt(0));
+        shortcut = shortcut.slice(1);
+      } else {
+        addShortcutKey(shortcut);
+        break;
+      }
+    }
+
     var keyframes = {
+      'activate-keyboard': {
+        at: 0.2, set: { 'a-activate-keyboard': 'global' }, then: {
+        at: 3, set: { 'a-activate-keyboard': 'global global-pressed' }, then: {
+        at: 3.3, set: { contacts: 'activated' }, then: { 
+        at: 4, set: { 'a-activate-keyboard': 'global' }, then: {
+        at: 5.5, set: { 'a-activate-keyboard': null }, then: {
+        at: 7, set: { 'a-activate-keyboard': 'navigate' }, then: {
+        at: 9.5, set: { 'a-activate-keyboard': 'navigate up1 up1t' }, then: {
+        at: 10.4, set: { 'a-activate-keyboard': 'navigate up1' }, then: {
+        at: 10.5, set: { 'a-activate-keyboard': 'navigate up2' }, then: {
+        at: 11.5, set: { 'a-activate-keyboard': 'navigate down' }, then: {
+        at: 13, set: { 'a-activate-keyboard': 'navigate select', conversation: 'active' }, then: {
+        at: 15, set: { 'a-activate-keyboard': 'select' }, then: {
+        at: 16, set: { 'a-activate-keyboard': 'away select' }, then: {
+        at: 18, set: { 'a-activate-keyboard': 'away esc1 esc', conversation: null }, then: {
+        at: 18.9, set: { 'a-activate-keyboard': 'away esc1' }, then: {
+        at: 19, set: { 'a-activate-keyboard': 'away esc2 esc' }, then: {
+        at: 19.9, set: { 'a-activate-keyboard': 'away esc2' }, then: {
+        at: 20, set: { 'a-activate-keyboard': 'away esc', contacts: null }, then: {
+        at: 21, set: { 'a-activate-keyboard': null }, then: {
+        at: 22, reset: true } } } } } } } } } } } } } } } } } } }
+      },
       'activate-mouse': {
         at: 1, set: { 'a-activate-mouse': 'right-edge' }, then: {
         at: 1.4, set: { contacts: 'activated' }, then: {
@@ -339,7 +545,7 @@
 
         // start the new animation timer.
         current = keyframes[this.id];
-        startTimer();
+        if (current) startTimer();
       });
     }
 
@@ -355,7 +561,7 @@
         }
 
         if (frame.reset) startTimer();
-        else timer = window.setTimeout(interrupt(frame.then), (frame.then.at - frame.at) * 1000);
+        else if (frame.then) timer = window.setTimeout(interrupt(frame.then), (frame.then.at - frame.at) * 1000);
       };
     };
   </script>

@@ -1,8 +1,9 @@
 
-import Foundation
-import WebKit
+import Foundation;
+import WebKit;
+import MASShortcut;
 
-class HelpController: NSViewController {
+class HelpController: NSViewController, WebFrameLoadDelegate {
     @IBOutlet private var webView: WebView?;
 
     override func viewWillAppear() {
@@ -12,8 +13,18 @@ class HelpController: NSViewController {
         NSLog(NSBundle.mainBundle().pathForResource("help", ofType: "html", inDirectory: "web") ?? "no path");
 
         if let path = NSBundle.mainBundle().pathForResource("help", ofType: "html", inDirectory: "web"), let webView = self.webView {
+            webView.frameLoadDelegate = self;
             webView.mainFrame.loadRequest(NSURLRequest(URL: NSURL.fileURLWithPath(path)));
         }
+    }
+
+    func webView(webView: WebView!, didClearWindowObject windowObject: WebScriptObject!, forFrame frame: WebFrame!) {
+        // the webview window is ready to receive values; populate it with our current shortcut key.
+        let data = NSUserDefaults.standardUserDefaults().dataForKey("globalActivation");
+        let shortcut: MASShortcut = (data == nil) ?
+            MASShortcut.init(keyCode: 0x31, modifierFlags: NSEventModifierFlags.ControlKeyMask.rawValue) :
+            try! NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data!) as! MASShortcut;
+        windowObject.setValue(shortcut.description, forKey: "globalActivation");
     }
 
     @IBAction func done(sender: AnyObject) {
