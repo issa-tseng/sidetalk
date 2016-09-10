@@ -136,6 +136,9 @@
       width: 0.4em;
     }
 
+    @keyframes blink { 0% { opacity: 1; } 60% { opacity: 1; } 63% { opacity: 0; } 97% { opacity: 0; } 100% { opacity: 1; } }
+    .blink { animation: 1.8s linear 0 infinite forwards blink; }
+
     /* COMMON CONTENT ELEMENTS */
 
     #contacts {
@@ -213,6 +216,37 @@
     }
     #contacts.activated div span {
       opacity: 1;
+    }
+
+    #contacts .search {
+      bottom: 1.3em;
+      display: none;
+      font-weight: normal;
+      position: absolute;
+      right: 2.6em;
+    }
+
+    #contacts .search .icon {
+      border: 4px solid #ddd;
+      border-radius: 99px;
+      display: block;
+      height: 0.5em;
+      position: absolute;
+      right: -1.65em;
+      top: 0.1em;
+      width: 0.5em;
+    }
+
+    #contacts .search .icon:after {
+      background-color: #ddd;
+      bottom: -0.3em;
+      content: "";
+      display: block;
+      height: 0.35em;
+      position: absolute;
+      right: -0.25em;
+      transform: rotate(-45deg);
+      width: 4px;
     }
 
     #dock {
@@ -326,9 +360,6 @@
       width: 0;
     }
 
-    @keyframes blink { 0% { opacity: 0; } 38% { opacity: 0; } 40% { opacity: 1; } 98% { opacity: 1; } 100% { opacity: 0; } }
-    #conversation .compose span { animation: 1.8s linear 0 infinite forwards blink; }
-
     #conversation.active div { opacity: 1; }
     #conversation div { transition-duration: 0.6s; }
     #conversation div + div { transition-duration: 0.5s; }
@@ -342,6 +373,7 @@
       100% { transform: scale(1.0) rotate(-20deg); }
     }
     @keyframes key-press { 0% { opacity: 0.5; } 5% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0.5; } }
+    @keyframes dock-icon-click { 0% { filter: brightness(0.7); } 100% { filter: brightness(1); } }
 
     #a-activate-keyboard { padding-top: 4em; padding-left: 3em; }
     #a-activate-keyboard p { opacity: 0.4; transition: 0.3s all; }
@@ -387,10 +419,6 @@
     .b-activate-keyboard #a-activate-keyboard.away.esc1 ~ #contacts div.jeff { transform: translateX(-3em); }
     .b-activate-keyboard #a-activate-keyboard.away.esc1 ~ #contacts div.self { transform: translateX(-3em); }
 
-    @keyframes activate-mouse-icon-click {
-      0% { filter: brightness(0.7); }
-      100% { filter: brightness(1); }
-    }
     #a-activate-mouse { padding-top: 4em; padding-left: 3em; }
     #a-activate-mouse p { opacity: 0.4; transition: 0.3s all; }
     .b-activate-mouse #a-activate-mouse ~ #contacts { display: block; }
@@ -398,11 +426,43 @@
     .b-activate-mouse #a-activate-mouse .mouse { left: 70%; top: 70%; }
     .b-activate-mouse #a-activate-mouse.right-edge .mouse { left: calc(100% - 0.6em); top: 65%; }
     .b-activate-mouse #a-activate-mouse.right-edge .p1 { opacity: 1; }
-    .b-activate-mouse #a-activate-mouse.at-dock .mouse { left: calc(50% + 8em); top: calc(100% - 2.6em); }
     .b-activate-mouse #a-activate-mouse.dock .p2 { opacity: 1; }
+    .b-activate-mouse #a-activate-mouse.at-dock .mouse { left: calc(50% + 8em); top: calc(100% - 2.6em); }
     .b-activate-mouse #a-activate-mouse.click1 .mouse { animation: 0.2s ease-out 0 "mouse-click"; }
-    .b-activate-mouse #a-activate-mouse.click1 ~ #dock img { animation: 0.2s ease-out 0 "activate-mouse-icon-click"; }
+    .b-activate-mouse #a-activate-mouse.click1 ~ #dock img { animation: 0.2s ease-out 0 "dock-icon-click"; }
     .b-activate-mouse #a-activate-mouse.click2 .mouse { animation: 0.2s ease-out 0 "mouse-click"; }
+
+    #a-finding { padding-top: 4em; padding-left: 3em; }
+    #a-finding p { opacity: 0.4; transition: 0.3s all; }
+    #a-finding .keys div { opacity: 0.1; }
+    .b-finding #a-finding ~ #contacts { display: block; }
+    .b-finding #a-finding ~ #dock { display: block; }
+    .b-finding #a-finding .mouse { left: 70%; top: 70%; }
+    .b-finding #a-finding.first-activate .p1 { opacity: 1; }
+    .b-finding #a-finding.at-dock .mouse { left: calc(50% + 8em); top: calc(100% - 2.6em); }
+    .b-finding #a-finding.click .mouse { animation: 0.2s ease-out 0 "mouse-click"; }
+    .b-finding #a-finding.click ~ #dock img { animation: 0.2s ease-out 0 "dock-icon-click"; }
+    .b-finding #a-finding.begin-typing .p2 { opacity: 1; }
+    .b-finding #a-finding.type-b ~ #contacts .search { display: block; }
+    .b-finding #a-finding.type-b ~ #contacts .search:before { content: 'b'; }
+    .b-finding #a-finding.type-b ~ #contacts div { transform: translateX(2em); }
+    .b-finding #a-finding.type-b ~ #contacts div span { opacity: 0; }
+    .b-finding #a-finding.type-b ~ #contacts .britta { transform: translateX(-3em) translateY(4.8em); }
+    .b-finding #a-finding.type-b ~ #contacts .britta span { opacity: 1; }
+    .b-finding #a-finding.type-b ~ #contacts .abed { transform: translateX(-3em) translateY(4.8em); }
+    .b-finding #a-finding.type-b ~ #contacts .abed span { opacity: 1; }
+    .b-finding #a-finding.type-b ~ #contacts .self { transform: translateX(-3em); }
+    .b-finding #a-finding.type-br ~ #contacts .search { display: block; }
+    .b-finding #a-finding.type-br ~ #contacts .search:before { content: 'br'; }
+    .b-finding #a-finding.type-br ~ #contacts div { transform: translateX(2em); }
+    .b-finding #a-finding.type-br ~ #contacts div span { opacity: 0; }
+    .b-finding #a-finding.type-br ~ #contacts .britta { transform: translateX(-3em) translateY(4.8em); }
+    .b-finding #a-finding.type-br ~ #contacts .britta span { opacity: 1; }
+    .b-finding #a-finding.type-br ~ #contacts .abed { transform: translateX(2em) translateY(4.8em); }
+    .b-finding #a-finding.type-br ~ #contacts .self { transform: translateX(-3em); }
+    .b-finding #a-finding.clear-search .p3 { opacity: 1; }
+    .b-finding #a-finding.clear-search .keys div { opacity: 0.5; }
+    .b-finding #a-finding.esc .keys .escape { animation: 0.6s linear 0 "key-press"; }
   </style>
 </head>
 <body class="b-getting-started">
@@ -443,19 +503,28 @@
     </div>
     <div id="a-activate-mouse">
       <div class="mouse"></div>
-      <h2>To activate Sidetalk by mouse,</h2>
+      <h2>To navigate Sidetalk by mouse,</h2>
       <p class="p1">mouse over to the right</p>
       <p class="p2">or click on the dock icon.</p>
+    </div>
+    <div id="a-finding">
+      <div class="mouse"></div>
+      <h2>To find someone by name,</h2>
+      <p class="p1">activate Sidetalk by mouse or keyboard</p>
+      <p class="p2">then begin typing.</p>
+      <p class="p3">Escape will clear the search.</p>
+      <div class="keys"><div class="escape">Esc</div></div>
     </div>
     <div id="contacts">
       <div><span>Annie</span></div>
       <div><span>Shirley</span></div>
       <div><span>Pierce</span></div>
       <div><span>Troy</span></div>
-      <div><span>Abed</span></div>
+      <div class="abed"><span>Abed</span></div>
       <div class="britta"><span>Britta</span></div>
       <div class="jeff"><span>Jeff</span></div>
       <div class="self"><span>Craig</span></div>
+      <h2 class="search"><span class="blink">|</span><span class="icon"></span></h2>
     </div>
     <div id="dock">
       <div></div>
@@ -472,13 +541,13 @@
       <div class="foreign">what do you want?</div>
       <div class="own">i'm having a party tonight</div>
       <div class="foreign tail">no.</div>
-      <div class="compose"><span>|</span></div>
+      <div class="compose"><span class="blink">|</span></div>
     </div>
   </div>
 
   <script>
     var shortcutKeys = document.getElementById("shortcut-keys");
-    var shortcut = window.globalActivation || '\u2303Enter';
+    var shortcut = window.globalActivation || '\u2303Enter'; // actually the native app always provides something; the fallback is for html testing.
     var modifiers = [ '\u2303', '\u2325', '\u2318', '\u21e7' ]; // ctrl opt cmd shift
     var addShortcutKey = function(contents) {
       var elem = document.createElement('div');
@@ -516,8 +585,8 @@
         at: 19.9, set: { 'a-activate-keyboard': 'away esc2' }, then: {
         at: 20, set: { 'a-activate-keyboard': 'away esc', contacts: null }, then: {
         at: 21, set: { 'a-activate-keyboard': null }, then: {
-        at: 22, reset: true } } } } } } } } } } } } } } } } } } }
-      },
+        at: 22, reset: true } } } } } } } } } } } } } } } } } } } },
+
       'activate-mouse': {
         at: 1, set: { 'a-activate-mouse': 'right-edge' }, then: {
         at: 1.4, set: { contacts: 'activated' }, then: {
@@ -526,7 +595,20 @@
         at: 7, set: { 'a-activate-mouse': 'at-dock dock click1', contacts: 'activated' }, then: {
         at: 8, set: { 'a-activate-mouse': 'dock' }, then: {
         at: 9.5, set: { 'a-activate-mouse': 'click2', contacts: null }, then: {
-        at: 10, reset: true } } } } } } } }
+        at: 10, reset: true } } } } } } } },
+
+      'finding': {
+        at: 1, set: { 'a-finding': 'first-activate at-dock' }, then: {
+        at: 1.5, set: { 'a-finding': 'first-activate at-dock click', contacts: 'activated' }, then: {
+        at: 3, set: { 'a-finding': 'begin-typing at-dock' }, then: {
+        at: 6, set: { 'a-finding': 'begin-typing type-b at-dock' }, then: {
+        at: 8.5, set: { 'a-finding': 'begin-typing type-br at-dock' }, then: {
+        at: 10, set: { 'a-finding': 'clear-search type-br at-dock' }, then: {
+        at: 12, set: { 'a-finding': 'clear-search esc at-dock' }, then: {
+        at: 13.9, set: { 'a-finding': 'clear-search at-dock' }, then: {
+        at: 14, set: { 'a-finding': 'clear-search esc at-dock', 'contacts': null }, then: {
+        at: 15.5, set: { 'a-finding': null }, then: {
+        at: 16, reset: true } } } } } } } } } } }
     };
 
     var timer = null;
