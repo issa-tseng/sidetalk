@@ -227,26 +227,26 @@
     }
 
     #contacts .search .icon {
-      border: 4px solid #ddd;
+      border: 3px solid #ddd;
       border-radius: 99px;
       display: block;
-      height: 0.5em;
+      height: 0.4em;
       position: absolute;
-      right: -1.65em;
-      top: 0.1em;
-      width: 0.5em;
+      right: -1.6em;
+      top: 0.2em;
+      width: 0.4em;
     }
 
     #contacts .search .icon:after {
       background-color: #ddd;
-      bottom: -0.3em;
+      bottom: -0.25em;
       content: "";
       display: block;
-      height: 0.35em;
+      height: 0.3em;
       position: absolute;
-      right: -0.25em;
+      right: -0.2em;
       transform: rotate(-45deg);
-      width: 4px;
+      width: 3px;
     }
 
     #dock {
@@ -327,6 +327,7 @@
 
     #conversation .own { background-color: #555; float: left; }
     #conversation .foreign { background-color: #126295; float: right; }
+    #conversation .new { display: none; }
 
     #conversation .tail:after {
       border: 0.5em solid transparent;
@@ -372,7 +373,7 @@
       0% { transform: scale(0.7) rotate(-20deg); }
       100% { transform: scale(1.0) rotate(-20deg); }
     }
-    @keyframes key-press { 0% { opacity: 0.5; } 5% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0.5; } }
+    @keyframes key-press { 0% { opacity: 0.5; transform: scale(0.7); } 5% { opacity: 1; transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0.5; } }
     @keyframes dock-icon-click { 0% { filter: brightness(0.7); } 100% { filter: brightness(1); } }
 
     #a-activate-keyboard { padding-top: 4em; padding-left: 3em; }
@@ -463,6 +464,32 @@
     .b-finding #a-finding.clear-search .p3 { opacity: 1; }
     .b-finding #a-finding.clear-search .keys div { opacity: 0.5; }
     .b-finding #a-finding.esc .keys .escape { animation: 0.6s linear 0 "key-press"; }
+
+    #a-chatting { padding-top: 4em; padding-left: 3em; }
+    #a-chatting p { opacity: 0.4; transition: 0.3s all; }
+    #a-chatting .keys { margin-bottom: 2em; }
+    #a-chatting .keys div { opacity: 0.1; transition: 0.6s opacity; }
+    .b-chatting #a-chatting ~ #contacts { display: block; }
+    .b-chatting #a-chatting ~ #conversation { display: block; }
+    .b-chatting #a-chatting .mouse { left: calc(100% - 25em); top: 70%; }
+    .b-chatting #a-chatting.select .p1 { opacity: 1; }
+    .b-chatting #a-chatting.at-right .mouse { left: calc(100% - 0.6em); top: 32em; }
+    .b-chatting #a-chatting.at-contact .mouse { left: calc(100% - 3em); top: 32em; }
+    .b-chatting #a-chatting.click .mouse { animation: 0.2s ease-out 0 "mouse-click"; }
+    .b-chatting #a-chatting.message .p2 { opacity: 1; }
+    .b-chatting #a-chatting.chatting ~ #contacts div { transform: translateX(0); }
+    .b-chatting #a-chatting.chatting ~ #contacts .jeff { transform: translateX(-3em); }
+    .b-chatting #a-chatting.chatting ~ #contacts div span { opacity: 0; }
+    .b-chatting #a-chatting.type-a ~ #conversation .compose:before { content: 'a'; }
+    .b-chatting #a-chatting.type-aw ~ #conversation .compose:before { content: 'aw'; }
+    .b-chatting #a-chatting.type-aww ~ #conversation .compose:before { content: 'aww'; }
+    .b-chatting #a-chatting.type-awww ~ #conversation .compose:before { content: 'awww'; }
+    .b-chatting #a-chatting.enter .keys .enter { animation: 0.6s linear 0 "key-press"; }
+    .b-chatting #a-chatting.messaged ~ #conversation .own.new { display: block; }
+    .b-chatting #a-chatting.response .p3 { opacity: 1; }
+    .b-chatting #a-chatting.notification ~ #contacts .jeff { transform: translateX(-3em); }
+    .b-chatting #a-chatting.response ~ #conversation div { visibility: hidden; }
+    .b-chatting #a-chatting.response ~ #conversation div.foreign.new { display: block; visibility: visible; }
   </style>
 </head>
 <body class="b-getting-started">
@@ -510,10 +537,18 @@
     <div id="a-finding">
       <div class="mouse"></div>
       <h2>To find someone by name,</h2>
-      <p class="p1">activate Sidetalk by mouse or keyboard</p>
+      <p class="p1">activate Sidetalk by dock icon or keyboard</p>
       <p class="p2">then begin typing.</p>
       <p class="p3">Escape will clear the search.</p>
       <div class="keys"><div class="escape">Esc</div></div>
+    </div>
+    <div id="a-chatting">
+      <div class="mouse"></div>
+      <h2>Chatting is easy:</h2>
+      <p class="p1">select someone by keyboard or mouse to chat.</p>
+      <p class="p2">Type your message and press Enter to send.</p>
+      <div class="keys"><div class="enter">Enter</div></div>
+      <p class="p3">When they message you back, you'll see the message immediately.</p>
     </div>
     <div id="contacts">
       <div><span>Annie</span></div>
@@ -541,6 +576,8 @@
       <div class="foreign">what do you want?</div>
       <div class="own">i'm having a party tonight</div>
       <div class="foreign tail">no.</div>
+      <div class="own new">awww</div>
+      <div class="foreign new tail">fiiiine. where?</div>
       <div class="compose"><span class="blink">|</span></div>
     </div>
   </div>
@@ -608,7 +645,25 @@
         at: 13.9, set: { 'a-finding': 'clear-search at-dock' }, then: {
         at: 14, set: { 'a-finding': 'clear-search esc at-dock', 'contacts': null }, then: {
         at: 15.5, set: { 'a-finding': null }, then: {
-        at: 16, reset: true } } } } } } } } } } }
+        at: 16, reset: true } } } } } } } } } } },
+
+      'chatting': {
+        at: 1, set: { 'a-chatting': 'select' }, then: {
+        at: 3, set: { 'a-chatting': 'select at-right' }, then: {
+        at: 3.5, set: { 'a-chatting': 'select at-contact', contacts: 'activated' }, then: {
+        at: 4, set: { 'a-chatting': 'select at-contact chatting click', conversation: 'active' }, then: {
+        at: 5, set: { 'a-chatting': 'message at-contact chatting' }, then: {
+        at: 7, set: { 'a-chatting': 'message at-contact chatting type-a' }, then: {
+        at: 7.2, set: { 'a-chatting': 'message at-contact chatting type-aw' }, then: {
+        at: 7.3, set: { 'a-chatting': 'message at-contact chatting type-aww' }, then: {
+        at: 7.4, set: { 'a-chatting': 'message at-contact chatting type-awww' }, then: {
+        at: 8.5, set: { 'a-chatting': 'message messaged chatting at-contact enter' }, then: {
+        at: 10, set: { 'a-chatting': 'messaged chatting' }, then: {
+        at: 10.5, set: { 'a-chatting': 'messaged click', contacts: null, conversation: null }, then: {
+        at: 11.5, set: { 'a-chatting': 'response' }, then: {
+        at: 12.5, set: { 'a-chatting': 'response notification', conversation: 'active' }, then: {
+        at: 15.5, set: { 'a-chatting': 'response', conversation: null }, then: {
+        at: 16, set: { 'a-chatting': null }, reset: true } } } } } } } } } } } } } } } }
     };
 
     var timer = null;
