@@ -593,6 +593,29 @@
     .b-muting #a-muting.counter.message-2 ~ #contacts .jeff:before { content: "2"; display: block; }
     .b-muting #a-muting.counter.message-3 ~ #contacts .jeff:after { border-color: #d98727; border-width: 2px; }
     .b-muting #a-muting.counter.message-3 ~ #contacts .jeff:before { content: "3"; display: block; }
+
+    #a-hiding { padding-top: 6em; padding-left: 3em; }
+    #a-hiding p { opacity: 0.4; transition: 0.3s all; }
+    #a-hiding .mouse { left: 32em; top: 8em; }
+    .b-hiding #a-hiding img { height: 24px; opacity: 0; position: absolute; right: 0; top: 41em; transition: 0.2s opacity; width: 24px; }
+    .b-hiding #a-hiding ~ #contacts { display: block; }
+    .b-hiding #a-hiding ~ #conversation { display: block; }
+    .b-hiding #a-hiding ~ #menu { display: block; }
+    .b-hiding #a-hiding.click .mouse { animation: 0.2s ease-out 0 "mouse-click"; }
+    .b-hiding #a-hiding.intro .p1 { opacity: 1; }
+    .b-hiding #a-hiding.intro .p2 { opacity: 1; }
+    .b-hiding #a-hiding.at-menubar .mouse { left: 4em; top: 1em; }
+    .b-hiding #a-hiding.dropdown ~ #menu div { display: block; }
+    .b-hiding #a-hiding.at-menu .mouse { left: 6.5em; top: 11em; }
+    .b-hiding #a-hiding.at-menu.click ~ #menu div:after { display: block; top: 7.5em; }
+    .b-hiding #a-hiding.at-menu.click ~ #menu .hidden:before { display: block; }
+    .b-hiding #a-hiding.hidden img { opacity: 1; }
+    .b-hiding #a-hiding.hidden ~ #contacts div { transform: translate(2em); }
+    .b-hiding #a-hiding.notifications .p3 { opacity: 1; }
+    .b-hiding #a-hiding.notifying ~ #contacts .jeff { transform: translate(-3em); }
+    .b-hiding #a-hiding.notifying ~ #contacts .jeff:after { border-color: #d98727; border-width: 2px; }
+    .b-hiding #a-hiding.notifications ~ #conversation div { visibility: hidden; }
+    .b-hiding #a-hiding.notifications ~ #conversation .foreign.tail { visibility: visible; }
   </style>
 </head>
 <body class="b-getting-started">
@@ -660,6 +683,14 @@
       <p class="p2">Simply choose "Mute" from the Sidetalk menu.<br/>You can also press &#8984;M while Sidetalk is active.</p>
       <p class="p3">You can still tell when messages come in from the contact ring.</p>
       <img src="mute.png"/>
+    </div>
+    <div id="a-hiding">
+      <div class="mouse"></div>
+      <h2>You can hide Sidetalk</h2>
+      <p class="p1">if it is getting in your way.<br/>If you want to shut it up, muting is a better option.</p>
+      <p class="p2">Simply choose "Hide" from the Sidetalk menu.<br/>You can also press &#8984;H while Sidetalk is active.</p>
+      <p class="p3">Notifications will still come through unless you also mute.</p>
+      <img src="hidden.png"/>
     </div>
     <div id="contacts">
       <div><span>Annie</span></div>
@@ -795,8 +826,8 @@
         at: 16, set: { 'a-chatting': null }, reset: true } } } } } } } } } } } } } } } },
 
       'muting': {
-        at: 1, set: {'a-muting': 'bad-message' }, then: {
-        at: 2, set: {'a-muting': 'bad-message the-message', conversation: 'active' }, then: {
+        at: 1, set: { 'a-muting': 'bad-message' }, then: {
+        at: 2, set: { 'a-muting': 'bad-message the-message', conversation: 'active' }, then: {
         at: 5.5, set: { 'a-muting': 'bad-message', conversation: null }, then: {
         at: 6.5, set: { 'a-muting': 'to-mute' }, then: {
         at: 8, set: { 'a-muting': 'to-mute at-menubar' }, then: {
@@ -809,7 +840,20 @@
         at: 16.5, set: { 'a-muting': 'counter message-2' }, then: {
         at: 18, set: { 'a-muting': 'counter message-3' }, then: {
         at: 20, set: { 'a-muting': null }, then: {
-        at: 20.5, reset: true } } } } } } } } } } } } } } }
+        at: 20.5, reset: true } } } } } } } } } } } } } } },
+
+      'hiding': {
+        at: 0.5, set: {'a-hiding': 'intro' }, then: {
+        at: 7, set: {'a-hiding': 'intro at-menubar' }, then: {
+        at: 7.5, set: {'a-hiding': 'intro at-menubar click dropdown' }, then: {
+        at: 8.5, set: {'a-hiding': 'intro at-menu dropdown' }, then: {
+        at: 10, set: {'a-hiding': 'intro at-menu click dropdown' }, then: {
+        at: 10.4, set: {'a-hiding': 'intro at-menu hidden' }, then: {
+        at: 12, set: {'a-hiding': 'notifications hidden' }, then: {
+        at: 14, set: {'a-hiding': 'notifications notifying hidden', conversation: 'active' }, then: {
+        at: 16, set: {'a-hiding': 'notifications hidden', conversation: null }, then: {
+        at: 17.5, set: {'a-hiding': null }, then: {
+        at: 18, reset: true } } } } } } } } } } }
     };
 
     var timer = null;
