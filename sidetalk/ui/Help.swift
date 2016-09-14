@@ -25,6 +25,9 @@ class HelpController: NSViewController, WebFrameLoadDelegate {
             MASShortcut.init(keyCode: 0x31, modifierFlags: NSEventModifierFlags.ControlKeyMask.rawValue) :
             try! NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data!) as! MASShortcut;
         windowObject.setValue(shortcut.description, forKey: "globalActivation");
+
+        // also populate it with whether the user has an account configured.
+        windowObject.setValue(NSUserDefaults.standardUserDefaults().stringForKey("mainAccount"), forKey: "mainAccount");
     }
 
     @IBAction func done(sender: AnyObject) {

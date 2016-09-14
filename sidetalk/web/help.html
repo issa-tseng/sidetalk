@@ -644,7 +644,7 @@
       <h2>Welcome to Sidetalk!</h2>
       <p>Here you'll find some quick tips on how Sidetalk works. They're worth looking over, and it should only take a minute.</p>
       <p>If you want to see this screen again, use the Help menu above.</p>
-      <p>Once you're done here, you'll be taken to the preferences screen to set up your account.</p>
+      <p id="pref-next">Once you're done here, you'll be taken to the preferences screen to set up your account.</p>
     </div>
     <div id="a-activate-keyboard">
       <h2>To navigate Sidetalk by keyboard,</h2>
@@ -759,6 +759,11 @@
         addShortcutKey(shortcut);
         break;
       }
+    }
+
+    if ((window.mainAccount != null) && (window.mainAccount != "")) {
+      var nextText = document.getElementById("pref-next");
+      nextText.parentNode.removeChild(nextText);
     }
 
     var keyframes = {
