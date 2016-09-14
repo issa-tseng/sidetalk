@@ -86,14 +86,14 @@
     .b-getting-started #a-getting-started,
     .b-activate-keyboard #a-activate-keyboard, .b-activate-mouse #a-activate-mouse,
     .b-finding #a-finding, .b-chatting #a-chatting,
-    .b-mute #a-mute, .b-hide #a-hide {
+    .b-muting #a-muting, .b-hiding #a-hiding {
       display: block;
     }
 
     .b-getting-started #getting-started,
     .b-activate-keyboard #activate-keyboard, .b-activate-mouse #activate-mouse,
     .b-finding #finding, .b-chatting #chatting,
-    .b-mute #mute, .b-hide #hide {
+    .b-muting #muting, .b-hiding #hiding {
       background: #8e8f92;
       color: #fff;
     }
@@ -277,6 +277,77 @@
       margin-right: 0;
     }
 
+    #menu {
+      background: rgba(255, 255, 255, 0.8);
+      height: 1.8em;
+      left: 0;
+      padding: 0.6em 1em;
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+
+    #menu > span {
+      color: #555;
+      display: block;
+      float: left;
+      font-size: 2em;
+      margin-right: 1em;
+    }
+
+    #menu > span.apple {
+      font-size: 2.4em;
+      margin-bottom: -0.5em;
+      margin-right: 0.7em;
+    }
+
+    #menu div {
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 0 0.5em rgba(0, 0, 0, 0.15);
+      display: none;
+      left: 3.5em;
+      padding: 0.3em 0;
+      position: absolute;
+      top: 2.5em;
+    }
+
+    #menu div:after {
+      animation: 0.12s linear 0 infinite forwards blink;
+      background-color: #ccc;
+      content: "";
+      display: none;
+      height: 2.8em;
+      left: 0;
+      position: absolute;
+      top: 0;
+      width: 100%;
+    }
+
+    #menu div hr {
+      border: none;
+      border-bottom: 1px solid #555;
+      height: 0;
+      opacity: 0.4;
+    }
+
+    #menu div span {
+      color: #555;
+      display: block;
+      font-size: 2em;
+      padding: 0.3em 1.2em;
+      padding-left: 2em;
+      position: relative;
+      z-index: 1;
+    }
+
+    #menu div span:before {
+      content: "\02714";
+      display: none;
+      left: 0.6em;
+      position: absolute;
+      top: 0.3em;
+    }
+
     #shortcut {
       position: absolute;
     }
@@ -328,6 +399,7 @@
     #conversation .own { background-color: #555; float: left; }
     #conversation .foreign { background-color: #126295; float: right; }
     #conversation .new { display: none; }
+    #conversation .bad { display: none; }
 
     #conversation .tail:after {
       border: 0.5em solid transparent;
@@ -487,9 +559,40 @@
     .b-chatting #a-chatting.enter .keys .enter { animation: 0.6s linear 0 "key-press"; }
     .b-chatting #a-chatting.messaged ~ #conversation .own.new { display: block; }
     .b-chatting #a-chatting.response .p3 { opacity: 1; }
+    .b-chatting #a-chatting.notification ~ #contacts .jeff:after { border-color: #d98727; border-width: 2px; }
     .b-chatting #a-chatting.notification ~ #contacts .jeff { transform: translateX(-3em); }
     .b-chatting #a-chatting.response ~ #conversation div { visibility: hidden; }
     .b-chatting #a-chatting.response ~ #conversation div.foreign.new { display: block; visibility: visible; }
+
+    #a-muting { padding-top: 6em; padding-left: 3em; }
+    #a-muting p { opacity: 0.4; transition: 0.3s all; }
+    #a-muting .mouse { left: 32em; top: 8em; }
+    .b-muting #a-muting img { height: 24px; opacity: 0; position: absolute; right: 0; top: 41em; transition: 0.2s opacity; width: 24px; }
+    .b-muting #a-muting ~ #contacts .jeff:before { background-color: #d98727; border-radius: 99px; color: #fff; content: "1"; display: none; font-weight: bold; height: 1.3em; left: 3.4em; position: absolute; text-align: center; top: 1.6em; width: 1.3em; z-index: 1; }
+    .b-muting #a-muting ~ #contacts { display: block; }
+    .b-muting #a-muting ~ #conversation { display: block; }
+    .b-muting #a-muting ~ #menu { display: block; }
+    .b-muting #a-muting.click .mouse { animation: 0.2s ease-out 0 "mouse-click"; }
+    .b-muting #a-muting.bad-message .p1 { opacity: 1; }
+    .b-muting #a-muting.bad-message ~ #conversation div { visibility: hidden; }
+    .b-muting #a-muting.bad-message ~ #conversation .bad { display: block; position: relative; top: 1.2em; visibility: visible; }
+    .b-muting #a-muting.the-message ~ #contacts .jeff { transform: translate(-3em); }
+    .b-muting #a-muting.the-message ~ #contacts .jeff:after { border-color: #d98727; border-width: 2px; }
+    .b-muting #a-muting.to-mute .p2 { opacity: 1; }
+    .b-muting #a-muting.at-menubar .mouse { left: 4em; top: 1em; }
+    .b-muting #a-muting.dropdown ~ #menu div { display: block; }
+    .b-muting #a-muting.at-menu .mouse { left: 6.5em; top: 14em; }
+    .b-muting #a-muting.at-menu.click ~ #menu div:after { display: block; top: 10.5em; }
+    .b-muting #a-muting.at-menu.click ~ #menu .muted:before { display: block; }
+    .b-muting #a-muting.at-menu.clicked img { opacity: 1; }
+    .b-muting #a-muting.counter img { opacity: 1; }
+    .b-muting #a-muting.counter .p3 { opacity: 1; }
+    .b-muting #a-muting.counter.message-1 ~ #contacts .jeff:after { border-color: #d98727; border-width: 2px; }
+    .b-muting #a-muting.counter.message-1 ~ #contacts .jeff:before { display: block; }
+    .b-muting #a-muting.counter.message-2 ~ #contacts .jeff:after { border-color: #d98727; border-width: 2px; }
+    .b-muting #a-muting.counter.message-2 ~ #contacts .jeff:before { content: "2"; display: block; }
+    .b-muting #a-muting.counter.message-3 ~ #contacts .jeff:after { border-color: #d98727; border-width: 2px; }
+    .b-muting #a-muting.counter.message-3 ~ #contacts .jeff:before { content: "3"; display: block; }
   </style>
 </head>
 <body class="b-getting-started">
@@ -509,8 +612,8 @@
     </ul>
     <h2>More features</h2>
     <ul>
-      <li id="mute">Muting Sidetalk</li>
-      <li id="hide">Hiding Sidetalk</li>
+      <li id="muting">Muting Sidetalk</li>
+      <li id="hiding">Hiding Sidetalk</li>
     </ul>
   </div>
   <div id="right">
@@ -550,6 +653,14 @@
       <div class="keys"><div class="enter">Enter</div></div>
       <p class="p3">When they message you back, you'll see the message immediately.</p>
     </div>
+    <div id="a-muting">
+      <div class="mouse"></div>
+      <h2>You can mute Sidetalk</h2>
+      <p class="p1">because messages can come at the worst times.</p>
+      <p class="p2">Simply choose "Mute" from the Sidetalk menu.<br/>You can also press &#8984;M while Sidetalk is active.</p>
+      <p class="p3">You can still tell when messages come in from the contact ring.</p>
+      <img src="mute.png"/>
+    </div>
     <div id="contacts">
       <div><span>Annie</span></div>
       <div><span>Shirley</span></div>
@@ -560,6 +671,23 @@
       <div class="jeff"><span>Jeff</span></div>
       <div class="self"><span>Craig</span></div>
       <h2 class="search"><span class="blink">|</span><span class="icon"></span></h2>
+    </div>
+    <div id="menu">
+      <span class="apple">&#63743;</span>
+      <span><strong>sidetalk</strong></span>
+      <span>Edit</span>
+      <span>Format</span>
+      <span>Help</span>
+      <div>
+        <span>About sidetalk</span>
+        <hr/>
+        <span>Preferences</span>
+        <hr/>
+        <span class="hidden">Hidden</span>
+        <span class="muted">Muted</span>
+        <hr/>
+        <span>Quit</span>
+      </div>
     </div>
     <div id="dock">
       <div></div>
@@ -578,6 +706,7 @@
       <div class="foreign tail">no.</div>
       <div class="own new">awww</div>
       <div class="foreign new tail">fiiiine. where?</div>
+      <div class="bad foreign tail">You're right, your boss <em>is</em> the worst!</div>
       <div class="compose"><span class="blink">|</span></div>
     </div>
   </div>
@@ -663,7 +792,24 @@
         at: 11.5, set: { 'a-chatting': 'response' }, then: {
         at: 12.5, set: { 'a-chatting': 'response notification', conversation: 'active' }, then: {
         at: 15.5, set: { 'a-chatting': 'response', conversation: null }, then: {
-        at: 16, set: { 'a-chatting': null }, reset: true } } } } } } } } } } } } } } } }
+        at: 16, set: { 'a-chatting': null }, reset: true } } } } } } } } } } } } } } } },
+
+      'muting': {
+        at: 1, set: {'a-muting': 'bad-message' }, then: {
+        at: 2, set: {'a-muting': 'bad-message the-message', conversation: 'active' }, then: {
+        at: 5.5, set: { 'a-muting': 'bad-message', conversation: null }, then: {
+        at: 6.5, set: { 'a-muting': 'to-mute' }, then: {
+        at: 8, set: { 'a-muting': 'to-mute at-menubar' }, then: {
+        at: 8.5, set: { 'a-muting': 'to-mute at-menubar click dropdown' }, then: {
+        at: 9.5, set: { 'a-muting': 'to-mute at-menu dropdown' }, then: {
+        at: 11, set: { 'a-muting': 'to-mute at-menu click dropdown' }, then: {
+        at: 11.4, set: { 'a-muting': 'to-mute at-menu clicked' }, then: {
+        at: 13, set: { 'a-muting': 'counter' }, then: {
+        at: 14.5, set: { 'a-muting': 'counter message-1' }, then: {
+        at: 16.5, set: { 'a-muting': 'counter message-2' }, then: {
+        at: 18, set: { 'a-muting': 'counter message-3' }, then: {
+        at: 20, set: { 'a-muting': null }, then: {
+        at: 20.5, reset: true } } } } } } } } } } } } } } }
     };
 
     var timer = null;
