@@ -31,6 +31,7 @@
 		45691A901D7F94FD00ABD571 /* Help.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45691A8F1D7F94FD00ABD571 /* Help.swift */; };
 		45691A921D7FF0D700ABD571 /* Help.xib in Resources */ = {isa = PBXBuildFile; fileRef = 45691A911D7FF0D700ABD571 /* Help.xib */; };
 		45691A941D80CE4B00ABD571 /* web in Resources */ = {isa = PBXBuildFile; fileRef = 45691A931D80CE4B00ABD571 /* web */; };
+		45691A961D8A0B6F00ABD571 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 45691A951D8A0B6F00ABD571 /* Credits.rtf */; };
 		457A783E1D0F74DF005D58EF /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A783D1D0F74DF005D58EF /* Conversation.swift */; };
 		457A78401D0F8B57005D58EF /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457A783F1D0F8B57005D58EF /* ConversationView.swift */; };
 		457DF9801D0CB0C4008BE043 /* StatusTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457DF97F1D0CB0C4008BE043 /* StatusTile.swift */; };
@@ -106,6 +107,7 @@
 		45691A8F1D7F94FD00ABD571 /* Help.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Help.swift; path = ui/Help.swift; sourceTree = "<group>"; };
 		45691A911D7FF0D700ABD571 /* Help.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = Help.xib; path = ui/Help.xib; sourceTree = "<group>"; };
 		45691A931D80CE4B00ABD571 /* web */ = {isa = PBXFileReference; lastKnownFileType = folder; path = web; sourceTree = "<group>"; };
+		45691A951D8A0B6F00ABD571 /* Credits.rtf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 		457A783D1D0F74DF005D58EF /* Conversation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Conversation.swift; path = viewmodel/Conversation.swift; sourceTree = "<group>"; };
 		457A783F1D0F8B57005D58EF /* ConversationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ConversationView.swift; path = view/ConversationView.swift; sourceTree = "<group>"; };
 		457DF97F1D0CB0C4008BE043 /* StatusTile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = StatusTile.swift; path = view/StatusTile.swift; sourceTree = "<group>"; };
@@ -222,6 +224,7 @@
 				451282401CF9295C0088DEDE /* MainMenu.xib */,
 				451282431CF9295C0088DEDE /* Info.plist */,
 				451282651CFA6F100088DEDE /* MainView.swift */,
+				45691A951D8A0B6F00ABD571 /* Credits.rtf */,
 			);
 			path = sidetalk;
 			sourceTree = "<group>";
@@ -451,6 +454,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				45691A941D80CE4B00ABD571 /* web in Resources */,
+				45691A961D8A0B6F00ABD571 /* Credits.rtf in Resources */,
 				455852451D2DAE4C00ECE93C /* Settings.xib in Resources */,
 				4512823F1CF9295C0088DEDE /* Assets.xcassets in Resources */,
 				45691A921D7FF0D700ABD571 /* Help.xib in Resources */,
