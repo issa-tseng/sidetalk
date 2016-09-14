@@ -33,6 +33,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillFinishLaunching(notification: NSNotification) {
         NSAppleEventManager.sharedAppleEventManager().setEventHandler(self, andSelector: #selector(handleURL), forEventClass: UInt32(kInternetEventClass), andEventID: UInt32(kAEGetURL));
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(windowClosing), name: NSWindowWillCloseNotification, object: nil);
     }
 
     func applicationDidFinishLaunching(aNotification: NSNotification) {
@@ -67,7 +68,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.contentView!.addSubview(self.mainView!);
 
         // attempt to connect.
-        self.connect();
+        if NSUserDefaults.standardUserDefaults().boolForKey("hasRun") != true {
+            NSUserDefaults.standardUserDefaults().setBool(true, forKey: "hasRun");
+            self.showHelp(0);
+        } else {
+            self.connect();
+        }
     }
 
     func connect() {
@@ -102,7 +108,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             self._settingsWindow!.title = "Sidetalk Preferences";
             self._settingsWindow!.nextResponder = self.window;
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(windowClosing), name: NSWindowWillCloseNotification, object: nil);
         }
         self._settingsWindow!.makeKeyAndOrderFront(nil);
         self._settingsShown.modify { _ in true };
@@ -122,6 +127,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func windowClosing(notification: NSNotification) {
         if (notification.object as! NSWindow) == self._settingsWindow { self._settingsShown.modify { _ in false }; }
+
+        if (notification.object as! NSWindow) == self._helpWindow {
+            // if we're closing the help screen and no account is configured, show that.
+            if NSUserDefaults.standardUserDefaults().stringForKey("mainAccount") == nil { self.showPreferences(0); }
+        }
     }
 
     @objc private func handleURL(event: NSAppleEventDescriptor, withReplyEvent: NSAppleEventDescriptor) {
