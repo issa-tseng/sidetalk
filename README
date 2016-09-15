@@ -1,7 +1,5 @@
-Sidetalk (alpha 2)
+Sidetalk (beta 1)
 ==================
-
-Thanks for helping me test this thing! It wasn't ever meant to be more than an experiment and something for myself to use, but people seem to like the idea so if it's not too difficult to make it generally applicable, then why not? Here are some basic instructions:
 
 Installation
 ------------
@@ -20,7 +18,7 @@ You should also set a global activation shortcut. You technically don't have to;
 Usage
 -----
 
-I don't have any help material in the application yet, so you'll have to either experiment a bit or read below to figure out what's what.
+The first time you run the application, you'll be provided with some help information. You can pull it back up from the Help menu, or you can read the following if you're not so much a visual learner.
 
 The fastest way to use sidetalk is to hit the shortcut, or click the dock icon. It'll pop out from the side. From here, you can either start searching for someone to chat with simply by starting to type their name, or you can use the arrow keys to select someone you already see. People with which you're actively chatting will float to the bottom so you can always see them. Press Enter while someone is highlighted to start a conversation.
 
@@ -62,6 +60,13 @@ I'd love to know three things:
 
 Changelog
 ---------
+
+beta-1
+* first-run experience / help screen.
+* added about screen.
+* mouse-enabled conversation closing.
+* fix some textbox height jumping upon input.
+* fix a very rare but lethal threadlock issue.
 
 alpha-2.1
 * some improvements to conversation appearance:
