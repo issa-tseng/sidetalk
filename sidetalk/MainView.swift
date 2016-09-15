@@ -384,7 +384,7 @@ class MainView: NSView {
 
         // wire/dewire mouse depending on our state:
         self.state.map({ $0 == .Inactive }).skipRepeats().observeNext { inactive in
-            if inactive { self.killMouse(); } else { self.liveMouse(); }
+            dispatch_async(dispatch_get_main_queue(), { if inactive { self.killMouse(); } else { self.liveMouse(); } });
         };
 
         // if there are any contacts currently notifying and we are inactive, create or update a tracking area.
@@ -393,14 +393,14 @@ class MainView: NSView {
             .combineLatestWith(self.state).map({ ($0.0, $0.1, $1) })
             .observeNext { notifying, sort, state in
                 if (notifying.count > 0) && (state == .Inactive) {
-                    if let tracker = self.notifyingTracker { self.removeTrackingArea(tracker); }
+                    if let tracker = self.notifyingTracker { dispatch_async(dispatch_get_main_queue(), { self.removeTrackingArea(tracker); }); }
 
                     let notifyingContacts = Set(notifying.filter({ contact in sort[contact] != nil }).map({ contact in sort[contact]! })); // TODO: cleaner upcast?
                     self.notifyingTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: self.frame.width - self.tileSize.height - self.tilePadding, y: 0), size: self.frame.size),
                         options: [ .MouseEnteredAndExited, .MouseMoved, .ActiveAlways ], owner: self, userInfo: [ "notifying": notifyingContacts ]);
-                    self.addTrackingArea(self.notifyingTracker!);
+                    dispatch_async(dispatch_get_main_queue(), { self.addTrackingArea(self.notifyingTracker!); });
                 } else if let tracker = self.notifyingTracker {
-                    self.removeTrackingArea(tracker);
+                    dispatch_async(dispatch_get_main_queue(), { self.removeTrackingArea(tracker); });
                 }
             }
 
