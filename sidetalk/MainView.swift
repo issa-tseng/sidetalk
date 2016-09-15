@@ -318,6 +318,7 @@ class MainView: NSView {
                 switch (last, key) {
                 case (_, .Blur): return .Inactive;
 
+                case (let .Chatting(with, previous), .Click) where with == sort[Clamped(self.mouseIdx_)]!: return previous;
                 case (let .Chatting(_, previous), .Click): return .Chatting(sort[Clamped(self.mouseIdx_)]!, previous);
                 case (_, .Click): return .Chatting(sort[Clamped(self.mouseIdx_)]!, .Normal);
 
