@@ -559,9 +559,21 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="Help" systemMenu="help" id="F2S-fz-NVQ">
                         <items>
-                            <menuItem title="Sidetalk Help" keyEquivalent="?" id="FKE-Sm-Kum">
+                            <menuItem title="Getting Started" keyEquivalent="?" id="FKE-Sm-Kum">
                                 <connections>
                                     <action selector="showHelp:" target="Voe-Tx-rLC" id="ZqJ-QY-raT"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Support…" id="AM3-5V-dhE">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="showSupport:" target="Voe-Tx-rLC" id="PFH-71-ENZ"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Send Feedback" id="KXQ-eZ-g4m">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="sendFeedback:" target="Voe-Tx-rLC" id="o3V-CQ-RWS"/>
                                 </connections>
                             </menuItem>
                         </items>

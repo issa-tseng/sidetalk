@@ -143,6 +143,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    @IBAction func showSupport(sender: AnyObject) {
+        NSWorkspace.sharedWorkspace().openURL(NSURL(string: "https://sidetalk.freshdesk.com")!);
+    }
+
+    @IBAction func sendFeedback(sender: AnyObject) {
+        NSWorkspace.sharedWorkspace().openURL(NSURL(string: "mailto:feedback@sidetalk.io")!);
+    }
+
     func applicationWillTerminate(aNotification: NSNotification) {
         // Insert code here to tear down your application
     }
