@@ -245,9 +245,9 @@ class DemoConnection: Connection {
     static let demoUsers: [DemoUser] = [
         DemoUser(name: "Zoe", index: 1),
         DemoUser(name: "Malcolm", index: 3),
-        DemoUser(name: "Jayne", index: 4),
+        DemoUser(name: "Jayne", index: 6),
         DemoUser(name: "Wash", index: 5),
-        DemoUser(name: "Inara", index: 6),
+        DemoUser(name: "Inara", index: 4),
         DemoUser(name: "River", index: 7),
         DemoUser(name: "Simon", index: 8),
         DemoUser(name: "Britta", index: 9),

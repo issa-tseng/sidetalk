@@ -111,7 +111,18 @@ class DemoResource: NSObject, XMPPResource {
     init(_ index: Int) { self.index = index; }
 
     @objc func jid() -> XMPPJID! { return XMPPJID.jidWithString(self.index.description); }
-    @objc func presence() -> XMPPPresence! { return XMPPPresence(); }
+    @objc func presence() -> XMPPPresence! {
+        let result = XMPPPresence();
+
+        if self.index > 9 {
+            result.addAttributeWithName("from", stringValue: self.index.description);
+            let show = NSXMLElement(name: "show");
+            show.setStringValue("away", resolvingEntities: true);
+            result.addChild(show);
+        }
+
+        return result;
+    }
 
     @objc func presenceDate() -> NSDate! { return NSDate(); }
 
@@ -163,9 +174,7 @@ class DemoContact: Contact {
             // cold signal to fetch the avatar if asked for.
             let backgroundThread = dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0);
             dispatch_async(backgroundThread, {
-                NSLog("opening file /Users/cxlt/Code/sidetalk/marketing/profiles-cropped/\(self.index).jpg");
                 let image = NSImage(contentsOfFile: "/Users/cxlt/Code/sidetalk/marketing/profiles-cropped/\(self.index).jpg")!;
-                NSLog("loaded image of size \(image.size.width)x\(image.size.height)");
                 observer.sendNext(image);
             });
         }
