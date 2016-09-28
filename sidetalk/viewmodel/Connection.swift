@@ -251,7 +251,7 @@ class DemoConnection: Connection {
         DemoUser(name: "River", index: 7),
         DemoUser(name: "Simon", index: 8),
         DemoUser(name: "Britta", index: 9),
-        DemoUser(name: "Shepard", index: 10),
+        DemoUser(name: "Shepherd", index: 10),
         DemoUser(name: "Annie", index: 11),
         DemoUser(name: "Shirley", index: 12),
         DemoUser(name: "Jeff", index: 13),
