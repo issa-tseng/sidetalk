@@ -106,6 +106,72 @@ class Contact: Hashable {
     }
 }
 
+class DemoResource: NSObject, XMPPResource {
+    private let index: Int;
+    init(_ index: Int) { self.index = index; }
+
+    @objc func jid() -> XMPPJID! { return XMPPJID.jidWithString(self.index.description); }
+    @objc func presence() -> XMPPPresence! { return XMPPPresence(); }
+
+    @objc func presenceDate() -> NSDate! { return NSDate(); }
+
+    @objc func compare(another: XMPPResource!) -> NSComparisonResult { return NSComparisonResult.OrderedAscending; }
+}
+
+class DemoUser: NSObject, XMPPUser {
+    private let name: String;
+    private let index: Int;
+    init(name: String, index: Int) {
+        self.name = name;
+        self.index = index;
+    }
+
+    @objc func jid() -> XMPPJID! { return XMPPJID.jidWithString(self.index.description); }
+    @objc func nickname() -> String! { return self.name; }
+
+    @objc func isOnline() -> Bool { return true; }
+    @objc func isPendingApproval() -> Bool { return false; }
+
+    @objc func primaryResource() -> XMPPResource! { return DemoResource(self.index); }
+    @objc func resourceForJID(jid: XMPPJID!) -> XMPPResource! { return DemoResource(self.index); }
+
+    @objc func allResources() -> [AnyObject]! { return []; }
+}
+
+class DemoContact: Contact {
+    private let name: String;
+    private let index: Int;
+
+    init(name: String, index: Int, connection: Connection) {
+        self.name = name;
+        self.index = index;
+
+        super.init(xmppUser: DemoUser(name: name, index: index), connection: connection);
+    }
+
+    init(user: DemoUser, connection: Connection) {
+        self.name = user.name;
+        self.index = user.index;
+
+        super.init(xmppUser: user, connection: connection);
+    }
+
+    override private func prepare() {
+        self._avatarSignal = SignalProducer { observer, disposable in
+            observer.sendNext(nil); // start with fallback avvy
+
+            // cold signal to fetch the avatar if asked for.
+            let backgroundThread = dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0);
+            dispatch_async(backgroundThread, {
+                NSLog("opening file /Users/cxlt/Code/sidetalk/marketing/profiles-cropped/\(self.index).jpg");
+                let image = NSImage(contentsOfFile: "/Users/cxlt/Code/sidetalk/marketing/profiles-cropped/\(self.index).jpg")!;
+                NSLog("loaded image of size \(image.size.width)x\(image.size.height)");
+                observer.sendNext(image);
+            });
+        }
+    }
+}
+
 // base equality on JID. TODO: this is probably an awful idea.
 func ==(lhs: Contact, rhs: Contact) -> Bool {
     return lhs.inner.jid().isEqual(rhs.inner.jid());

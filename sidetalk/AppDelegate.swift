@@ -27,7 +27,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let WIDTH: CGFloat = 400;
 
     override init() {
-        self.connection = OAuthConnection();
+        self.connection = DemoConnection();
         super.init();
     }
 

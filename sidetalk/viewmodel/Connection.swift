@@ -240,3 +240,59 @@ class OAuthConnection: Connection {
         super.prepare();
     }
 }
+
+class DemoConnection: Connection {
+    static let demoUsers: [DemoUser] = [
+        DemoUser(name: "Zoe", index: 1),
+        DemoUser(name: "Malcolm", index: 3),
+        DemoUser(name: "Jayne", index: 4),
+        DemoUser(name: "Wash", index: 5),
+        DemoUser(name: "Inara", index: 6),
+        DemoUser(name: "River", index: 7),
+        DemoUser(name: "Simon", index: 8),
+        DemoUser(name: "Britta", index: 9),
+        DemoUser(name: "Shepard", index: 10),
+        DemoUser(name: "Annie", index: 11),
+        DemoUser(name: "Shirley", index: 12),
+        DemoUser(name: "Jeff", index: 13),
+        DemoUser(name: "Troy", index: 14),
+        DemoUser(name: "Pierce", index: 15),
+        DemoUser(name: "Abed", index: 16)
+    ];
+
+    private var _contacts: MutableProperty<[Contact]>?;
+
+    private var _connected = MutableProperty<Bool>(false);
+    override var connected: Signal<Bool, NoError> { get { return self._connected.signal; } };
+    private var _authenticated = MutableProperty<Bool>(false);
+    override var authenticated: Signal<Bool, NoError> { get { return self._authenticated.signal; } };
+
+    override func connect(account: String) {
+        self._connected.modify({ _ in true });
+        self._authenticated.modify({ _ in true });
+        self._myself.modify({ _ in DemoContact(name: "Kaylee", index: 2, connection: self) });
+        self._contacts!.modify({ _ in DemoConnection.demoUsers.map({ user in DemoContact(user: user, connection: self) }) });
+    }
+
+    override private func prepare() {
+        self._contacts = MutableProperty<[Contact]>([]);
+        self._contactsSignal = self._contacts!.signal;
+
+        if let reach = self.reachability {
+            reach.whenReachable = { _ in self._hasInternet.modify { _ in true; } };
+            reach.whenUnreachable = { _ in self._hasInternet.modify { _ in false; } };
+            do { try reach.startNotifier(); } catch _ { NSLog("could not start reachability"); }
+        }
+    }
+
+    override func sendMessage(to: Contact, _ text: String) {
+        let message = Message(from: self.myself_!, body: text, at: NSDate(), conversation: to.conversation);
+        self._latestMessageSignal.observer.sendNext(message);
+        to.conversation.addMessage(message);
+    }
+
+    override func sendChatState(to: Contact, _ state: ChatState) {
+        // nothing;
+    }
+}
+
