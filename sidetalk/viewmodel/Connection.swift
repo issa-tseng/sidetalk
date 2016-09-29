@@ -291,8 +291,23 @@ class DemoConnection: Connection {
         to.conversation.addMessage(message);
     }
 
+    func receiveMessage(from: Contact, _ text: String) {
+        self._latestActivitySignal.observer.sendNext(from);
+        let message = Message(from: from, body: text, at: NSDate(), conversation: from.conversation);
+        from.conversation.addMessage(message);
+        self._latestMessageSignal.observer.sendNext(message);
+
+        self.receiveChatState(from, .Active);
+    }
+
     override func sendChatState(to: Contact, _ state: ChatState) {
         // nothing;
+    }
+
+
+    func receiveChatState(from: Contact, _ state: ChatState) {
+        self._latestActivitySignal.observer.sendNext(from);
+        from.conversation.setChatState(state);
     }
 }
 

@@ -160,11 +160,34 @@ class DemoContact: Contact {
         super.init(xmppUser: DemoUser(name: name, index: index), connection: connection);
     }
 
-    init(user: DemoUser, connection: Connection) {
+    init(user: DemoUser, connection: DemoConnection) {
         self.name = user.name;
         self.index = user.index;
 
         super.init(xmppUser: user, connection: connection);
+
+        let at = { seconds in dispatch_time(dispatch_time_t(DISPATCH_TIME_NOW), seconds * Int64(NSEC_PER_SEC)) };
+        if self.index == 4 {
+            dispatch_after(at(2), dispatch_get_main_queue(), {
+                connection.receiveMessage(self, "hey");
+                connection.sendMessage(self, "hey!");
+                connection.sendMessage(self, "what's up?");
+                connection.receiveMessage(self, "want to grab some food and drinks tonight? river is in.");
+                connection.sendMessage(self, "ooh, that sounds great. what time?");
+                connection.receiveMessage(self, "we were going to meet up at 7");
+                connection.sendMessage(self, "cool. i might be a bit late");
+                connection.sendMessage(self, "where at?");
+            });
+            dispatch_after(at(18), dispatch_get_main_queue(), { connection.receiveChatState(self, .Composing); });
+            dispatch_after(at(20), dispatch_get_main_queue(), { connection.receiveMessage(self, "we're meeting up in logan square"); })
+            dispatch_after(at(28), dispatch_get_main_queue(), { connection.receiveChatState(self, .Composing); });
+            dispatch_after(at(31), dispatch_get_main_queue(), { connection.receiveMessage(self, "😀💕"); })
+        }
+
+        if self.index == 11 {
+            dispatch_after(at(32), dispatch_get_main_queue(), { connection.receiveChatState(self, .Composing); });
+            dispatch_after(at(33), dispatch_get_main_queue(), { connection.receiveMessage(self, "yes!"); });
+        }
     }
 
     override private func prepare() {
