@@ -13,6 +13,6 @@ class GradientView: NSView {
                 return true;
             };
         }
-        self.buffer!.drawInRect(dirtyRect, fromRect: dirtyRect, operation: .CompositeCopy, fraction: 1.0);
+        self.buffer!.drawInRect(dirtyRect, fromRect: dirtyRect, operation: .Copy, fraction: 1.0);
     }
 }

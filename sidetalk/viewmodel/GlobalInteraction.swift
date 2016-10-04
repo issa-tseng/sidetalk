@@ -17,7 +17,7 @@ class GlobalInteraction {
     private let _keyPress = ManagedSignal<Impulse<Key>>();
     var keyPress: Signal<Impulse<Key>, NoError> { get { return self._keyPress.signal; } };
 
-    private let anyModifierMask = NSEventModifierFlags.AlternateKeyMask.rawValue | NSEventModifierFlags.ControlKeyMask.rawValue;
+    private let anyModifierMask = NSEventModifierFlags.Option.rawValue | NSEventModifierFlags.Control.rawValue;
 
     init() {
         // we'll want to blur when the space changes, or we lose focus. and activate if the app is activated from the dock.
@@ -29,7 +29,7 @@ class GlobalInteraction {
             selector: #selector(appActivated), name: NSWorkspaceDidActivateApplicationNotification, object: nil);
 
         // listen to all key events. vend keystroke.
-        NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDownMask, handler: { event in
+        NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDown, handler: { event in
             if event.keyCode == 126 { // up
                 self._keyPress.observer.sendNext(self.keyGenerator.create(.Up));
             } else if event.keyCode == 125 { // down

@@ -53,7 +53,7 @@ class CAAvatarLayer : CALayer {
         if self._image == nil {
             // render bg
             NSColor.init(red: 0.7, green: 0.7, blue: 0.7, alpha: 0.8).set();
-            NSRectFillUsingOperation(avatarBounds, .CompositeSourceOver);
+            NSRectFillUsingOperation(avatarBounds, .SourceOver);
 
             // render text
             NSGraphicsContext.saveGraphicsState();
@@ -63,7 +63,7 @@ class CAAvatarLayer : CALayer {
         } else {
             let image = self._image!;
             image.resizingMode = .Stretch;
-            image.drawInRect(avatarBounds, fromRect: CGRect.init(origin: CGPoint.zero, size: image.size), operation: .CompositeSourceOver, fraction: 0.9);
+            image.drawInRect(avatarBounds, fromRect: CGRect.init(origin: CGPoint.zero, size: image.size), operation: .SourceOver, fraction: 0.9);
         }
 
         XUIGraphicsPopContext();

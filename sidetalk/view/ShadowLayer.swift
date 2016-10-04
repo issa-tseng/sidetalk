@@ -56,7 +56,7 @@ class ShadowLayer: CALayer {
         // actually draw the contents to the layer.
         XUIGraphicsPushContext(ctx);
         let frame = NSRect(origin: NSPoint.zero, size: self.frame.size);
-        final.drawInRect(frame, fromRect: frame, operation: .CompositeCopy, fraction: 1.0);
+        final.drawInRect(frame, fromRect: frame, operation: .Copy, fraction: 1.0);
         XUIGraphicsPopContext();
     }
 }

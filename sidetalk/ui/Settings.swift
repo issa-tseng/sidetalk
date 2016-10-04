@@ -24,8 +24,8 @@ class SettingsController: NSViewController {
 
     override func viewWillAppear() {
         // wire up cmd+w the manual way.
-        self._keyMonitor = NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDownMask, handler: { event in
-            if event.keyCode == 13 && event.modifierFlags.contains(NSEventModifierFlags.CommandKeyMask) {
+        self._keyMonitor = NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDown, handler: { event in
+            if event.keyCode == 13 && event.modifierFlags.contains(NSEventModifierFlags.Command) {
                 self.view.window!.close();
                 NSEvent.removeMonitor(self._keyMonitor!);
                 return nil;

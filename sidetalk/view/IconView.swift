@@ -41,7 +41,7 @@ class IconLayer: CALayer {
             img.drawInRect(
                 iconBounds,
                 fromRect: CGRect.init(origin: CGPoint.zero, size: img.size),
-                operation: .CompositeCopy,
+                operation: .Copy,
                 fraction: 1.0);
             XUIGraphicsPopContext();
         }
@@ -68,7 +68,7 @@ class RoundIconLayer: IconLayer {
             img.drawInRect(
                 iconBounds,
                 fromRect: CGRect.init(origin: CGPoint.zero, size: img.size),
-                operation: .CompositeSourceOver,
+                operation: .SourceOver,
                 fraction: 0.98);
         }
         

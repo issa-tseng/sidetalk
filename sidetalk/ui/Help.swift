@@ -22,7 +22,7 @@ class HelpController: NSViewController, WebFrameLoadDelegate {
         // the webview window is ready to receive values; populate it with our current shortcut key.
         let data = NSUserDefaults.standardUserDefaults().dataForKey("globalActivation");
         let shortcut: MASShortcut = (data == nil) ?
-            MASShortcut.init(keyCode: 0x31, modifierFlags: NSEventModifierFlags.ControlKeyMask.rawValue) :
+            MASShortcut.init(keyCode: 0x31, modifierFlags: NSEventModifierFlags.Control.rawValue) :
             try! NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data!) as! MASShortcut;
         windowObject.setValue(shortcut.description, forKey: "globalActivation");
 
