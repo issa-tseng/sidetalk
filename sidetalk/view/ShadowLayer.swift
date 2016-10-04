@@ -2,26 +2,26 @@
 import Foundation
 
 class ShadowLayer: CALayer {
-    private var _width: CGFloat = 0;
+    fileprivate var _width: CGFloat = 0;
     var width: CGFloat {
         get { return self._width; }
         set {
             self._width = newValue;
-            dispatch_async(dispatch_get_main_queue(), { self.setNeedsDisplay(); });
+            DispatchQueue.main.async(execute: { self.setNeedsDisplay(); });
         }
     }
-    private var _radius: CGFloat = 3;
+    fileprivate var _radius: CGFloat = 3;
     var radius: CGFloat {
         get { return self._radius; }
         set {
             self._radius = newValue;
-            dispatch_async(dispatch_get_main_queue(), { self.setNeedsDisplay(); });
+            DispatchQueue.main.async(execute: { self.setNeedsDisplay(); });
         }
     }
 
-    override func drawInContext(ctx: CGContext) {
+    override func draw(in ctx: CGContext) {
         // retina?
-        self.contentsScale = NSScreen.mainScreen()!.backingScaleFactor;
+        self.contentsScale = NSScreen.main()!.backingScaleFactor;
 
         // don't bother drawing anything if we have no width.
         if self._width <= 0 { return; }
@@ -33,8 +33,8 @@ class ShadowLayer: CALayer {
         let path = NSBezierPath(roundedRect: bounds, cornerRadius: self._radius);
 
         let box = NSImage(size: self.frame.size, flipped: false) { rect in
-            NSColor.blackColor().set();
-            path.fill();
+            NSColor.black.set();
+            path?.fill();
             return true;
         };
 
@@ -44,19 +44,19 @@ class ShadowLayer: CALayer {
         blurFilter.setValue(self._radius, forKey: "inputRadius");
 
         // feed the image into the filter.
-        let cgImage = box.CGImageForProposedRect(nil, context: NSGraphicsContext.currentContext(), hints: nil)!;
-        let ciImage = CIImage(CGImage: cgImage);
+        let cgImage = box.cgImage(forProposedRect: nil, context: NSGraphicsContext.current(), hints: nil)!;
+        let ciImage = CIImage(cgImage: cgImage);
         blurFilter.setValue(ciImage, forKey: "inputImage");
 
         // now get it back out of the filter. :/
-        let rep = NSCIImageRep(CIImage: blurFilter.outputImage!);
+        let rep = NSCIImageRep(ciImage: blurFilter.outputImage!);
         let final = NSImage(size: box.size);
         final.addRepresentation(rep);
 
         // actually draw the contents to the layer.
         XUIGraphicsPushContext(ctx);
         let frame = NSRect(origin: NSPoint.zero, size: self.frame.size);
-        final.drawInRect(frame, fromRect: frame, operation: .CompositeCopy, fraction: 1.0);
+        final.draw(in: frame, from: frame, operation: .copy, fraction: 1.0);
         XUIGraphicsPopContext();
     }
 }

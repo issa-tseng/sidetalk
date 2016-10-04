@@ -2,8 +2,8 @@
 import Foundation
 
 class ModeView: NSView {
-    private let _hiddenModeIcon: IconView;
-    private let _muteModeIcon: IconView;
+    fileprivate let _hiddenModeIcon: IconView;
+    fileprivate let _muteModeIcon: IconView;
 
     override init(frame: NSRect) {
         let hiddenIconLayer = IconLayer();
@@ -27,15 +27,15 @@ class ModeView: NSView {
 
     required init(coder: NSCoder) { fatalError("modecoder"); }
 
-    override func viewWillMoveToSuperview(newSuperview: NSView?) {
+    override func viewWillMove(toSuperview newSuperview: NSView?) {
         self.wantsLayer = true;
-        super.viewWillMoveToSuperview(newSuperview);
+        super.viewWillMove(toSuperview: newSuperview);
 
         self.addSubview(self._hiddenModeIcon);
         self.addSubview(self._muteModeIcon);
     }
 
-    func prepare(mainView: MainView) {
+    func prepare(_ mainView: MainView) {
         // display status mode icons.
         mainView.hiddenMode.observeNext { on in
             self._hiddenModeIcon.animator().alphaValue = (on ? 1.0 : 0.0);

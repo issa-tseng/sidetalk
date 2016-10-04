@@ -6,7 +6,7 @@ import enum Result.NoError;
 // does two things: provides a signal representing the current value of the text field, and suppresses autocomplete.
 private var _stringValueContext = 0;
 class STTextDelegate : NSObject, NSControlTextEditingDelegate, NSTextFieldDelegate {
-    private let _field: NSTextField;
+    fileprivate let _field: NSTextField;
 
     init(field: NSTextField) {
         self._field = field;
@@ -20,11 +20,11 @@ class STTextDelegate : NSObject, NSControlTextEditingDelegate, NSTextFieldDelega
     }
 
     // detect programmtic changes to stringValue property.
-    private let _text = ManagedSignal<String>();
+    fileprivate let _text = ManagedSignal<String>();
     var text: Signal<String, NoError> { get { return self._text.signal; } }
-    @objc override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+    @objc override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if context != &_stringValueContext {
-            super.observeValueForKeyPath(keyPath, ofObject: object, change: change, context: context);
+            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context);
             return;
         }
 
@@ -34,14 +34,14 @@ class STTextDelegate : NSObject, NSControlTextEditingDelegate, NSTextFieldDelega
     }
 
     // detect user-initiated text changes.
-    @objc override func controlTextDidChange(obj: NSNotification) {
+    @objc override func controlTextDidChange(_ obj: Notification) {
         if let field = obj.object as? NSTextField {
             self._text.observer.sendNext(field.stringValue ?? "");
         }
     }
 
     // suppress autocomplete.
-    @objc func control(control: NSControl, textView: NSTextView, completions words: [String], forPartialWordRange charRange: NSRange, indexOfSelectedItem index: UnsafeMutablePointer<Int>) -> [String] {
+    @objc func control(_ control: NSControl, textView: NSTextView, completions words: [String], forPartialWordRange charRange: NSRange, indexOfSelectedItem index: UnsafeMutablePointer<Int>) -> [String] {
         // we have no matches for anything.
         return [];
     }

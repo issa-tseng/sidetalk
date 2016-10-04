@@ -1,35 +1,35 @@
 
 import Foundation
 
-enum SimpleMainState { case Inactive, Normal, Searching, Selecting, Chatting, None; };
+enum SimpleMainState { case inactive, normal, searching, selecting, chatting, none; };
 
 indirect enum MainState: Impulsable {
-    case Inactive;
-    case Normal;
-    case Searching(String, Int);
-    case Selecting(Int);
-    case Chatting(Contact, MainState);
-    case None;
+    case inactive;
+    case normal;
+    case searching(String, Int);
+    case selecting(Int);
+    case chatting(Contact, MainState);
+    case none;
 
-    static func noopValue() -> MainState { return .None; }
-    var active: Bool { get { return !(self == .Inactive || self == .None); } };
+    static func noopValue() -> MainState { return .none; }
+    var active: Bool { get { return !(self == .inactive || self == .none); } };
     var essentially: SimpleMainState { get {
         switch self {
-        case .Inactive: return .Inactive;
-        case .Normal: return .Normal;
-        case .Searching(_, _): return .Searching;
-        case .Selecting(_): return .Selecting;
-        case .Chatting(_, _): return .Chatting;
-        case .None: return .None;
+        case .inactive: return .inactive;
+        case .normal: return .normal;
+        case .searching(_, _): return .searching;
+        case .selecting(_): return .selecting;
+        case .chatting(_, _): return .chatting;
+        case .none: return .none;
         }
     } };
 }
 
 func ==(lhs: MainState, rhs: MainState) -> Bool {
     switch (lhs, rhs) {
-    case (let .Searching(ltext, lidx), let .Searching(rtext, ridx)): return ltext == rtext && lidx == ridx;
-    case (let .Selecting(lidx), let .Selecting(ridx)): return lidx == ridx;
-    case (let .Chatting(lcontact, _), let .Chatting(rcontact, _)): return lcontact == rcontact;
+    case (let .searching(ltext, lidx), let .searching(rtext, ridx)): return ltext == rtext && lidx == ridx;
+    case (let .selecting(lidx), let .selecting(ridx)): return lidx == ridx;
+    case (let .chatting(lcontact, _), let .chatting(rcontact, _)): return lcontact == rcontact;
     default: return lhs.essentially == rhs.essentially;
     }
 }

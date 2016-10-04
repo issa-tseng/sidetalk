@@ -10,53 +10,53 @@ struct MessageViews {
     let message: Message;
 };
 
-enum DisplayMode { case Normal, Compact; };
+enum DisplayMode { case normal, compact; };
 
 class ConversationView: NSView {
     internal let conversation: Conversation;
-    private let width: CGFloat;
+    fileprivate let width: CGFloat;
 
-    private let _mainView: MainView;
+    fileprivate let _mainView: MainView;
 
     // compose area objects.
-    private let composeBubble = BubbleView();
-    private let textField: NSTextField;
+    fileprivate let composeBubble = BubbleView();
+    fileprivate let textField: NSTextField;
 
     // message area objects.
-    private let scrollView = NSScrollView();
-    private let scrollContents = NSView();
-    private var bottomConstraint: NSLayoutConstraint?;
+    fileprivate let scrollView = NSScrollView();
+    fileprivate let scrollContents = NSView();
+    fileprivate var bottomConstraint: NSLayoutConstraint?;
 
-    private let titleText = NSTextView();
-    private let titleBubble = BubbleView();
+    fileprivate let titleText = NSTextView();
+    fileprivate let titleBubble = BubbleView();
 
-    private let truncateText = NSTextField();
-    private let truncateBubble = BubbleView();
-    private var truncateMessage: NSTextView?;
+    fileprivate let truncateText = NSTextField();
+    fileprivate let truncateBubble = BubbleView();
+    fileprivate var truncateMessage: NSTextView?;
 
-    private let textLayout = NSLayoutManager();
-    private let textStorage = NSTextStorage();
-    private let textMeasurer = NSTextView();
-    private var messageViews = [MessageViews]();
+    fileprivate let textLayout = NSLayoutManager();
+    fileprivate let textStorage = NSTextStorage();
+    fileprivate let textMeasurer = NSTextView();
+    fileprivate var messageViews = [MessageViews]();
 
     // signals and such.
-    private var _initiallyActivated = false;
-    private let _active = MutableProperty<Bool>(false);
+    fileprivate var _initiallyActivated = false;
+    fileprivate let _active = MutableProperty<Bool>(false);
     var active: Signal<Bool, NoError> { get { return self._active.signal; } };
     var active_: Bool { get { return self._active.value; } };
 
-    private let _lastShown = MutableProperty<NSDate>(NSDate.distantPast());
-    var lastShown: Signal<NSDate, NoError> { get { return self._lastShown.signal; } };
-    var lastShown_: NSDate { get { return self._lastShown.value; } };
+    fileprivate let _lastShown = MutableProperty<Date>(Date.distantPast);
+    var lastShown: Signal<Date, NoError> { get { return self._lastShown.signal; } };
+    var lastShown_: Date { get { return self._lastShown.value; } };
 
-    private let _displayMode = MutableProperty<DisplayMode>(.Normal);
+    fileprivate let _displayMode = MutableProperty<DisplayMode>(.normal);
     var displayMode: Signal<DisplayMode, NoError> { get { return self._displayMode.signal; } };
     var displayMode_: DisplayMode {
         get { return self._displayMode.value; }
         set { self._displayMode.modify({ _ in newValue }) }
     };
 
-    private let _searchLeecher: STTextDelegate;
+    fileprivate let _searchLeecher: STTextDelegate;
     var text: Signal<String, NoError> { get { return self._searchLeecher.text; } };
 
     init(frame: NSRect, width: CGFloat, conversation: Conversation, mainView: MainView) {
@@ -70,23 +70,23 @@ class ConversationView: NSView {
         super.init(frame: frame);
     }
 
-    override func viewWillMoveToSuperview(newSuperview: NSView?) {
+    override func viewWillMove(toSuperview newSuperview: NSView?) {
         self.wantsLayer = true;
-        super.viewWillMoveToSuperview(newSuperview);
+        super.viewWillMove(toSuperview: newSuperview);
 
         self.autoresizesSubviews = false;
         self.prepare();
 
         // draw bubble.
         self.updateComposeHeight();
-        self.composeBubble.color = .Compose;
+        self.composeBubble.color = .compose;
 
         // set up textfield.
-        self.textField.backgroundColor = NSColor.clearColor();
-        self.textField.bezeled = false;
-        self.textField.focusRingType = NSFocusRingType.None;
-        self.textField.font = NSFont.systemFontOfSize(ST.conversation.composeTextSize);
-        self.textField.lineBreakMode = .ByWordWrapping;
+        self.textField.backgroundColor = NSColor.clear;
+        self.textField.isBezeled = false;
+        self.textField.focusRingType = NSFocusRingType.none;
+        self.textField.font = NSFont.systemFont(ofSize: ST.conversation.composeTextSize);
+        self.textField.lineBreakMode = .byWordWrapping;
         self.textField.alphaValue = 0.0;
 
         // add layers.
@@ -99,7 +99,7 @@ class ConversationView: NSView {
         // set up the scroll view itself.
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false;
         self.scrollView.hasVerticalScroller = true;
-        self.scrollView.scrollerStyle = .Overlay;
+        self.scrollView.scrollerStyle = .overlay;
         self.scrollView.drawsBackground = false;
         self.addSubview(self.scrollView);
 
@@ -113,13 +113,13 @@ class ConversationView: NSView {
         self.scrollContents.frame = self.scrollView.contentView.bounds;
         self.scrollContents.translatesAutoresizingMaskIntoConstraints = false;
         let views = [ "scrollContents": self.scrollContents ];
-        self.scrollView.contentView.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[scrollContents]|",
+        self.scrollView.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[scrollContents]|",
             options: NSLayoutFormatOptions(), metrics: nil, views: views));
-        self.scrollView.contentView.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:[scrollContents]|",
+        self.scrollView.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[scrollContents]|",
             options: NSLayoutFormatOptions(), metrics: nil, views: views));
 
         // set up the bubble underlying the title.
-        self.titleBubble.color = .Title;
+        self.titleBubble.color = .title;
         self.titleBubble.calloutShown = false;
         self.titleBubble.alphaValue = 0.6;
         self.titleBubble.translatesAutoresizingMaskIntoConstraints = false;
@@ -128,7 +128,7 @@ class ConversationView: NSView {
         // set up the title inside the scroll area.
         let title = NSAttributedString(string: "Conversation with \(self.conversation.with.displayName)", attributes: ST.conversation.titleTextAttr);
         self.titleText.drawsBackground = false;
-        self.titleText.selectable = false;
+        self.titleText.isSelectable = false;
         self.titleText.textStorage!.setAttributedString(title);
         self.titleText.translatesAutoresizingMaskIntoConstraints = false;
         self.titleText.alphaValue = 0;
@@ -153,17 +153,17 @@ class ConversationView: NSView {
         // set up the truncated text+bubble for overlong notifications.
         let truncateBounds = NSRect(origin: NSPoint(x: 0, y: ST.conversation.composeHeight + ST.conversation.composeMargin), size: NSSize(width: self.width, height: 25));
         self.truncateBubble.calloutShown = true;
-        self.truncateBubble.calloutSide = .Right;
-        self.truncateBubble.color = .Foreign;
+        self.truncateBubble.calloutSide = .right;
+        self.truncateBubble.color = .foreign;
         self.truncateBubble.frame = truncateBounds;
-        self.truncateText.editable = false;
+        self.truncateText.isEditable = false;
         self.truncateText.usesSingleLineMode = true;
-        self.truncateText.lineBreakMode = .ByTruncatingTail;
-        self.truncateText.backgroundColor = NSColor.clearColor();
-        self.truncateText.font = NSFont.systemFontOfSize(12);
+        self.truncateText.lineBreakMode = .byTruncatingTail;
+        self.truncateText.backgroundColor = NSColor.clear;
+        self.truncateText.font = NSFont.systemFont(ofSize: 12);
         self.truncateText.drawsBackground = false;
-        self.truncateText.bezeled = false;
-        self.truncateText.textColor = NSColor.whiteColor();
+        self.truncateText.isBezeled = false;
+        self.truncateText.textColor = NSColor.white;
         self.truncateText.frame = NSRect(origin: truncateBounds.insetBy(dx: ST.message.paddingX, dy: ST.message.paddingY).origin,
                                          size: NSSize(width: self.width - (2 * ST.message.paddingX) - ST.message.calloutSize, height: 16));
         self.truncateBubble.alphaValue = 0;
@@ -173,27 +173,27 @@ class ConversationView: NSView {
 
         // set up an invisible field we'll use to measure message sizes.
         self.textMeasurer.frame = NSRect(origin: NSPoint.zero, size: NSSize(width: 250, height: 0));
-        self.textMeasurer.verticallyResizable = true;
-        self.textMeasurer.font = NSFont.systemFontOfSize(12);
+        self.textMeasurer.isVerticallyResizable = true;
+        self.textMeasurer.font = NSFont.systemFont(ofSize: 12);
     }
 
     // like conversation#latestMessage, but returns all messages we know about.
     func allMessages() -> Signal<Message, NoError> {
         let managed = ManagedSignal<Message>();
 
-        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), {
-            for message in self.conversation.messages.reverse() { managed.observer.sendNext(message); }
+        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async(execute: {
+            for message in self.conversation.messages.reversed() { managed.observer.sendNext(message); }
             self.conversation.latestMessage.observeNext({ message in managed.observer.sendNext(message); });
         });
 
         return managed.signal;
     }
 
-    private func prepare() {
+    fileprivate func prepare() {
         let allMessages = self.allMessages();
         allMessages.observeNext { message in self.drawMessage(message) };
 
-        let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "delayed-messages-conversationview");
+        let scheduler = QueueScheduler(qos: DispatchQoS.QoSClass.default, name: "delayed-messages-conversationview");
         let delayedMessage = allMessages.delay(ST.message.shownFor, onScheduler: scheduler);
 
         self.active
@@ -210,12 +210,12 @@ class ConversationView: NSView {
             .observeNext { wrappedKey, active in
                 let key = keyTracker.extract(wrappedKey);
 
-                if !active || self.lastShown_.dateByAddingTimeInterval(ST.conversation.sendLockout).isGreaterThan(NSDate()) { return; }
+                if !active || (self.lastShown_.addingTimeInterval(ST.conversation.sendLockout) as NSDate).isGreaterThan(Date()) { return; }
 
-                if self.conversation.connection.hasInternet_ && (key == .Return) && (self.textField.stringValue != "") {
+                if self.conversation.connection.hasInternet_ && (key == .return) && (self.textField.stringValue != "") {
                     self.conversation.sendMessage(self.textField.stringValue);
                     self.textField.stringValue = "";
-                } else if key == .LineBreak {
+                } else if key == .lineBreak {
                     self.textField.insertText("\n");
                 }
             };
@@ -224,26 +224,26 @@ class ConversationView: NSView {
 
         self.text.observeNext { _ in self.updateComposeHeight(); };
 
-        let immediateChatState = self.text.map { (text) -> ChatState in (text == "") ? .Active : .Composing };
-        let delayedChatState = self.text.debounce(NSTimeInterval(5), onScheduler: scheduler).map { (text) -> ChatState in (text == "") ? .Active : .Paused };
+        let immediateChatState = self.text.map { (text) -> ChatState in (text == "") ? .active : .composing };
+        let delayedChatState = self.text.debounce(TimeInterval(5), onScheduler: scheduler).map { (text) -> ChatState in (text == "") ? .active : .paused };
         immediateChatState.merge(delayedChatState).skipRepeats().observeNext { state in self.conversation.sendChatState(state); };
     }
 
-    private func drawMessage(message: Message) {
-        dispatch_async(dispatch_get_main_queue(), {
+    fileprivate func drawMessage(_ message: Message) {
+        DispatchQueue.main.async(execute: {
             let foreign = message.isForeign();
 
             // update our total stored text, with link detection.
             let mutable = NSMutableAttributedString(string: message.body);
             let fullRange = NSRange(location: 0, length: message.body.characters.count);
             mutable.addAttributes(ST.message.textAttr, range: fullRange);
-            let detector = try! NSDataDetector(types: NSTextCheckingType.Link.rawValue);
-            detector.enumerateMatchesInString(message.body, options: NSMatchingOptions(), range: fullRange, usingBlock: { match, _, _ in
-                if let url = match?.URL { mutable.addAttributes([ NSLinkAttributeName: url ], range: match!.range); }
+            let detector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue);
+            detector.enumerateMatches(in: message.body, options: NSRegularExpression.MatchingOptions(), range: fullRange, using: { match, _, _ in
+                if let url = match?.url { mutable.addAttributes([ NSLinkAttributeName: url ], range: match!.range); }
             });
             let nonmutable = mutable.copy() as! NSAttributedString;
-            self.textStorage.appendAttributedString(nonmutable);
-            self.textStorage.appendAttributedString(NSAttributedString(string: "\n"));
+            self.textStorage.append(nonmutable);
+            self.textStorage.append(NSAttributedString(string: "\n"));
 
             // create a new text container that tracks the view.
             let textContainer = NSTextContainer();
@@ -253,33 +253,33 @@ class ConversationView: NSView {
             // measure the new message so we know how big to make the textView.
             self.textMeasurer.textStorage!.setAttributedString(mutable);
             self.textMeasurer.sizeToFit();
-            let measuredSize = self.textMeasurer.layoutManager!.usedRectForTextContainer(self.textMeasurer.textContainer!).size;
+            let measuredSize = self.textMeasurer.layoutManager!.usedRect(for: self.textMeasurer.textContainer!).size;
             let size = NSSize(width: measuredSize.width + 1.0, height: measuredSize.height); // HACK: why is this 1 pixel off?
 
             // create the textView, set basic attributes.
             let textView = NSTextView(frame: NSRect(origin: NSPoint.zero, size: size), textContainer: textContainer);
             textView.translatesAutoresizingMaskIntoConstraints = false;
-            textView.linkTextAttributes?[NSForegroundColorAttributeName] = NSColor.whiteColor();
+            textView.linkTextAttributes?[NSForegroundColorAttributeName] = NSColor.white;
             textView.drawsBackground = false;
-            textView.editable = false;
-            textView.selectable = true;
+            textView.isEditable = false;
+            textView.isSelectable = true;
 
             // set tooltip to the receipt timestamp.
-            let formatter = NSDateFormatter();
-            formatter.timeStyle = .MediumStyle;
-            formatter.dateStyle = .ShortStyle;
+            let formatter = DateFormatter();
+            formatter.timeStyle = .medium;
+            formatter.dateStyle = .short;
             formatter.doesRelativeDateFormatting = true;
-            textView.toolTip = formatter.stringFromDate(message.at);
+            textView.toolTip = formatter.string(from: message.at as Date);
 
             // make a bubble.
             let bubbleView = BubbleView();
             bubbleView.translatesAutoresizingMaskIntoConstraints = false;
-            bubbleView.calloutSide = foreign ? .Right : .Left;
+            bubbleView.calloutSide = foreign ? .right : .left;
             bubbleView.calloutShown = foreign ? true : false;
-            bubbleView.color = foreign ? .Foreign : .Own;
+            bubbleView.color = foreign ? .foreign : .own;
 
             // save off the objects.
-            self.messageViews.insert(MessageViews(container: textContainer, textView: textView, bubble: bubbleView, message: message), atIndex: 0);
+            self.messageViews.insert(MessageViews(container: textContainer, textView: textView, bubble: bubbleView, message: message), at: 0);
 
             // add our views.
             self.scrollContents.addSubview(bubbleView);
@@ -293,7 +293,7 @@ class ConversationView: NSView {
             self.scrollContents.addConstraint(textView.constrain.height == size.height);
 
             // put the message in the correct horizontal position.
-            let hAttribute: NSLayoutAttribute = foreign ? .Right : .Left;
+            let hAttribute: NSLayoutAttribute = foreign ? .right : .left;
             let hOffset = (foreign ? -1 : 1) * (ST.message.paddingX + ST.message.calloutSize);
             self.scrollContents.addConstraint(textView.constrain.my(hAttribute) == self.scrollContents.constrain.my(hAttribute) + hOffset);
 
@@ -329,7 +329,7 @@ class ConversationView: NSView {
             self.truncateBubble.alphaValue = 0;
 
             // if we're inactive and in compact mode, clear out the previous bubble.
-            if !self.active_ && self.displayMode_ == .Compact && self.messageViews.count > 1 {
+            if !self.active_ && self.displayMode_ == .compact && self.messageViews.count > 1 {
                 self.messageViews[1].textView.alphaValue = 0;
                 self.messageViews[1].bubble.alphaValue = 0;
 
@@ -349,31 +349,31 @@ class ConversationView: NSView {
 
     func activate() {
         self._initiallyActivated = true;
-        self._lastShown.modify({ _ in NSDate() });
+        self._lastShown.modify({ _ in Date() });
         self._active.modify({ _ in true });
     }
 
     func deactivate() {
-        self._lastShown.modify({ _ in NSDate() });
+        self._lastShown.modify({ _ in Date() });
         self._active.modify({ _ in false });
     }
 
     // ignore mouse events if we are not active.
-    override func hitTest(point: NSPoint) -> NSView? {
+    override func hitTest(_ point: NSPoint) -> NSView? {
         if self._active.value { return super.hitTest(point); }
         else { return nil; }
     }
 
     // kind of a misnomer; this doesn't lay anything out at all. it just controls visibility.
-    private func relayout(lastState: (Bool, Bool), _ thisState: (Bool, Bool)) {
+    fileprivate func relayout(_ lastState: (Bool, Bool), _ thisState: (Bool, Bool)) {
         let (last, _) = lastState;
         let (this, online) = thisState;
 
-        dispatch_async(dispatch_get_main_queue(), {
+        DispatchQueue.main.async(execute: {
             // handle messages.
             if !last && this {
                 // show all messages. TODO: don't bother to animate offscreen stuff.
-                for (idx, messagePack) in self.messageViews.enumerate() {
+                for (idx, messagePack) in self.messageViews.enumerated() {
                     animationWithDuration(0.1 + (0.07 * Double(idx)), {
                         messagePack.textView.animator().alphaValue = 1.0;
                         messagePack.bubble.animator().alphaValue = 1.0;
@@ -381,7 +381,7 @@ class ConversationView: NSView {
                 }
             } else if last && !this {
                 // hide all messages.
-                for (idx, messagePack) in self.messageViews.enumerate() {
+                for (idx, messagePack) in self.messageViews.enumerated() {
                     animationWithDuration(0.2 + (0.04 * Double(idx)), {
                         messagePack.textView.animator().alphaValue = 0.0;
                         messagePack.bubble.animator().alphaValue = 0.0;
@@ -389,9 +389,9 @@ class ConversationView: NSView {
                 }
             } else if !this {
                 // hide individual messages that may have been shown on receipt.
-                let now = NSDate();
+                let now = Date();
                 for messagePack in self.messageViews {
-                    if messagePack.message.at.dateByAddingTimeInterval(ST.message.shownFor).isLessThanOrEqualTo(now) {
+                    if messagePack.message.at.addingTimeInterval(ST.message.shownFor).isLessThanOrEqual(to: now) {
                         if messagePack.textView == self.truncateMessage {
                             animationWithDuration(0.15, {
                                 self.truncateText.animator().alphaValue = 0.0;
@@ -434,10 +434,10 @@ class ConversationView: NSView {
         });
     }
 
-    private var lastHeight = CGFloat(0);
-    private func updateComposeHeight() {
+    fileprivate var lastHeight = CGFloat(0);
+    fileprivate func updateComposeHeight() {
         let height = (self.textField.stringValue == "") ? 26.0 : min(ST.conversation.composeHeight,
-                                                                     self.textField.cell!.cellSizeForBounds(self.textField.bounds).height) + (ST.message.paddingY * 2);
+                                                                     self.textField.cell!.cellSize(forBounds: self.textField.bounds).height) + (ST.message.paddingY * 2);
         if height == lastHeight { return; }
         lastHeight = height;
 

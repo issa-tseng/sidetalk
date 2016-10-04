@@ -7,16 +7,16 @@ import enum Result.NoError
 struct Message {
     let from: Contact;
     let body: String;
-    let at: NSDate;
+    let at: Date;
     let conversation: Conversation;
 
     func isForeign() -> Bool { return self.from == self.conversation.with; }
 }
 
 enum ChatState {
-    case Inactive, Active, Composing, Paused;
+    case inactive, active, composing, paused;
 
-    static func fromMessage(it: XMPPMessage) -> ChatState? {
+    static func fromMessage(_ it: XMPPMessage) -> ChatState? {
         if it.hasInactiveChatState() { return .Inactive; }
         if it.hasActiveChatState() { return .Active; }
         if it.hasComposingChatState() { return .Composing; }
@@ -33,10 +33,10 @@ class Conversation: Hashable {
 
     var hashValue: Int { get { return self.with.hashValue; } };
 
-    private let _latestMessageSignal = ManagedSignal<Message>();
+    fileprivate let _latestMessageSignal = ManagedSignal<Message>();
     var latestMessage: Signal<Message, NoError> { get { return self._latestMessageSignal.signal; } };
 
-    private let _chatStateSignal = ManagedSignal<ChatState>();
+    fileprivate let _chatStateSignal = ManagedSignal<ChatState>();
     var chatState: Signal<ChatState, NoError> { get { return self._chatStateSignal.signal; } };
 
     init(_ with: Contact, connection: Connection) {
@@ -44,16 +44,16 @@ class Conversation: Hashable {
         self.connection = connection;
     }
 
-    func addMessage(message: Message) {
-        self.messages.insert(message, atIndex: 0);
+    func addMessage(_ message: Message) {
+        self.messages.insert(message, at: 0);
         self._latestMessageSignal.observer.sendNext(message);
     }
 
-    func sendMessage(text: String) {
+    func sendMessage(_ text: String) {
         self.connection.sendMessage(self.with, text);
     }
 
-    func messages(range: NSRange) -> [Message] {
+    func messages(_ range: NSRange) -> [Message] {
         if range.location > self.messages.count {
             return [];
         } else {
@@ -61,11 +61,11 @@ class Conversation: Hashable {
         }
     }
 
-    func setChatState(state: ChatState) {
+    func setChatState(_ state: ChatState) {
         self._chatStateSignal.observer.sendNext(state);
     }
 
-    func sendChatState(state: ChatState) {
+    func sendChatState(_ state: ChatState) {
         self.connection.sendChatState(self.with, state);
     }
 }

@@ -5,17 +5,17 @@ import ReactiveCocoa
 import enum Result.NoError
 
 enum Presence {
-    case Online, Offline, Away, Busy, Invisible, None;
+    case online, offline, away, busy, invisible, none;
 }
 
 class AvatarDelegate: NSObject, XMPPvCardTempModuleDelegate {
-    private let _withResult: (NSImage!) -> ();
-    init(withResult: (NSImage!) -> ()) { self._withResult = withResult; }
+    fileprivate let _withResult: (NSImage!) -> ();
+    init(withResult: @escaping (NSImage!) -> ()) { self._withResult = withResult; }
 
-    @objc internal func xmppvCardTempModule(vCardTempModule: XMPPvCardTempModule!, didReceivevCardTemp vCardTemp: XMPPvCardTemp!, forJID jid: XMPPJID!) {
+    @objc internal func xmppvCardTempModule(_ vCardTempModule: XMPPvCardTempModule!, didReceivevCardTemp vCardTemp: XMPPvCardTemp!, forJID jid: XMPPJID!) {
         let avatarb64 = vCardTemp.elementForName("PHOTO").stringValue;
         if avatarb64 != nil {
-            let decoded = NSData.init(base64EncodedString: avatarb64!, options: .IgnoreUnknownCharacters);
+            let decoded = Data.init(base64EncodedString: avatarb64!, options: .IgnoreUnknownCharacters);
             if decoded != nil { self._withResult(NSImage.init(data: decoded!)); };
         }
     }
@@ -29,29 +29,29 @@ class Contact: Hashable {
 
     var initials: String { get {
         let full = self.displayName;
-        let initialsRegex = try! NSRegularExpression(pattern: "^(.)[^ ._-]*[ ._-](.)", options: .UseUnicodeWordBoundaries);
-        let initials = initialsRegex.matchesInString(full, options: NSMatchingOptions(), range: NSRange());
+        let initialsRegex = try! NSRegularExpression(pattern: "^(.)[^ ._-]*[ ._-](.)", options: .useUnicodeWordBoundaries);
+        let initials = initialsRegex.matches(in: full, options: NSRegularExpression.MatchingOptions(), range: NSRange());
 
         if initials.count > 1 {
             let nsFull = full as NSString;
-            return initials.map({ result in nsFull.substringWithRange(result.range); }).joinWithSeparator("");
+            return initials.map({ result in nsFull.substring(with: result.range); }).joined(separator: "");
         } else {
-            return full.substringToIndex(full.startIndex.advancedBy(2));
+            return full.substring(to: full.characters.index(full.startIndex, offsetBy: 2));
         }
     } };
 
-    private var _onlineSignal = ManagedSignal<Bool>();
+    fileprivate var _onlineSignal = ManagedSignal<Bool>();
     var online: Signal<Bool, NoError> { get { return self._onlineSignal.signal; } };
     var online_: Bool { get { return self.inner.isOnline(); } };
 
-    private var _presenceSignal = ManagedSignal<String?>();
+    fileprivate var _presenceSignal = ManagedSignal<String?>();
     var presence: Signal<String?, NoError> { get { return self._presenceSignal.signal; } };
     var presence_: String? { get { return self.inner.primaryResource()?.presence()?.show(); } };
 
-    private var _avatarSignal: SignalProducer<NSImage?, NoError>?;
+    fileprivate var _avatarSignal: SignalProducer<NSImage?, NoError>?;
     var avatar: SignalProducer<NSImage?, NoError> { get { return self._avatarSignal!; } };
 
-    private var _conversation: Conversation?;
+    fileprivate var _conversation: Conversation?;
     var conversation: Conversation { get { return self._conversation!; } };
 
     var hashValue: Int { get { return self.inner.jid().hashValue; } };
@@ -65,7 +65,7 @@ class Contact: Hashable {
         self.prepare();
     }
 
-    func update(xmppUser: XMPPUser, forceUpdate: Bool = false) {
+    func update(_ xmppUser: XMPPUser, forceUpdate: Bool = false) {
         let old = self.inner;
         let new = xmppUser;
 
@@ -79,13 +79,13 @@ class Contact: Hashable {
 
     func isSelf() -> Bool { return self == self.connection.myself_; }
 
-    private func prepare() {
+    fileprivate func prepare() {
         self._avatarSignal = SignalProducer { observer, disposable in
             observer.sendNext(nil); // start with fallback avvy
 
             // cold signal to fetch the avatar if asked for.
-            let backgroundThread = dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0);
-            dispatch_async(backgroundThread, {
+            let backgroundThread = DispatchQueue.global(qos: DispatchQoS.QoSClass.background);
+            backgroundThread.async(execute: {
                 // TODO: lots of instantiation and shit. overhead?
                 let vcardTemp = XMPPvCardTempModule(vCardStorage: XMPPvCardCoreDataStorage.sharedInstance());
                 let vcardAvatar = XMPPvCardAvatarModule(vCardTempModule: vcardTemp);

@@ -6,15 +6,15 @@ import enum Result.NoError;
 class StatusTile: NSView {
     internal let connection: Connection;
 
-    private let _searchField: NSTextField;
-    private let _searchIcon: IconView;
-    private let _presenceIndicator: PresenceIndicator;
-    private let _shadowLayer = ShadowLayer();
+    fileprivate let _searchField: NSTextField;
+    fileprivate let _searchIcon: IconView;
+    fileprivate let _presenceIndicator: PresenceIndicator;
+    fileprivate let _shadowLayer = ShadowLayer();
 
-    private let _searchLeecher: STTextDelegate;
+    fileprivate let _searchLeecher: STTextDelegate;
     var searchText: Signal<String, NoError> { get { return self._searchLeecher.text; } };
 
-    private let _ownPresence: ManagedSignal<Presence>; // TODO: temporary until i unify presence into contact.
+    fileprivate let _ownPresence: ManagedSignal<Presence>; // TODO: temporary until i unify presence into contact.
     var ownPresence: Signal<Presence, NoError> { get { return self._ownPresence.signal; } };
 
     let tileSize = NSSize(width: 300, height: 50);
@@ -26,13 +26,13 @@ class StatusTile: NSView {
         self.connection = connection;
 
         self._searchField = NSTextField(frame: searchFrame);
-        self._searchField.backgroundColor = NSColor.clearColor();
-        self._searchField.bezeled = false;
-        self._searchField.focusRingType = NSFocusRingType.None;
-        self._searchField.textColor = NSColor.whiteColor();
-        self._searchField.font = NSFont.systemFontOfSize(20);
-        self._searchField.alignment = NSTextAlignment.Right;
-        self._searchField.lineBreakMode = .ByTruncatingHead;
+        self._searchField.backgroundColor = NSColor.clear;
+        self._searchField.isBezeled = false;
+        self._searchField.focusRingType = NSFocusRingType.none;
+        self._searchField.textColor = NSColor.white;
+        self._searchField.font = NSFont.systemFont(ofSize: 20);
+        self._searchField.alignment = NSTextAlignment.right;
+        self._searchField.lineBreakMode = .byTruncatingHead;
         self._searchField.alphaValue = 0.0;
         self._searchLeecher = STTextDelegate(field: self._searchField);
 
@@ -46,7 +46,7 @@ class StatusTile: NSView {
 
         let presence = ManagedSignal<Presence>();
         self._ownPresence = presence;
-        self._presenceIndicator = PresenceIndicator(presenceSignal: presence.signal, initial: .None, frame: NSRect(origin: presenceIndicatorOrigin, size: frame.size));
+        self._presenceIndicator = PresenceIndicator(presenceSignal: presence.signal, initial: .none, frame: NSRect(origin: presenceIndicatorOrigin, size: frame.size));
 
         super.init(frame: frame);
     }
@@ -55,9 +55,9 @@ class StatusTile: NSView {
         fatalError("no coder for you");
     }
 
-    override func viewWillMoveToSuperview(newSuperview: NSView?) {
+    override func viewWillMove(toSuperview newSuperview: NSView?) {
         self.wantsLayer = true;
-        super.viewWillMoveToSuperview(newSuperview);
+        super.viewWillMove(toSuperview: newSuperview);
 
         // add calayers directly.
         let radius: CGFloat = 8;
@@ -73,7 +73,7 @@ class StatusTile: NSView {
         self.addSubview(self._presenceIndicator);
     }
 
-    func prepare(mainView: MainView) {
+    func prepare(_ mainView: MainView) {
         // grab and render our own info.
         self.connection.myself
             .filter({ contact in contact != nil })
@@ -86,15 +86,15 @@ class StatusTile: NSView {
             .map({ tile in tile as ContactTile? }) // TODO: is there a cleaner way to do this?
             .combinePrevious(nil)
             .observeNext { last, _ in
-                if last != nil { dispatch_async(dispatch_get_main_queue(), { last!.removeFromSuperview(); } ); }
+                if last != nil { DispatchQueue.main.async(execute: { last!.removeFromSuperview(); } ); }
             };
 
         // focus textfield if activated. clear it if deactivated.
-        mainView.state.combinePrevious(.Inactive).observeNext { (last, this) in
+        mainView.state.combinePrevious(.inactive).observeNext { (last, this) in
             if last == this { return; }
 
-            if this == .Normal || this.essentially == .Selecting {
-                dispatch_async(dispatch_get_main_queue(), {
+            if this == .normal || this.essentially == .selecting {
+                DispatchQueue.main.async(execute: {
                     self._searchField.stringValue = "";
                     self.window!.makeFirstResponder(self._searchField);
                 });
@@ -102,7 +102,7 @@ class StatusTile: NSView {
         };
 
         // show textfield and search icon if there is content.
-        self.searchText.observeNext { text in dispatch_async(dispatch_get_main_queue(), {
+        self.searchText.observeNext { text in DispatchQueue.main.async(execute: {
             let hasContent = text.characters.count > 0;
             self._searchField.alphaValue = hasContent ? 1.0 : 0.0;
             self._searchIcon.iconLayer.opacity = hasContent ? 1.0 : 0.0;
@@ -110,7 +110,7 @@ class StatusTile: NSView {
 
         // update our shadow layer when the text changes.
         self.searchText.observeNext { text in
-            let width = NSAttributedString(string: text, attributes: [ NSFontAttributeName: NSFont.systemFontOfSize(20) ]).size().width;
+            let width = NSAttributedString(string: text, attributes: [ NSFontAttributeName: NSFont.systemFont(ofSize: 20) ]).size().width;
             self._shadowLayer.width = width;
         };
 
@@ -119,21 +119,21 @@ class StatusTile: NSView {
             .combineWithDefault(self.connection.hasInternet, defaultValue: true)
             .observeNext { auth, online in
                 switch (auth, online) {
-                case (false, _): self._ownPresence.observer.sendNext(.None);
-                case (true, false): self._ownPresence.observer.sendNext(.Offline);
-                case (true, true): self._ownPresence.observer.sendNext(.Online);
+                case (false, _): self._ownPresence.observer.sendNext(.none);
+                case (true, false): self._ownPresence.observer.sendNext(.offline);
+                case (true, true): self._ownPresence.observer.sendNext(.online);
                 };
             };
     }
 
-    private func drawContact(contact: Contact) -> ContactTile {
+    fileprivate func drawContact(_ contact: Contact) -> ContactTile {
         let tile = ContactTile(
             frame: NSRect(origin: NSPoint.init(x: 0, y: self.iconMargin), size: self.tileSize),
             contact: contact
         );
-        dispatch_async(dispatch_get_main_queue(), {
+        DispatchQueue.main.async(execute: {
             self.addSubview(tile);
-            self.sendSubviewToBack(tile);
+            self.sendSubview(toBack: tile);
         });
         return tile;
     }

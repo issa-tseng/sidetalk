@@ -9,34 +9,34 @@ import enum Result.NoError;
 // TODO: the clear button is written old-school instead of rx.
 
 class SettingsController: NSViewController {
-    private var _keyMonitor: AnyObject?;
-    private let _testConnection = MutableProperty<Connection?>(nil);
+    fileprivate var _keyMonitor: AnyObject?;
+    fileprivate let _testConnection = MutableProperty<Connection?>(nil);
 
-    private let _oauth2 = OAuth2CodeGrant(settings: ST.oauth.settings);
+    fileprivate let _oauth2 = OAuth2CodeGrant(settings: ST.oauth.settings);
 
-    @IBOutlet private var emailLabel: NSTextField?;
-    @IBOutlet private var clearAccountButton: NSButton?;
-    @IBOutlet private var statusImage: NSImageView?;
-    @IBOutlet private var shortcutView: MASShortcutView?;
+    @IBOutlet fileprivate var emailLabel: NSTextField?;
+    @IBOutlet fileprivate var clearAccountButton: NSButton?;
+    @IBOutlet fileprivate var statusImage: NSImageView?;
+    @IBOutlet fileprivate var shortcutView: MASShortcutView?;
 
-    private var _emailDelegate: STTextDelegate?;
-    private var _passwordDelegate: STTextDelegate?;
+    fileprivate var _emailDelegate: STTextDelegate?;
+    fileprivate var _passwordDelegate: STTextDelegate?;
 
     override func viewWillAppear() {
         // wire up cmd+w the manual way.
-        self._keyMonitor = NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDownMask, handler: { event in
-            if event.keyCode == 13 && event.modifierFlags.contains(NSEventModifierFlags.CommandKeyMask) {
+        self._keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown, handler: { event in
+            if event.keyCode == 13 && event.modifierFlags.contains(NSEventModifierFlags.command) {
                 self.view.window!.close();
                 NSEvent.removeMonitor(self._keyMonitor!);
                 return nil;
             }
             return event;
-        });
+        }) as AnyObject?;
 
         super.viewWillAppear();
     }
 
-    private enum TestResult { case None, Pending, Failed, Succeeded; }
+    fileprivate enum TestResult { case none, pending, failed, succeeded; }
     override func viewDidLoad() {
         super.viewDidLoad();
 
@@ -44,43 +44,43 @@ class SettingsController: NSViewController {
         self._testConnection.signal.map({ connection in
             return connection?.connected
                 .combineWithDefault(connection!.authenticated, defaultValue: false)
-                .scan(.None, { (last, args) -> TestResult in
+                .scan(.none, { (last, args) -> TestResult in
                     let (connected, authenticated) = args;
                     switch (last, connected, authenticated) {
-                    case (_, true, false): return .Pending;
-                    case (_, true, true): return .Succeeded;
-                    case (.Pending, false, false): return .Failed;
+                    case (_, true, false): return .pending;
+                    case (_, true, true): return .succeeded;
+                    case (.pending, false, false): return .failed;
                     default: return last;
                     }
                 }).observeNext { result in
-                    if result == .None {
+                    if result == .none {
                         self.statusImage!.image = NSImage.init(named: NSImageNameStatusNone);
-                    } else if result == .Pending {
+                    } else if result == .pending {
                         self.statusImage!.image = NSImage.init(named: NSImageNameStatusPartiallyAvailable);
-                    } else if result == .Failed {
+                    } else if result == .failed {
                         self.statusImage!.image = NSImage.init(named: NSImageNameStatusUnavailable);
-                    } else if result == .Succeeded {
+                    } else if result == .succeeded {
                         self.statusImage!.image = NSImage.init(named: NSImageNameStatusAvailable);
-                        if let button = self.clearAccountButton { button.hidden = false; }
+                        if let button = self.clearAccountButton { button.isHidden = false; }
                     }
                 };
         }).combinePrevious(nil).observeNext { last, _ in last?.dispose(); };
 
         // handle the redirect callback.
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(handleCallback), name: "OAuth2AppDidReceiveCallback", object: nil);
+        NotificationCenter.default.addObserver(self, selector: #selector(handleCallback), name: NSNotification.Name(rawValue: "OAuth2AppDidReceiveCallback"), object: nil);
 
         // if we already have account information, fill it in, light green, and show the x button.
-        if let account = NSUserDefaults.standardUserDefaults().stringForKey("mainAccount") {
+        if let account = UserDefaults.standard.string(forKey: "mainAccount") {
             if let field = self.emailLabel { field.stringValue = account; }
             if let light = self.statusImage { light.image = NSImage.init(named: NSImageNameStatusAvailable); }
-            if let button = self.clearAccountButton { button.hidden = false; }
+            if let button = self.clearAccountButton { button.isHidden = false; }
         }
 
         // hook up the shortcut view to the correct prefkey.
         if let field = self.shortcutView { field.associatedUserDefaultsKey = "globalActivation"; }
     }
 
-    @IBAction func showAuth(sender: AnyObject) {
+    @IBAction func showAuth(_ sender: AnyObject) {
         if let light = self.statusImage { light.image = NSImage.init(named: NSImageNameStatusPartiallyAvailable); }
 
         self._oauth2.verbose = true;
@@ -89,19 +89,19 @@ class SettingsController: NSViewController {
             guard let password = self._oauth2.accessToken else { return self.fail(nil); }
 
             // okay, we have a token but (harrumph) no user email. so now go get that.
-            let request = self._oauth2.request(forURL: NSURL.init(string: "https://www.googleapis.com/plus/v1/people/me")!);
-            self._oauth2.session.dataTaskWithRequest(request, completionHandler: { rawdata, status, error in
+            let request = self._oauth2.request(forURL: URL.init(string: "https://www.googleapis.com/plus/v1/people/me")!);
+            self._oauth2.session.dataTask(with: request, completionHandler: { rawdata, status, error in
                 guard let data = rawdata else { return self.fail(nil); }
-                guard let rawhead = try? NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions()),
+                guard let rawhead = try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions()),
                       let head = rawhead as? [String : AnyObject],
                       let emails = (head["emails"] as? [AnyObject]),
                       let primaryEmailInfo = (emails[0] as? [String : AnyObject]),
                       var email = primaryEmailInfo["value"] as? String else { return self.fail(nil); }
 
-                if let match = email.rangeOfString("@gmail\\.com$", options: .RegularExpressionSearch) {
+                if let match = email.range(of: "@gmail\\.com$", options: .regularExpression) {
                     // for whatever reason, google refuses to start the stream if i'm connecting with a full
                     // @gmail.com address. works fine with apps domains addresses.
-                    email.removeRange(match);
+                    email.removeSubrange(match);
                 }
 
                 self._testConnection.modify({ last in
@@ -116,12 +116,12 @@ class SettingsController: NSViewController {
                     connection.authenticated.observeNext { authenticated in
                         if authenticated == true {
                             // it works; make this working account the primary and make it go.
-                            NSUserDefaults.standardUserDefaults().setValue(email, forKey: "mainAccount");
+                            UserDefaults.standard.setValue(email, forKey: "mainAccount");
                             if let field = self.emailLabel { field.stringValue = email; }
 
                             // wait a tick for everything to be stored to keychain.
-                            dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), {
-                                (NSApplication.sharedApplication().delegate as! AppDelegate).connect();
+                            DispatchQueue.global(qos: DispatchQoS.QoSClass.default).async(execute: {
+                                (NSApplication.shared().delegate as! AppDelegate).connect();
                             });
                         }
                     }
@@ -134,20 +134,20 @@ class SettingsController: NSViewController {
         self._oauth2.authorize();
     }
 
-    @IBAction func clearAccount(sender: AnyObject) {
-        NSUserDefaults.standardUserDefaults().removeObjectForKey("mainAccount");
+    @IBAction func clearAccount(_ sender: AnyObject) {
+        UserDefaults.standard.removeObject(forKey: "mainAccount");
         self._oauth2.forgetTokens();
 
         if let field = self.emailLabel { field.stringValue = ""; }
         if let light = self.statusImage { light.image = NSImage.init(named: NSImageNameStatusNone); }
-        if let button = self.clearAccountButton { button.hidden = true; }
+        if let button = self.clearAccountButton { button.isHidden = true; }
     }
 
-    @objc private func handleCallback(notification: NSNotification) {
-        if let url = notification.object as? NSURL { self._oauth2.handleRedirectURL(url); }
+    @objc fileprivate func handleCallback(_ notification: Notification) {
+        if let url = notification.object as? URL { self._oauth2.handleRedirectURL(url); }
     }
 
-    private func fail(message: String?) {
+    fileprivate func fail(_ message: String?) {
         if let light = self.statusImage { light.image = NSImage.init(named: NSImageNameStatusUnavailable); }
         if let field = self.emailLabel { field.stringValue = message ?? "Something went wrong; try again."; }
     }

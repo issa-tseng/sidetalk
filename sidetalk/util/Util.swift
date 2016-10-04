@@ -1,9 +1,9 @@
 
 import Foundation
 
-func animationWithDuration(duration: NSTimeInterval, _ block: () -> ()) {
+func animationWithDuration(_ duration: TimeInterval, _ block: () -> ()) {
     NSAnimationContext.beginGrouping();
-    NSAnimationContext.currentContext().duration = duration;
+    NSAnimationContext.current().duration = duration;
     block();
     NSAnimationContext.endGrouping();
 }

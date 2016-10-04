@@ -15,7 +15,7 @@ class SortOf<T: Hashable> {
         self.array = array;
 
         var mutDict = [T : Int]();
-        for (idx, obj) in array.enumerate() { mutDict[obj] = idx; }
+        for (idx, obj) in array.enumerated() { mutDict[obj] = idx; }
         self.dict = mutDict;
     }
 

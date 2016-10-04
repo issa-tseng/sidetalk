@@ -7,7 +7,7 @@ import p2_OAuth2
 import enum Result.NoError
 
 class XFDelegateModuleProxy: NSObject {
-    private let _xmppQueue = dispatch_queue_create("xmppq-\(NSUUID().UUIDString)", nil);
+    fileprivate let _xmppQueue = DispatchQueue(label: "xmppq-\(UUID().uuidString)", attributes: []);
     init(module: XMPPModule) {
         super.init();
         module.addDelegate(self, delegateQueue: self._xmppQueue);
@@ -18,33 +18,33 @@ class XFDelegateModuleProxy: NSObject {
 class XFStreamDelegateProxy: NSObject, XMPPStreamDelegate {
     // because of XMPPFramework's haphazard design, there isn't a protocol
     // that consistently represents addDelegate. so we have to do this all over again.
-    private let _xmppQueue = dispatch_queue_create("xmppq-stream", nil);
+    fileprivate let _xmppQueue = DispatchQueue(label: "xmppq-stream", attributes: []);
     init(stream: XMPPStream) {
         super.init();
         stream.addDelegate(self, delegateQueue: self._xmppQueue);
     }
 
-    private let _connectProxy = ManagedSignal<Bool>();
+    fileprivate let _connectProxy = ManagedSignal<Bool>();
     var connectSignal: Signal<Bool, NoError> { get { return self._connectProxy.signal; } }
-    @objc internal func xmppStreamDidConnect(sender: XMPPStream!) {
+    @objc internal func xmppStreamDidConnect(_ sender: XMPPStream!) {
         self._connectProxy.observer.sendNext(true);
     }
 
-    private let _authenticatedProxy = ManagedSignal<Bool>();
+    fileprivate let _authenticatedProxy = ManagedSignal<Bool>();
     var authenticatedSignal: Signal<Bool, NoError> { get { return self._authenticatedProxy.signal; } }
-    @objc internal func xmppStreamDidAuthenticate(sender: XMPPStream!) {
+    @objc internal func xmppStreamDidAuthenticate(_ sender: XMPPStream!) {
         self._authenticatedProxy.observer.sendNext(true);
     }
 
     // on disconnect, we are both unconnected and unauthenticated.
-    @objc internal func xmppStreamDidDisconnect(sender: XMPPStream!, withError error: NSError!) {
+    @objc internal func xmppStreamDidDisconnect(_ sender: XMPPStream!, withError error: NSError!) {
         self._connectProxy.observer.sendNext(false);
         self._authenticatedProxy.observer.sendNext(false);
     }
 
-    private let _messageProxy = ManagedSignal<XMPPMessage>();
+    fileprivate let _messageProxy = ManagedSignal<XMPPMessage>();
     var messageSignal: Signal<XMPPMessage, NoError> { get { return self._messageProxy.signal; } };
-    @objc internal func xmppStream(sender: XMPPStream!, didReceiveMessage message: XMPPMessage!) {
+    @objc internal func xmppStream(_ sender: XMPPStream!, didReceiveMessage message: XMPPMessage!) {
         if message.isChatMessageWithBody() || ChatState.fromMessage(message) != nil {
             self._messageProxy.observer.sendNext(message);
         }
@@ -52,12 +52,12 @@ class XFStreamDelegateProxy: NSObject, XMPPStreamDelegate {
 }
 
 class XFRosterDelegateProxy: XFDelegateModuleProxy, XMPPRosterDelegate {
-    private let _usersProxy = ManagedSignal<[XMPPUser]>();
+    fileprivate let _usersProxy = ManagedSignal<[XMPPUser]>();
     var usersSignal: Signal<[XMPPUser], NoError> { get { return self._usersProxy.signal; } }
-    @objc internal func xmppRosterDidPopulate(sender: XMPPRosterMemoryStorage!) {
+    @objc internal func xmppRosterDidPopulate(_ sender: XMPPRosterMemoryStorage!) {
         self._usersProxy.observer.sendNext(sender.sortedUsersByName() as! [XMPPUser]!);
     }
-    @objc internal func xmppRosterDidChange(sender: XMPPRosterMemoryStorage!) {
+    @objc internal func xmppRosterDidChange(_ sender: XMPPRosterMemoryStorage!) {
         self._usersProxy.observer.sendNext(sender.sortedUsersByName() as! [XMPPUser]!);
     }
 
@@ -73,10 +73,10 @@ class Connection {
     internal let reconnect: XMPPReconnect;
     internal let reachability: Reachability?;
 
-    private var _connectionAttempt = 0;
+    fileprivate var _connectionAttempt = 0;
 
-    private let _streamDelegateProxy: XFStreamDelegateProxy;
-    private let _rosterDelegateProxy: XFRosterDelegateProxy;
+    fileprivate let _streamDelegateProxy: XFStreamDelegateProxy;
+    fileprivate let _rosterDelegateProxy: XFRosterDelegateProxy;
 
     init() {
         // xmpp logging
@@ -103,11 +103,11 @@ class Connection {
         self.reconnect.activate(self.stream);
     }
 
-    func connect(account: String) {
+    func connect(_ account: String) {
         if stream.isConnected() { stream.disconnect(); }
 
         self.stream.myJID = XMPPJID.jidWithString(account);
-        try! stream.connectWithTimeout(NSTimeInterval(10));
+        try! stream.connectWithTimeout(TimeInterval(10));
     }
 
     // plumb through proxies
@@ -116,30 +116,30 @@ class Connection {
     var users: Signal<[XMPPUser], NoError> { get { return self._rosterDelegateProxy.usersSignal.debounce(NSTimeInterval(0.15), onScheduler: QueueScheduler.mainQueueScheduler); } };
 
     // own user
-    private var _myself = MutableProperty<Contact?>(nil);
+    fileprivate var _myself = MutableProperty<Contact?>(nil);
     var myself: Signal<Contact?, NoError> { get { return self._myself.signal; } };
     var myself_: Contact? { get { return self._myself.value; } };
 
     // latest message
-    private let _latestMessageSignal = ManagedSignal<Message>();
+    fileprivate let _latestMessageSignal = ManagedSignal<Message>();
     var latestMessage: Signal<Message, NoError> { get { return self._latestMessageSignal.signal; } };
 
     // latest activity
-    private let _latestActivitySignal = ManagedSignal<Contact>();
+    fileprivate let _latestActivitySignal = ManagedSignal<Contact>();
     var latestActivity: Signal<Contact, NoError> { get { return self._latestActivitySignal.signal; } };
 
     // managed contacts (impl in prepare())
-    private let _contactsCache = QuickCache<String, Contact>();
-    private var _contactsSignal: Signal<[Contact], NoError>?;
+    fileprivate let _contactsCache = QuickCache<String, Contact>();
+    fileprivate var _contactsSignal: Signal<[Contact], NoError>?;
     var contacts: Signal<[Contact], NoError> { get { return self._contactsSignal!; } };
 
     // are we connected to the internet?
-    private let _hasInternet = MutableProperty<Bool>(true); // assume true in case we have nothing.
+    fileprivate let _hasInternet = MutableProperty<Bool>(true); // assume true in case we have nothing.
     var hasInternet: Signal<Bool, NoError> { get { return self._hasInternet.signal; } };
     var hasInternet_: Bool { get { return self._hasInternet.value; } };
 
     // sets up our own reactions to basic xmpp things
-    private func prepare() {
+    fileprivate func prepare() {
         // if we are authenticated, send initial status and set some stuff up
         self.authenticated.skipRepeats().observeNext { authenticated in
             if authenticated == true {
@@ -183,42 +183,42 @@ class Connection {
     }
 
     // send an outbound message in a way that handles the plumbing correctly.
-    func sendMessage(to: Contact, _ text: String) {
-        let xmlBody = NSXMLElement(name: "body");
+    func sendMessage(_ to: Contact, _ text: String) {
+        let xmlBody = XMLElement(name: "body");
         xmlBody.setStringValue(text, resolvingEntities: false);
 
-        let xmlMessage = NSXMLElement(name: "message");
+        let xmlMessage = XMLElement(name: "message");
         xmlMessage.addAttributeWithName("type", stringValue: "chat");
         xmlMessage.addAttributeWithName("to", stringValue: to.inner.jid().full());
         xmlMessage.addChild(xmlBody);
 
         self.stream.sendElement(xmlMessage);
 
-        let message = Message(from: self.myself_!, body: text, at: NSDate(), conversation: to.conversation);
+        let message = Message(from: self.myself_!, body: text, at: Date(), conversation: to.conversation);
         self._latestMessageSignal.observer.sendNext(message);
         to.conversation.addMessage(message);
         // TODO: i don't like that this is a separate set of code from the foreign incoming.
     }
 
-    func sendChatState(to: Contact, _ state: ChatState) {
-        let xmlMessage = NSXMLElement(name: "message");
+    func sendChatState(_ to: Contact, _ state: ChatState) {
+        let xmlMessage = XMLElement(name: "message");
         xmlMessage.addAttributeWithName("type", stringValue: "chat");
         xmlMessage.addAttributeWithName("to", stringValue: to.inner.jid().full());
         let xmppMessage = XMPPMessage(fromElement: xmlMessage);
         switch (state) {
-        case .Active: xmppMessage.addActiveChatState();
-        case .Composing: xmppMessage.addComposingChatState();
-        case .Inactive: xmppMessage.addInactiveChatState();
-        case .Paused: xmppMessage.addPausedChatState();
+        case .active: xmppMessage.addActiveChatState();
+        case .composing: xmppMessage.addComposingChatState();
+        case .inactive: xmppMessage.addInactiveChatState();
+        case .paused: xmppMessage.addPausedChatState();
         }
         self.stream.sendElement(xmppMessage);
     }
 }
 
 class OAuthConnection: Connection {
-    private var _oauth2: OAuth2CodeGrant?;
+    fileprivate var _oauth2: OAuth2CodeGrant?;
 
-    override private func prepare() {
+    override fileprivate func prepare() {
         // if we are xmpp-connected, authenticate
         self.connected.skipRepeats().observeNext { connected in
             if connected == true {

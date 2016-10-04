@@ -5,8 +5,8 @@ import enum Result.NoError
 
 extension Signal {
     // HACK: this causes observation to happen! careful with use on cold signals.
-    func combineWithDefault<U>(other: Signal<U, Error>, defaultValue: U) -> Signal<(Value, U), Error> {
-        let (signal, observer) = Signal<U, Error>.pipe();
+    func combineWithDefault<U>(_ other: Signal<U, ReactiveCocoa.Error>, defaultValue: U) -> Signal<(Value, U), ReactiveCocoa.Error> {
+        let (signal, observer) = Signal<U, ReactiveCocoa.Error>.pipe();
         let result = self.combineLatestWith(signal);
         other.observe(observer);
         observer.sendNext(defaultValue);
@@ -15,8 +15,8 @@ extension Signal {
     }
 
     // HACK: same problem!
-    func merge(other: Signal<Value, Error>) -> Signal<Value, Error> {
-        let (signal, observer) = Signal<Value, Error>.pipe();
+    func merge(_ other: Signal<Value, ReactiveCocoa.Error>) -> Signal<Value, ReactiveCocoa.Error> {
+        let (signal, observer) = Signal<Value, ReactiveCocoa.Error>.pipe();
 
         self.observeNext { value in observer.sendNext(value); }
         other.observeNext { value in observer.sendNext(value); }
@@ -24,21 +24,21 @@ extension Signal {
         return signal;
     }
 
-    func downcastToOptional() -> Signal<Value?, Error> {
+    func downcastToOptional() -> Signal<Value?, ReactiveCocoa.Error> {
         return self.map({ value in value as Value? });
     }
 
-    func always<U>(value: U) -> Signal<U, Error> {
+    func always<U>(_ value: U) -> Signal<U, ReactiveCocoa.Error> {
         return self.map({ _ in value });
     }
 
     // pulled forward from a future version of RAC. See #2952 on their repo.
-    public func debounce(interval: NSTimeInterval, onScheduler scheduler: DateSchedulerType) -> Signal<Value, Error> {
+    public func debounce(_ interval: TimeInterval, onScheduler scheduler: DateSchedulerType) -> Signal<Value, ReactiveCocoa.Error> {
         precondition(interval >= 0)
 
 		return self
 			.materialize()
-			.flatMap(.Latest) { event -> SignalProducer<Event<Value, Error>, NoError> in
+			.flatMap(.latest) { event -> SignalProducer<Event<Value, ReactiveCocoa.Error>, NoError> in
 				if event.isTerminating {
 					return SignalProducer(value: event).observeOn(scheduler)
 				} else {
