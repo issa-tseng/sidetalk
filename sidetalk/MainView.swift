@@ -315,11 +315,12 @@ class MainView: NSView {
                 let (wrappedKey, sort, search) = args;
 
                 let key = keyTracker.extract(wrappedKey);
+                let mousedUser = sort[Clamped(self.mouseIdx_)];
                 switch (last, key) {
                 case (_, .Blur): return .Inactive;
 
-                case (let .Chatting(with, previous), .Click) where with == sort[Clamped(self.mouseIdx_)]!: return previous;
-                case (let .Chatting(_, previous), .Click): return .Chatting(sort[Clamped(self.mouseIdx_)]!, previous);
+                case (let .Chatting(with, previous), .Click) where with == mousedUser: return previous;
+                case (let .Chatting(_, previous), .Click) where mousedUser != nil: return .Chatting(mousedUser!, previous);
                 case (_, .Click): return .Chatting(sort[Clamped(self.mouseIdx_)]!, .Normal);
 
                 case (.Normal, .Escape): return .Inactive;
