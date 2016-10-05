@@ -1,0 +1,161 @@
+//weights: 300 / 700
+
+html
+  font-family: jaf-domus
+  font-size: 62.5%
+
+body
+  background-color: #e3e3e3
+  background: url(/images/bg.png) fixed
+  color: #444
+
+html, body, div, ul, li, h1, h2, p
+  border: 0
+  list-style: none
+  margin: 0
+  outline: none
+  padding: 0
+  vertical-align: baseline
+
+#header
+  background: rgba(247, 247, 247, 0.5)
+  border-bottom: 1px solid rgba(90, 90, 90, 0.2)
+  border-top: 5px solid #03a5e9
+  box-shadow: 0 0 0.8em rgba(0, 0, 0, 0.2)
+  overflow: hidden
+  padding: 2.5em
+
+  #applogo
+    float: left
+    height: 128px
+    margin-right: 2em
+    width: 128px
+
+  h1
+    color: #333
+    font-size: 6em
+    font-weight: 300
+    letter-spacing: -0.035em
+    padding-top: 0.3em
+
+  p
+    color: #555
+    font-size: 2em
+    margin-top: -0.6em
+    text-indent: 0.07em
+
+#main-stripe
+  $pad: 5em
+  overflow: hidden
+  padding: $pad
+
+  p
+    display: block
+    float: left
+    font-size: 2em
+    width: 16em
+
+  #main-video
+    float: right
+
+    video
+      height: calc(62.5vw - 28.125em)
+      width: calc(100vw - 45em)
+
+#lower-stripe
+  background: rgba(12, 47, 83, 0.6)
+  color: #fff
+
+  .section
+    overflow: hidden
+    padding: 3em 5em
+
+    h2
+      font-size: 1.6em
+      padding-bottom: 0.4em
+    p
+      color: #eee
+      font-size: 2em
+
+    .left
+      float: left
+      width: 330px
+    .right
+      float: right
+      width: calc(100% - 5em - 330px)
+
+    &:nth-child(2n)
+      background: rgba(12, 47, 83, 0.3)
+
+      .left
+        width: calc(100% - 5em - 330px)
+      .right
+        width: 330px
+
+    img, video
+      box-shadow: 0 0 0.4em rgba(0, 0, 0, 0.2)
+      height: 240px
+      width: 320px
+
+#mouse-access h2
+  padding-top: 4em
+#notifications h2
+  padding-top: 3em
+#conversation h2
+  padding-top: 3em
+#search h2
+  padding-top: 3em
+
+#footer
+  background-color: rgba(0, 0, 0, 0.8)
+  color: #fff
+  overflow: hidden
+  padding: 2em 5em
+
+  #links
+    float: left
+
+    li
+      display: block
+      float: left
+      margin-right: 1.5em
+
+      a
+        color: #fff
+        cursor: pointer
+        text-decoration: none
+
+        &:hover
+          border-bottom: 1px dotted rgba(255, 255, 255, 0.6)
+
+  #copyright
+    float: right
+
+// i guess i'll do some hipster shit too
+@media(max-width: 900px)
+  #main-stripe
+    p, #main-video
+      float: none
+    #main-video video
+      height: calc(62.5vw - 7.1875em)
+      width: calc(100vw - 11.5em)
+    p
+      padding-top: 0.5em
+      width: auto
+  #lower-stripe .section
+    .left, .right
+      float: none
+      width: auto
+    &:nth-child(2n) .left
+      width: auto
+    video
+      height: calc(75vw - 8.625em)
+      width: calc(100vw - 11.5em)
+    img
+      height: calc(62.5vw - 7.1875em)
+      width: calc(100vw - 11.5em)
+
+    h2
+      padding-top: 1em
+
+
