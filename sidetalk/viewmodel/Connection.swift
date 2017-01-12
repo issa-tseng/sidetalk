@@ -165,7 +165,8 @@ class Connection {
                     let message = Message(from: with, body: rawMessage.body(), at: NSDate(), conversation: conversation);
                     conversation.addMessage(message);
                     self._latestMessageSignal.observer.sendNext(message);
-                } else if let state = ChatState.fromMessage(rawMessage) {
+                }
+                if let state = ChatState.fromMessage(rawMessage) {
                     self._latestActivitySignal.observer.sendNext(with);
                     conversation.setChatState(state);
                 }
