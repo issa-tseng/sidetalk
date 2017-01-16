@@ -629,6 +629,10 @@ class MainView: NSView {
         });
     }
 
+    override func performKeyEquivalent(event: NSEvent) -> Bool {
+        return event.keyCode == 53;
+    }
+
     required init(coder: NSCoder) {
         fatalError("no coder");
     }
