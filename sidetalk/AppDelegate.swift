@@ -17,9 +17,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     let connection: Connection;
     var mainView: MainView?;
 
-    private let _settingsShown = MutableProperty<Bool>(false);
-    var settingsShown: Signal<Bool, NoError> { get { return self._settingsShown.signal; } };
-
     private var _settingsController: SettingsController?;
     private var _settingsWindow: NSWindow?;
 
@@ -130,7 +127,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             self._settingsWindow!.nextResponder = self.window;
         }
         self._settingsWindow!.makeKeyAndOrderFront(nil);
-        self._settingsShown.modify { _ in true };
     }
 
     @IBAction func showHelp(sender: AnyObject) {
@@ -186,8 +182,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @objc private func windowClosing(notification: NSNotification) {
-        if (notification.object as! NSWindow) == self._settingsWindow { self._settingsShown.modify { _ in false }; }
-
         if (notification.object as! NSWindow) == self._helpWindow {
             // if we're closing the help screen and no account is configured, show that.
             if NSUserDefaults.standardUserDefaults().stringForKey("mainAccount") == nil { self.showPreferences(0); }
