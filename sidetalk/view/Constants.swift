@@ -85,6 +85,8 @@ class ST {
 
     internal class MainConst {
         let inactiveDelay = NSTimeInterval(10.0);
+
+        let boldFont = NSFont.boldSystemFontOfSize(13);
     }
 
     internal class MessageConst {

@@ -66,6 +66,27 @@ class XFRosterDelegateProxy: XFDelegateModuleProxy, XMPPRosterDelegate {
     }*/
 }
 
+enum ConnectionFault {
+    case ConnectionFailure(error: String);
+    case AuthenticationFailure(error: String);
+
+    func messages() -> (String, String) {
+        switch (self) {
+        case let .ConnectionFailure(error): return ("Connection error: \(error)", ConnectionFault.errorResolution(error));
+        case let .AuthenticationFailure(error): return ("Login error: \(error)", ConnectionFault.errorResolution(error));
+        }
+    }
+
+    static func errorResolution(error: String) -> String {
+        switch error {
+        case "The server does not support X-OATH2-GOOGLE authentication.":
+            return "Sidetalk has connected to something, but it does not appear to be Google's chat server. Please ensure you have normal access to the Internet, and are not, for instance, behind a wifi access agreement gate.";
+        default:
+            return "Ensure you have a working internet connection, that you are not behind a firewall or paywall preventing normal access, and try again. If that doesn't work, contact support.";
+        }
+    }
+}
+
 class Connection {
     internal let stream: XMPPStream;
     internal let rosterStorage: XMPPRosterMemoryStorage;
@@ -81,6 +102,7 @@ class Connection {
     init() {
         // xmpp logging
         DDLog.addLogger(DDTTYLogger.sharedInstance(), withLevel: DDLogLevel.All);
+        DDLog.addLogger(STMemoryLogger.sharedInstance, withLevel: DDLogLevel.All);
 
         // set up network availability detection
         self.reachability = try? Reachability.reachabilityForInternetConnection();
@@ -107,13 +129,22 @@ class Connection {
         if stream.isConnected() { stream.disconnect(); }
 
         self.stream.myJID = XMPPJID.jidWithString(account);
-        try! stream.connectWithTimeout(NSTimeInterval(10));
+        do {
+            try stream.connectWithTimeout(NSTimeInterval(10));
+        } catch let error as NSError {
+            let innerError = (error.userInfo[NSLocalizedDescriptionKey] as? String) ?? "An unknown error";
+            self._faultSignal.observer.sendNext(.ConnectionFailure(error: innerError));
+        }
     }
 
     // plumb through proxies
     var connected: Signal<Bool, NoError> { get { return self._streamDelegateProxy.connectSignal; } };
     var authenticated: Signal<Bool, NoError> { get { return self._streamDelegateProxy.authenticatedSignal; } };
     var users: Signal<[XMPPUser], NoError> { get { return self._rosterDelegateProxy.usersSignal.debounce(NSTimeInterval(0.15), onScheduler: QueueScheduler.mainQueueScheduler); } };
+
+    // centralized error reporting
+    private var _faultSignal = ManagedSignal<ConnectionFault>();
+    var fault: Signal<ConnectionFault, NoError> { get { return self._faultSignal.signal; } };
 
     // own user
     private var _myself = MutableProperty<Contact?>(nil);
@@ -231,7 +262,12 @@ class OAuthConnection: Connection {
                 oauth.onAuthorize = { _ in
                     // extract our token.
                     guard let password = oauth.accessToken else { return; }
-                    try! self.stream.authenticateWithGoogleAccessToken(password);
+                    do {
+                        try self.stream.authenticateWithGoogleAccessToken(password);
+                    } catch let error as NSError {
+                        let innerError = (error.userInfo[NSLocalizedDescriptionKey] as? String) ?? "An unknown error";
+                        self._faultSignal.observer.sendNext(.AuthenticationFailure(error: innerError));
+                    }
                 }
                 oauth.authConfig.authorizeEmbedded = false;
                 oauth.authorize();

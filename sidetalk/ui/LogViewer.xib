@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="11762" systemVersion="16B2555" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11762"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="LogViewerController" customModule="sidetalk" customModuleProvider="target">
+            <connections>
+                <outlet property="_textView" destination="JHU-lB-VeR" id="6in-ti-yjv"/>
+                <outlet property="view" destination="c22-O7-iKe" id="byX-iF-Od4"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="c22-O7-iKe">
+            <rect key="frame" x="0.0" y="0.0" width="600" height="400"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" preferredMaxLayoutWidth="1380" translatesAutoresizingMaskIntoConstraints="NO" id="YM2-ni-M3i">
+                    <rect key="frame" x="18" y="346" width="564" height="34"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="560" id="PJK-vh-eSv"/>
+                        <constraint firstAttribute="height" constant="34" id="PjZ-9O-1ne"/>
+                    </constraints>
+                    <textFieldCell key="cell" allowsUndo="NO" sendsActionOnEndEditing="YES" id="0Xq-Vd-J3W">
+                        <font key="font" metaFont="system"/>
+                        <string key="title">This is a snapshot of the network messages Sidetalk has recently sent and received, and any errors. If you contact support with a problem, this text will help us diagnose it.</string>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <scrollView horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5EE-QC-i1I">
+                    <rect key="frame" x="20" y="20" width="560" height="318"/>
+                    <clipView key="contentView" id="Kp6-gl-Bna">
+                        <rect key="frame" x="1" y="1" width="543" height="316"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <textView importsGraphics="NO" usesFontPanel="YES" findStyle="panel" continuousSpellChecking="YES" allowsUndo="YES" usesRuler="YES" allowsNonContiguousLayout="YES" quoteSubstitution="YES" dashSubstitution="YES" smartInsertDelete="YES" id="JHU-lB-VeR">
+                                <rect key="frame" x="0.0" y="0.0" width="543" height="316"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <size key="minSize" width="543" height="316"/>
+                                <size key="maxSize" width="560" height="10000000"/>
+                                <color key="insertionPointColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            </textView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </clipView>
+                    <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="YES" id="inw-Pv-Flm">
+                        <rect key="frame" x="-100" y="-100" width="87" height="18"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </scroller>
+                    <scroller key="verticalScroller" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="8OF-gG-7O5">
+                        <rect key="frame" x="544" y="1" width="15" height="316"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </scroller>
+                </scrollView>
+            </subviews>
+            <constraints>
+                <constraint firstItem="YM2-ni-M3i" firstAttribute="leading" secondItem="5EE-QC-i1I" secondAttribute="leading" id="4pQ-68-oAe"/>
+                <constraint firstItem="5EE-QC-i1I" firstAttribute="top" secondItem="YM2-ni-M3i" secondAttribute="bottom" constant="8" symbolic="YES" id="B9V-0b-7LZ"/>
+                <constraint firstAttribute="bottom" secondItem="5EE-QC-i1I" secondAttribute="bottom" constant="20" symbolic="YES" id="dye-WE-AOl"/>
+                <constraint firstAttribute="trailing" secondItem="YM2-ni-M3i" secondAttribute="trailing" constant="20" id="fhG-g3-vGX"/>
+                <constraint firstItem="YM2-ni-M3i" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="20" symbolic="YES" id="jvs-l9-MMW"/>
+                <constraint firstItem="YM2-ni-M3i" firstAttribute="trailing" secondItem="5EE-QC-i1I" secondAttribute="trailing" id="oEP-sw-mqP"/>
+                <constraint firstItem="YM2-ni-M3i" firstAttribute="top" secondItem="c22-O7-iKe" secondAttribute="top" constant="20" symbolic="YES" id="qB9-Fj-Yim"/>
+            </constraints>
+            <point key="canvasLocation" x="-47" y="232"/>
+        </customView>
+    </objects>
+</document>

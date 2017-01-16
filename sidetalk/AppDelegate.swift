@@ -8,8 +8,10 @@ class MainWindow: NSWindow {
     override var canBecomeMainWindow: Bool { get { return true; } };
 }
 
+typealias VoidFunction = () -> ();
+
 @NSApplicationMain
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
 
     @IBOutlet weak var window: MainWindow!;
     let connection: Connection;
@@ -24,11 +26,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var _helpController: HelpController?;
     private var _helpWindow: NSWindow?;
 
+    private var _otherWindows = Set<NSWindow>();
+
+    private var _notificationActions = [NSUserNotification : VoidFunction]();
+
     let WIDTH: CGFloat = 400;
 
     override init() {
         self.connection = OAuthConnection();
         super.init();
+        self.connection.fault.observeNext({ fault in self._handleConnectionFault(fault) });
     }
 
     func applicationWillFinishLaunching(notification: NSNotification) {
@@ -85,6 +92,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private func _handleConnectionFault(fault: ConnectionFault) {
+        let (headline, detail) = fault.messages();
+        let logSnapshot = STMemoryLogger.sharedInstance.all();
+
+        self.showNotification(headline, action: {
+            let finalText = NSMutableAttributedString();
+            let errorText = NSAttributedString(string: "\(headline).\n\(detail)\n\n", attributes: [ NSFontAttributeName: ST.main.boldFont ]);
+            finalText.appendAttributedString(errorText);
+            finalText.appendAttributedString(NSAttributedString.init(string: logSnapshot));
+            self.showLogs(finalText);
+        });
+    }
+
     @IBAction func toggleHidden(sender: AnyObject) {
         let item = sender as! NSMenuItem;
 
@@ -125,6 +145,46 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self._helpWindow!.makeKeyAndOrderFront(nil);
     }
 
+    @IBAction func showCurrentLogs(sender: AnyObject) {
+        self.showLogs(NSAttributedString.init(string: STMemoryLogger.sharedInstance.all()));
+    }
+
+    func showLogs(logs: NSAttributedString) {
+        let controller = LogViewerController(nibName: "LogViewer", bundle: nil)!;
+        let window = NSWindow(contentViewController: controller);
+        window.title = "Log Viewer";
+        window.nextResponder = self.window;
+        window.minSize = NSSize(width: 600, height: 400);
+        window.makeKeyAndOrderFront(nil);
+
+        controller.setText(logs);
+        self._otherWindows.insert(window);
+    }
+
+    private func showNotification(message: String, action: VoidFunction? = .None) {
+        let notification = NSUserNotification.init();
+        notification.title = "Sidetalk";
+        notification.informativeText = message;
+
+        if case let .Some(vf) = action {
+            notification.actionButtonTitle = "More";
+            notification.hasActionButton = true;
+            self._notificationActions[notification] = vf;
+        }
+
+        let center = NSUserNotificationCenter.defaultUserNotificationCenter();
+        center.delegate = self;
+        center.deliverNotification(notification);
+    }
+
+    func userNotificationCenter(center: NSUserNotificationCenter, shouldPresentNotification notification: NSUserNotification) -> Bool {
+        return true;
+    }
+
+    func userNotificationCenter(center: NSUserNotificationCenter, didActivateNotification notification: NSUserNotification) {
+        if let action = self._notificationActions[notification] { action(); }
+    }
+
     @objc private func windowClosing(notification: NSNotification) {
         if (notification.object as! NSWindow) == self._settingsWindow { self._settingsShown.modify { _ in false }; }
 
@@ -132,6 +192,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // if we're closing the help screen and no account is configured, show that.
             if NSUserDefaults.standardUserDefaults().stringForKey("mainAccount") == nil { self.showPreferences(0); }
         }
+
+        self._otherWindows.remove(notification.object as! NSWindow);
     }
 
     @objc private func handleURL(event: NSAppleEventDescriptor, withReplyEvent: NSAppleEventDescriptor) {

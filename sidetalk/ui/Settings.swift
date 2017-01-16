@@ -110,6 +110,9 @@ class SettingsController: NSViewController {
 
                     // set up a new one, and have it use our password.
                     let connection = Connection();
+                    connection.fault.observeNext { fault in
+                        self._handleConnectionFault(fault);
+                    };
                     connection.connected.observeNext { connected in
                         if connected == true { try! connection.stream.authenticateWithGoogleAccessToken(password); }
                     };
@@ -145,6 +148,20 @@ class SettingsController: NSViewController {
 
     @objc private func handleCallback(notification: NSNotification) {
         if let url = notification.object as? NSURL { self._oauth2.handleRedirectURL(url); }
+    }
+
+    private func _handleConnectionFault(fault: ConnectionFault) {
+        let (headline, detail) = fault.messages();
+
+        if let window = self.view.window {
+            dispatch_async(dispatch_get_main_queue(), {
+                let alert = NSAlert();
+
+                alert.messageText = headline;
+                alert.informativeText = detail;
+                alert.beginSheetModalForWindow(window, completionHandler: { response in });
+            });
+        }
     }
 
     private func fail(message: String?) {
