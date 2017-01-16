@@ -610,13 +610,14 @@ class MainView: NSView {
                     }
 
                     // position the conversation.
+                    let y = self.allPadding + self.listPadding + self.tileSize.height + yThis + self.conversationVOffset - scrollY;
                     conversationView.animator().frame.origin = NSPoint(
                         x: self.frame.width - self.tileSize.height - self.tilePadding - self.conversationPadding - self.conversationWidth,
-                        y: self.allPadding + self.listPadding + self.tileSize.height + yThis + self.conversationVOffset - scrollY
+                        y: y
                     );
                     conversationView.animator().frame.size = NSSize(
                         width: self.conversationWidth,
-                        height: max(ST.conversation.minHeight, self.frame.height - (yThis - self.scrollView.contentView.documentVisibleRect.origin.y + self.conversationVOffset))
+                        height: max(ST.conversation.minHeight, self.frame.height - y)
                     );
                 }
             }
