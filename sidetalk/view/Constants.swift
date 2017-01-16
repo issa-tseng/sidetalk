@@ -107,7 +107,7 @@ class ST {
         let margin = CGFloat(3);
         let outlineWidth = CGFloat(1.5);
 
-        let paddingX = CGFloat(4);
+        let paddingX = CGFloat(7);
         let paddingY = CGFloat(5);
         let radius = CGFloat(6);
 

@@ -175,6 +175,8 @@ class ConversationView: NSView {
         self.textMeasurer.frame = NSRect(origin: NSPoint.zero, size: NSSize(width: 250, height: 0));
         self.textMeasurer.verticallyResizable = true;
         self.textMeasurer.font = NSFont.systemFontOfSize(12);
+        self.textMeasurer.textContainerInset = NSSize.zero;
+        self.textMeasurer.textContainer!.lineFragmentPadding = 0;
     }
 
     // like conversation#latestMessage, but returns all messages we know about.
@@ -247,14 +249,15 @@ class ConversationView: NSView {
 
             // create a new text container that tracks the view.
             let textContainer = NSTextContainer();
+            textContainer.lineFragmentPadding = 0;
             textContainer.widthTracksTextView = true;
             textContainer.heightTracksTextView = true;
 
             // measure the new message so we know how big to make the textView.
             self.textMeasurer.textStorage!.setAttributedString(mutable);
             self.textMeasurer.sizeToFit();
-            let measuredSize = self.textMeasurer.layoutManager!.usedRectForTextContainer(self.textMeasurer.textContainer!).size;
-            let size = NSSize(width: measuredSize.width + 1.0, height: measuredSize.height); // HACK: why is this 1 pixel off?
+            let measuredSize = ceil(self.textMeasurer.layoutManager!.usedRectForTextContainer(self.textMeasurer.textContainer!).size);
+            let size = NSSize(width: measuredSize.width, height: measuredSize.height);
 
             // create the textView, set basic attributes.
             let textView = NSTextView(frame: NSRect(origin: NSPoint.zero, size: size), textContainer: textContainer);
@@ -263,6 +266,7 @@ class ConversationView: NSView {
             textView.drawsBackground = false;
             textView.editable = false;
             textView.selectable = true;
+            textView.textContainerInset = NSSize.zero;
 
             // set tooltip to the receipt timestamp.
             let formatter = NSDateFormatter();

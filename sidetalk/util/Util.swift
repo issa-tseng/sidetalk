@@ -7,3 +7,7 @@ func animationWithDuration(duration: NSTimeInterval, _ block: () -> ()) {
     block();
     NSAnimationContext.endGrouping();
 }
+
+func ceil(size: CGSize) -> CGSize {
+    return CGSize(width: ceil(size.width), height: ceil(size.height));
+}
