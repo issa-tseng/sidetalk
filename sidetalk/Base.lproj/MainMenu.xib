@@ -15,6 +15,8 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="sidetalk" customModuleProvider="target">
             <connections>
+                <outlet property="hideMenuItem" destination="Olw-nP-bQN" id="eBo-nt-CI9"/>
+                <outlet property="muteMenuItem" destination="5zP-dS-0nN" id="FBX-Tc-Ifo"/>
                 <outlet property="window" destination="QvC-M9-y7g" id="gIp-Ho-8D9"/>
                 <outlet property="windowMenu" destination="uai-cm-0Ry" id="d8w-SG-FyY"/>
             </connections>

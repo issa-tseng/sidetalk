@@ -17,7 +17,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     let connection: Connection;
     var mainView: MainView?;
 
-    @IBOutlet weak var windowMenu: NSMenuItem!
+    @IBOutlet weak var windowMenu: NSMenuItem!;
+    @IBOutlet weak var hideMenuItem: NSMenuItem!;
+    @IBOutlet weak var muteMenuItem: NSMenuItem!;
 
     private var _settingsController: SettingsController?;
     private var _settingsWindow: NSWindow?;
@@ -74,6 +76,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         self.mainView!.frame = window.contentView!.bounds;
         window.contentView!.addSubview(self.mainView!);
 
+        // restore hide/mute settings.
+        if NSUserDefaults.standardUserDefaults().boolForKey("hidden") == true { self.toggleHidden(self); }
+        if NSUserDefaults.standardUserDefaults().boolForKey("muted") == true { self.toggleMuted(self); }
+
         // attempt to connect.
         if NSUserDefaults.standardUserDefaults().boolForKey("hasRun") != true {
             NSUserDefaults.standardUserDefaults().setBool(true, forKey: "hasRun");
@@ -106,19 +112,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @IBAction func toggleHidden(sender: AnyObject) {
-        let item = sender as! NSMenuItem;
-
-        let hidden = (item.state == NSOffState);
+        let hidden = (self.hideMenuItem.state == NSOffState);
         self.mainView!.setHide(hidden);
-        item.state = hidden ? NSOnState : NSOffState;
+        NSUserDefaults.standardUserDefaults().setBool(hidden, forKey: "hidden");
+        self.hideMenuItem.state = hidden ? NSOnState : NSOffState;
     }
 
     @IBAction func toggleMuted(sender: AnyObject) {
-        let item = sender as! NSMenuItem;
-
-        let muted = (item.state == NSOffState);
+        let muted = (self.muteMenuItem.state == NSOffState);
         self.mainView!.setMute(muted);
-        item.state = muted ? NSOnState : NSOffState;
+        NSUserDefaults.standardUserDefaults().setBool(muted, forKey: "muted");
+        self.muteMenuItem.state = muted ? NSOnState : NSOffState;
     }
 
     @IBAction func showPreferences(sender: AnyObject) {
