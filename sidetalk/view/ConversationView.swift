@@ -348,6 +348,9 @@ class ConversationView: NSView {
                     self.truncateMessage = textView;
                 }
             }
+
+            // scroll to the bottom if we're inactive. (leave it alone if the user might be scrolling manually)
+            if !self.active_ { self.scrollView.contentView.scrollToPoint(NSPoint.zero); }
         });
     }
 
