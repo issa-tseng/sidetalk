@@ -96,6 +96,27 @@ class ConversationView: NSView {
         // init message text storage.
         self.textStorage.addLayoutManager(self.textLayout);
 
+        // set up the truncated text+bubble for overlong notifications.
+        let truncateBounds = NSRect(origin: NSPoint(x: 0, y: ST.conversation.composeHeight + ST.conversation.composeMargin), size: NSSize(width: self.width, height: 25));
+        self.truncateBubble.calloutShown = true;
+        self.truncateBubble.calloutSide = .Right;
+        self.truncateBubble.color = .Foreign;
+        self.truncateBubble.frame = truncateBounds;
+        self.truncateText.editable = false;
+        self.truncateText.usesSingleLineMode = true;
+        self.truncateText.lineBreakMode = .ByTruncatingTail;
+        self.truncateText.backgroundColor = NSColor.clearColor();
+        self.truncateText.font = NSFont.systemFontOfSize(12);
+        self.truncateText.drawsBackground = false;
+        self.truncateText.bezeled = false;
+        self.truncateText.textColor = NSColor.whiteColor();
+        self.truncateText.frame = NSRect(origin: truncateBounds.insetBy(dx: ST.message.paddingX, dy: ST.message.paddingY).origin,
+                                         size: NSSize(width: self.width - (2 * ST.message.paddingX) - ST.message.calloutSize, height: 16));
+        self.truncateBubble.alphaValue = 0;
+        self.truncateText.alphaValue = 0;
+        self.addSubview(self.truncateBubble);
+        self.addSubview(self.truncateText);
+
         // set up the scroll view itself.
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false;
         self.scrollView.hasVerticalScroller = true;
@@ -149,27 +170,6 @@ class ConversationView: NSView {
             self.titleBubble.constrain.bottom == self.titleText.constrain.bottom + ST.message.paddingY,
             self.titleBubble.constrain.left == self.titleText.constrain.left - ST.message.paddingX
         ]);
-
-        // set up the truncated text+bubble for overlong notifications.
-        let truncateBounds = NSRect(origin: NSPoint(x: 0, y: ST.conversation.composeHeight + ST.conversation.composeMargin), size: NSSize(width: self.width, height: 25));
-        self.truncateBubble.calloutShown = true;
-        self.truncateBubble.calloutSide = .Right;
-        self.truncateBubble.color = .Foreign;
-        self.truncateBubble.frame = truncateBounds;
-        self.truncateText.editable = false;
-        self.truncateText.usesSingleLineMode = true;
-        self.truncateText.lineBreakMode = .ByTruncatingTail;
-        self.truncateText.backgroundColor = NSColor.clearColor();
-        self.truncateText.font = NSFont.systemFontOfSize(12);
-        self.truncateText.drawsBackground = false;
-        self.truncateText.bezeled = false;
-        self.truncateText.textColor = NSColor.whiteColor();
-        self.truncateText.frame = NSRect(origin: truncateBounds.insetBy(dx: ST.message.paddingX, dy: ST.message.paddingY).origin,
-                                         size: NSSize(width: self.width - (2 * ST.message.paddingX) - ST.message.calloutSize, height: 16));
-        self.truncateBubble.alphaValue = 0;
-        self.truncateText.alphaValue = 0;
-        self.addSubview(self.truncateBubble);
-        self.addSubview(self.truncateText);
 
         // set up an invisible field we'll use to measure message sizes.
         self.textMeasurer.frame = NSRect(origin: NSPoint.zero, size: NSSize(width: 250, height: 0));
