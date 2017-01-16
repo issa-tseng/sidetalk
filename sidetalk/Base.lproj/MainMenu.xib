@@ -16,6 +16,7 @@
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="sidetalk" customModuleProvider="target">
             <connections>
                 <outlet property="window" destination="QvC-M9-y7g" id="gIp-Ho-8D9"/>
+                <outlet property="windowMenu" destination="uai-cm-0Ry" id="d8w-SG-FyY"/>
             </connections>
         </customObject>
         <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
@@ -552,6 +553,18 @@
                                         </menuItem>
                                     </items>
                                 </menu>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
+                <menuItem title="Window" id="uai-cm-0Ry">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="Window" id="zW6-o3-Vbs">
+                        <items>
+                            <menuItem title="Close Window" keyEquivalent="w" id="61x-ni-puM">
+                                <connections>
+                                    <action selector="closeWindow:" target="Voe-Tx-rLC" id="ZVz-i0-AfY"/>
+                                </connections>
                             </menuItem>
                         </items>
                     </menu>

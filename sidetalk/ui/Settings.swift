@@ -22,20 +22,6 @@ class SettingsController: NSViewController {
     private var _emailDelegate: STTextDelegate?;
     private var _passwordDelegate: STTextDelegate?;
 
-    override func viewWillAppear() {
-        // wire up cmd+w the manual way.
-        self._keyMonitor = NSEvent.addLocalMonitorForEventsMatchingMask(.KeyDown, handler: { event in
-            if event.keyCode == 13 && event.modifierFlags.contains(NSEventModifierFlags.Command) {
-                self.view.window!.close();
-                NSEvent.removeMonitor(self._keyMonitor!);
-                return nil;
-            }
-            return event;
-        });
-
-        super.viewWillAppear();
-    }
-
     private enum TestResult { case None, Pending, Failed, Succeeded; }
     override func viewDidLoad() {
         super.viewDidLoad();

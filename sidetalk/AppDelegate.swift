@@ -17,6 +17,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     let connection: Connection;
     var mainView: MainView?;
 
+    @IBOutlet weak var windowMenu: NSMenuItem!
+
     private var _settingsController: SettingsController?;
     private var _settingsWindow: NSWindow?;
 
@@ -38,6 +40,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     func applicationWillFinishLaunching(notification: NSNotification) {
         NSAppleEventManager.sharedAppleEventManager().setEventHandler(self, andSelector: #selector(handleURL), forEventClass: UInt32(kInternetEventClass), andEventID: UInt32(kAEGetURL));
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(windowClosing), name: NSWindowWillCloseNotification, object: nil);
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(windowFocusing), name: NSWindowDidBecomeKeyNotification, object: nil);
     }
 
     func applicationDidFinishLaunching(aNotification: NSNotification) {
@@ -181,6 +184,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         if let action = self._notificationActions[notification] { action(); }
     }
 
+    @IBAction func closeWindow(sender: AnyObject) {
+        if let window = NSApp.keyWindow {
+            if window != self.window { window.close(); }
+        }
+    }
+
     @objc private func windowClosing(notification: NSNotification) {
         if (notification.object as! NSWindow) == self._helpWindow {
             // if we're closing the help screen and no account is configured, show that.
@@ -188,6 +197,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
 
         self._otherWindows.remove(notification.object as! NSWindow);
+    }
+
+    @objc private func windowFocusing(notification: NSNotification) {
+        let window = notification.object as! NSWindow;
+        self.windowMenu.hidden = ((window == self.window) || (window.level == 101)); // TODO: why can't i find NSMainMenuWindowLevel defined?
     }
 
     @objc private func handleURL(event: NSAppleEventDescriptor, withReplyEvent: NSAppleEventDescriptor) {
