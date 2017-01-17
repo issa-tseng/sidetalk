@@ -13,6 +13,14 @@ struct LayoutState {
     let mouseIdx: Int?;
 }
 
+enum MouseButton: Impulsable {
+    case None;
+    case Left(event: NSEvent);
+    case Right(event: NSEvent);
+
+    static func noopValue() -> MouseButton { return .None; }
+}
+
 class STScrollView: NSScrollView {
     var onScroll: (() -> ())?;
     override func scrollWheel(event: NSEvent) {
@@ -57,12 +65,19 @@ class MainView: NSView {
     var mouseIdx_: Int? { get { return self._mouseIdx.value; } };
     var mouseIdx: Signal<Int?, NoError> { get { return self._mouseIdx.signal.skipRepeats({ a, b in a == b }); } };
 
+    private let _mouseClickGenerator = Impulse.generate(MouseButton);
+    private let _mouseClickSignal = ManagedSignal<Impulse<MouseButton>>();
+    var mouseClick: Signal<Impulse<MouseButton>, NoError> { get { return self._mouseClickSignal.signal; } };
+
     private let _hiddenMode = MutableProperty<Bool>(false);
     var hiddenMode: Signal<Bool, NoError> { get { return self._hiddenMode.signal; } };
 
     private let _mutedMode = MutableProperty<Bool>(false);
     var mutedMode: Signal<Bool, NoError> { get { return self._mutedMode.signal; } };
     var mutedMode_: Bool { get { return self._mutedMode.value; } };
+
+    let starredJids: Registry;
+    let hiddenJids: Registry;
 
     // drawing ks. should these go elsewhere?
     let allPadding = CGFloat(12);
@@ -78,9 +93,11 @@ class MainView: NSView {
 
     private let _pressedKey = ManagedSignal<Key>();
 
-    init(frame: CGRect, connection: Connection) {
+    init(frame: CGRect, connection: Connection, starred: Registry, hidden: Registry) {
         // store and init.
         self.connection = connection;
+        self.starredJids = starred;
+        self.hiddenJids = hidden;
         self._statusTile = StatusTile(connection: connection, frame: NSRect(origin: NSPoint.zero, size: frame.size));
         self.modeView = ModeView(frame: NSRect(origin: NSPoint(x: frame.width - ST.mode.marginRight - ST.mode.iconSize, y: ST.mode.marginBottom),
                                                size: NSSize(width: ST.mode.iconSize, height: ST.mode.iconSize * 2)));
@@ -130,6 +147,10 @@ class MainView: NSView {
         self._statusTile.prepare(self);
         self.modeView.prepare(self);
 
+        // poke some signals.
+        self.starredJids.ping();
+        self.hiddenJids.ping();
+
         // mouse things.
         self.marginTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: frame.width - 2, y: 0), size: frame.size),
                                             options: [.MouseEnteredAndExited, .ActiveAlways], owner: self, userInfo: nil);
@@ -170,6 +191,7 @@ class MainView: NSView {
     }
     override func acceptsFirstMouse(theEvent: NSEvent?) -> Bool { return true; }
     override func mouseDown(theEvent: NSEvent) {
+        //self._mouseClickSignal.observer.sendNext(self._mouseClickGenerator.create(.Left(event: theEvent)));
         if self.mouseIdx_ != nil {
             GlobalInteraction.sharedInstance.send(.Click);
         } else if let tracker = self.notifyingTracker {
@@ -181,6 +203,9 @@ class MainView: NSView {
                 GlobalInteraction.sharedInstance.send(.Click);
             }
         }
+    }
+    override func rightMouseDown(event: NSEvent) {
+        self._mouseClickSignal.observer.sendNext(self._mouseClickGenerator.create(.Right(event: event)));
     }
 
     private func liveMouse() {
@@ -275,9 +300,14 @@ class MainView: NSView {
         let sort = self.connection.contacts
             .combineWithDefault(latestMessage.downcastToOptional(), defaultValue: nil).map({ contacts, _ in contacts })
             .combineWithDefault(self._statusTile.searchText, defaultValue: "")
-            .combineWithDefault(notifying, defaultValue: Set<Contact>()).map({ ($0.0, $0.1, $1) })
-            .map({ contacts, search, notifying -> SortOf<Contact> in
-                let (chattedContacts, restContacts) = contacts.part({ contact in contact.conversation.messages.count > 0 });
+            .combineWithDefault(notifying, defaultValue: Set<Contact>())
+            .combineWithDefault(self.starredJids.members, defaultValue: Set<String>())
+            .combineWithDefault(self.hiddenJids.members, defaultValue: Set<String>()).map({ ($0.0.0.0, $0.0.0.1, $0.0.1, $0.1, $1) })
+            .map({ contacts, search, notifying, starred, hidden -> SortOf<Contact> in
+                let filteredContacts = contacts.filter({ contact in !hidden.contains(contact.inner.jid().full()) });
+
+                let (starredContacts, plebContacts) = filteredContacts.part({ contact in starred.contains(contact.inner.jid().full()) });
+                let (chattedContacts, restContacts) = plebContacts.part({ contact in contact.conversation.messages.count > 0 });
 
                 let sortedChattedContacts = chattedContacts.sort({ a, b in
                     a.conversation.messages.first!.at.compare(b.conversation.messages.first!.at) == .OrderedDescending
@@ -289,7 +319,7 @@ class MainView: NSView {
                 var sorted: [Contact]; // HACK: mutable. gross.
 
                 if search == "" {
-                    sorted = sortedChattedContacts + availableContacts + awayContacts;
+                    sorted = starredContacts + sortedChattedContacts + availableContacts + awayContacts;
                 } else {
                     let offlineContacts = restContacts.filter { contact in !contact.online_ };
                     let scores = (sortedChattedContacts + availableContacts + awayContacts + offlineContacts).map { contact in
@@ -450,6 +480,13 @@ class MainView: NSView {
                 if let tile = self._contactTiles.get(this) { tile.selected_ = true; }
             };
 
+        // set contact star visibility as appropriate.
+        tiles.combineWithDefault(self.starredJids.members, defaultValue: Set<String>()).observeNext({ (tiles, starred) in
+            for tile in tiles {
+                tile.showStar_ = starred.contains(tile.contact.inner.jid().full());
+            }
+        });
+
         // determine who we're actively chatting with.
         let activeConversation = self.state
             .combineLatestWith(sort)
@@ -507,6 +544,19 @@ class MainView: NSView {
             .combineWithDefault(self.wantsMouseConversation.signal, defaultValue: false).map({ a, b in a || b })
             .observeNext({ wantsMouse in self.window?.ignoresMouseEvents = !wantsMouse });
         dummyObserver.sendNext(false);
+
+        // show context menu on right-click on a contact.
+        let buttonTracker = Impulse.track(MouseButton);
+        sort.combineLatestWith(self.mouseClick)
+            .combineLatestWith(self.mouseIdx).map({ ($0.0, $0.1, $1); })
+            .observeNext({ (sort, buttonImpulse, idx) in
+                let button = buttonTracker.extract(buttonImpulse);
+                if case let .Right(event) = button {
+                    if let contact = sort[idx] {
+                        ContactMenu.show(contact, event: event, view: self);
+                    }
+                }
+            });
     }
 
     private func drawContact(contact: Contact) -> ContactTile {
@@ -514,6 +564,7 @@ class MainView: NSView {
             frame: NSRect(origin: NSPoint.zero, size: self.tileSize),
             contact: contact
         );
+        newTile.showStar_ = self.starredJids.contains(contact.inner.jid().full());
         dispatch_async(dispatch_get_main_queue(), { self.scrollContents.addSubview(newTile); });
         return newTile;
     }

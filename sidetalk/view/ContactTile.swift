@@ -30,10 +30,19 @@ class ContactTile : NSView {
         set { self._selected.modify { _ in newValue }; }
     };
 
+    private let _showStar = MutableProperty<Bool>(false);
+    var showStar: Signal<Bool, NoError> { get { return self._showStar.signal; } };
+    var showStar_: Bool {
+        get { return self._showStar.value; }
+        set { self._showStar.modify(({ _ in newValue })); }
+    };
+
     let avatarLayer = CAAvatarLayer();
     let outlineLayer = CAShapeLayer();
     let textboxLayer = CAShapeLayer();
     let textLayer = CATextLayer();
+
+    let starLayer = IconLayer();
 
     let countLayer = CATextLayer();
     let countRingLayer = CAShapeLayer();
@@ -57,6 +66,7 @@ class ContactTile : NSView {
     override func viewWillMoveToSuperview(newSuperview: NSView?) {
         super.viewWillMoveToSuperview(newSuperview);
 
+
         // now draw everything, and add the layers.
         dispatch_async(dispatch_get_main_queue(), {
             self.drawAll();
@@ -66,6 +76,7 @@ class ContactTile : NSView {
             layer.addSublayer(self.outlineLayer);
             layer.addSublayer(self.textboxLayer);
             layer.addSublayer(self.textLayer);
+            layer.addSublayer(self.starLayer);
             layer.addSublayer(self.countRingLayer);
             layer.addSublayer(self.countLayer);
         });
@@ -135,6 +146,11 @@ class ContactTile : NSView {
         let avatarHalf = avatarLength / 2;
         let origin = CGPoint(x: self.size.width - self.size.height + 1, y: 1);
 
+        // init icon.
+        let starSize: CGFloat = 16;
+        self.starLayer.image = NSImage.init(named: "star");
+        self.starLayer.frame = CGRect(origin: CGPoint(x: self.size.width - starSize, y: 1), size: CGSize(width: starSize, height: starSize));
+
         // set up avatar layout.
         let avatarSize = CGSize(width: avatarLength, height: avatarLength);
         let avatarBounds = CGRect(origin: origin, size: avatarSize);
@@ -202,6 +218,13 @@ class ContactTile : NSView {
         self.contact.online.observeNext({ _ in self.updateOpacity(); });
         self.contact.presence.observeNext({ _ in self.updateOpacity(); });
         self.updateOpacity();
+
+        // adjust star layer visibility.
+        self.showStar.observeNext({ shown in
+            if self.starLayer.hidden == shown {
+                dispatch_async(dispatch_get_main_queue(), { self.starLayer.hidden = !shown; });
+            }
+        });
     }
 
     // HACK: here i'm just using rx to trigger the update, then rendering from

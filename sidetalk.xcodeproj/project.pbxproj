@@ -17,6 +17,8 @@
 		451282581CF9295C0088DEDE /* sidetalkUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451282571CF9295C0088DEDE /* sidetalkUITests.swift */; };
 		451282661CFA6F100088DEDE /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451282651CFA6F100088DEDE /* MainView.swift */; };
 		45221D991E2DACE90061FB45 /* MessageLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45221D981E2DACE90061FB45 /* MessageLog.swift */; };
+		45221D9B1E2EB9280061FB45 /* ContactMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45221D9A1E2EB9280061FB45 /* ContactMenu.swift */; };
+		45221D9D1E2EC4970061FB45 /* Registry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45221D9C1E2EC4970061FB45 /* Registry.swift */; };
 		452591C81D1CA93D000CF9F1 /* Impulse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452591C71D1CA93D000CF9F1 /* Impulse.swift */; };
 		452591CA1D1D0751000CF9F1 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452591C91D1D0751000CF9F1 /* ArrayExtensions.swift */; };
 		452591CC1D21F828000CF9F1 /* STTextDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452591CB1D21F828000CF9F1 /* STTextDelegate.swift */; };
@@ -98,6 +100,8 @@
 		451282591CF9295C0088DEDE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		451282651CFA6F100088DEDE /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		45221D981E2DACE90061FB45 /* MessageLog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MessageLog.swift; path = model/MessageLog.swift; sourceTree = "<group>"; };
+		45221D9A1E2EB9280061FB45 /* ContactMenu.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContactMenu.swift; path = view/ContactMenu.swift; sourceTree = "<group>"; };
+		45221D9C1E2EC4970061FB45 /* Registry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Registry.swift; path = model/Registry.swift; sourceTree = "<group>"; };
 		452591C71D1CA93D000CF9F1 /* Impulse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Impulse.swift; path = util/Impulse.swift; sourceTree = "<group>"; };
 		452591C91D1D0751000CF9F1 /* ArrayExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ArrayExtensions.swift; path = util/ArrayExtensions.swift; sourceTree = "<group>"; };
 		452591CB1D21F828000CF9F1 /* STTextDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = STTextDelegate.swift; path = view/STTextDelegate.swift; sourceTree = "<group>"; };
@@ -262,6 +266,7 @@
 			isa = PBXGroup;
 			children = (
 				45221D981E2DACE90061FB45 /* MessageLog.swift */,
+				45221D9C1E2EC4970061FB45 /* Registry.swift */,
 			);
 			name = model;
 			sourceTree = "<group>";
@@ -355,6 +360,7 @@
 				45CB87A11D76430C0079E892 /* ShadowLayer.swift */,
 				45CB87A31D77A2DD0079E892 /* GradientView.swift */,
 				45691A8B1D7F826200ABD571 /* ModeView.swift */,
+				45221D9A1E2EB9280061FB45 /* ContactMenu.swift */,
 			);
 			name = view;
 			sourceTree = "<group>";
@@ -571,6 +577,7 @@
 				45CB879E1D5BE5820079E892 /* ViewExtensions.swift in Sources */,
 				45221D991E2DACE90061FB45 /* MessageLog.swift in Sources */,
 				45691A8C1D7F826200ABD571 /* ModeView.swift in Sources */,
+				45221D9D1E2EC4970061FB45 /* Registry.swift in Sources */,
 				45AEC00E1CFD1F6700203967 /* XUIView.m in Sources */,
 				45AEC00D1CFD1F6700203967 /* XUIValueAdditions.m in Sources */,
 				451282661CFA6F100088DEDE /* MainView.swift in Sources */,
@@ -583,6 +590,7 @@
 				455852391D29D1B500ECE93C /* Util.swift in Sources */,
 				45AEC0161CFD58AA00203967 /* ContactTile.swift in Sources */,
 				45CB87A41D77A2DD0079E892 /* GradientView.swift in Sources */,
+				45221D9B1E2EB9280061FB45 /* ContactMenu.swift in Sources */,
 				458A73401D0A423C0061FAFD /* Connection.swift in Sources */,
 				458A73411D0A423C0061FAFD /* Contact.swift in Sources */,
 				45AEC0061CFD1F6700203967 /* XUIBezierPathAdditions.m in Sources */,

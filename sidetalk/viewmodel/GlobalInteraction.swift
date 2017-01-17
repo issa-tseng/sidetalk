@@ -4,7 +4,7 @@ import MASShortcut
 import ReactiveCocoa
 import enum Result.NoError
 
-enum Key : Impulsable {
+enum Key: Impulsable {
     case Up, Down, Return, LineBreak, Escape, GlobalToggle, Focus, Blur, Click, None;
 
     static func noopValue() -> Key { return .None; }

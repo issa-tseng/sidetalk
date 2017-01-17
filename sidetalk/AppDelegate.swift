@@ -75,7 +75,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         window.level = Int(CGWindowLevelForKey(.FloatingWindowLevelKey));
 
         // set our primary view.
-        self.mainView = MainView(frame: frame, connection: self.connection);
+        self.mainView = MainView(frame: frame, connection: self.connection, starred: Registry.create("starred")!, hidden: Registry.create("hidden")!);
         self.mainView!.frame = window.contentView!.bounds;
         window.contentView!.addSubview(self.mainView!);
 
