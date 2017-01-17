@@ -17,10 +17,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     let messageLog: MessageLog?;
     let connection: Connection;
     var mainView: MainView?;
+    let hiddenJids: Registry;
 
     @IBOutlet weak var windowMenu: NSMenuItem!;
     @IBOutlet weak var hideMenuItem: NSMenuItem!;
     @IBOutlet weak var muteMenuItem: NSMenuItem!;
+    @IBOutlet weak var hiddenContactsMenu: NSMenu!
 
     private var _settingsController: SettingsController?;
     private var _settingsWindow: NSWindow?;
@@ -35,6 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     let WIDTH: CGFloat = 400;
 
     override init() {
+        self.hiddenJids = Registry.create("hidden")!;
         self.messageLog = MessageLog.create();
         self.connection = OAuthConnection(messageLog: self.messageLog);
 
@@ -49,6 +52,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     func applicationDidFinishLaunching(aNotification: NSNotification) {
+        // set up signals.
+        self.prepare();
+
         let window = self.window!
 
         // make our window transparent.
@@ -75,7 +81,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         window.level = Int(CGWindowLevelForKey(.FloatingWindowLevelKey));
 
         // set our primary view.
-        self.mainView = MainView(frame: frame, connection: self.connection, starred: Registry.create("starred")!, hidden: Registry.create("hidden")!);
+        self.mainView = MainView(frame: frame, connection: self.connection, starred: Registry.create("starred")!, hidden: self.hiddenJids);
         self.mainView!.frame = window.contentView!.bounds;
         window.contentView!.addSubview(self.mainView!);
 
@@ -98,6 +104,33 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             self.connection.connect(account);
         } else {
             self.showPreferences(0);
+        }
+    }
+
+    func prepare() {
+        self.hiddenJids.members.observeNext({ members in
+            dispatch_async(dispatch_get_main_queue(), { self._updateHiddenContacts(members); });
+        });
+    }
+
+    private func _updateHiddenContacts(members: Set<String>) {
+        self.hiddenContactsMenu.removeAllItems();
+        if members.isEmpty {
+            let item = NSMenuItem.init(title: "(none)", action: #selector(noop), keyEquivalent: "");
+            item.enabled = false;
+            self.hiddenContactsMenu.addItem(item);
+        } else {
+            for member in members {
+                let item = NSMenuItem.init(title: member, action: #selector(toggleHiddenContact), keyEquivalent: "");
+                item.target = self;
+                self.hiddenContactsMenu.addItem(item);
+            }
+        }
+    }
+    @objc func noop() {}
+    @objc func toggleHiddenContact(sender: AnyObject) {
+        if let item = sender as? NSMenuItem {
+            self.hiddenJids.toggle(item.title);
         }
     }
 
