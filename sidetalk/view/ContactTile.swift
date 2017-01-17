@@ -225,6 +225,7 @@ class ContactTile : NSView {
                 dispatch_async(dispatch_get_main_queue(), { self.starLayer.hidden = !shown; });
             }
         });
+        self.starLayer.hidden = !self.showStar_;
     }
 
     // HACK: here i'm just using rx to trigger the update, then rendering from
