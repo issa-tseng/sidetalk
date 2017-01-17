@@ -94,12 +94,16 @@ class Connection {
     internal let reconnect: XMPPReconnect;
     internal let reachability: Reachability?;
 
+    private let messageLog: MessageLog?;
+
     private var _connectionAttempt = 0;
 
     private let _streamDelegateProxy: XFStreamDelegateProxy;
     private let _rosterDelegateProxy: XFRosterDelegateProxy;
 
-    init() {
+    init(messageLog: MessageLog? = nil) {
+        self.messageLog = messageLog;
+
         // xmpp logging
         DDLog.addLogger(DDTTYLogger.sharedInstance(), withLevel: DDLogLevel.All);
         DDLog.addLogger(STMemoryLogger.sharedInstance, withLevel: DDLogLevel.All);
@@ -182,7 +186,7 @@ class Connection {
         // create managed contacts
         self._contactsSignal = self.users.map { users in
             users.map { user in
-                self._contactsCache.get(user.jid().bare(), update: { contact in contact.update(user); }, orElse: { Contact(xmppUser: user, connection: self); });
+                self._contactsCache.get(user.jid().bare(), update: { contact in contact.update(user); }, orElse: { self.createContact(user); });
             };
         }
 
@@ -196,6 +200,7 @@ class Connection {
                     let message = Message(from: with, body: rawMessage.body(), at: NSDate(), conversation: conversation);
                     conversation.addMessage(message);
                     self._latestMessageSignal.observer.sendNext(message);
+                    self.logMessage(conversation, message);
                 }
                 if let state = ChatState.fromMessage(rawMessage) {
                     self._latestActivitySignal.observer.sendNext(with);
@@ -211,6 +216,22 @@ class Connection {
             reach.whenReachable = { _ in self._hasInternet.modify { _ in true; } };
             reach.whenUnreachable = { _ in self._hasInternet.modify { _ in false; } };
             do { try reach.startNotifier(); } catch _ { NSLog("could not start reachability"); }
+        }
+    }
+
+    private func createContact(user: XMPPUser) -> Contact {
+        let result = Contact(xmppUser: user, connection: self);
+        if let log = self.messageLog {
+            for message in log.messages(forConversation: result.conversation, myself: self.myself_!) {
+                result.conversation.addMessage(message);
+            }
+        }
+        return result;
+    }
+
+    private func logMessage(conversation: Conversation, _ message: Message) {
+        if let log = self.messageLog {
+            dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0), { log.log(message); });
         }
     }
 
@@ -230,6 +251,8 @@ class Connection {
         self._latestMessageSignal.observer.sendNext(message);
         to.conversation.addMessage(message);
         // TODO: i don't like that this is a separate set of code from the foreign incoming.
+
+        self.logMessage(to.conversation, message);
     }
 
     func sendChatState(to: Contact, _ state: ChatState) {

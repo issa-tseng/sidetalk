@@ -16,6 +16,7 @@
 		4512824D1CF9295C0088DEDE /* sidetalkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4512824C1CF9295C0088DEDE /* sidetalkTests.swift */; };
 		451282581CF9295C0088DEDE /* sidetalkUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451282571CF9295C0088DEDE /* sidetalkUITests.swift */; };
 		451282661CFA6F100088DEDE /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451282651CFA6F100088DEDE /* MainView.swift */; };
+		45221D991E2DACE90061FB45 /* MessageLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45221D981E2DACE90061FB45 /* MessageLog.swift */; };
 		452591C81D1CA93D000CF9F1 /* Impulse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452591C71D1CA93D000CF9F1 /* Impulse.swift */; };
 		452591CA1D1D0751000CF9F1 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452591C91D1D0751000CF9F1 /* ArrayExtensions.swift */; };
 		452591CC1D21F828000CF9F1 /* STTextDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452591CB1D21F828000CF9F1 /* STTextDelegate.swift */; };
@@ -96,6 +97,7 @@
 		451282571CF9295C0088DEDE /* sidetalkUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sidetalkUITests.swift; sourceTree = "<group>"; };
 		451282591CF9295C0088DEDE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		451282651CFA6F100088DEDE /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		45221D981E2DACE90061FB45 /* MessageLog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MessageLog.swift; path = model/MessageLog.swift; sourceTree = "<group>"; };
 		452591C71D1CA93D000CF9F1 /* Impulse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Impulse.swift; path = util/Impulse.swift; sourceTree = "<group>"; };
 		452591C91D1D0751000CF9F1 /* ArrayExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ArrayExtensions.swift; path = util/ArrayExtensions.swift; sourceTree = "<group>"; };
 		452591CB1D21F828000CF9F1 /* STTextDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = STTextDelegate.swift; path = view/STTextDelegate.swift; sourceTree = "<group>"; };
@@ -225,6 +227,7 @@
 				455852491D2DBAA800ECE93C /* ui */,
 				454DBB961D08E47F0065DA1B /* util */,
 				45AEC0141CFD589600203967 /* view */,
+				45221D971E2DACD30061FB45 /* model */,
 				45AEC0111CFD57C800203967 /* viewmodel */,
 				45AEC0101CFD1FBB00203967 /* sidetalk-Bridging-Header.h */,
 				4512823C1CF9295C0088DEDE /* AppDelegate.swift */,
@@ -253,6 +256,14 @@
 				451282591CF9295C0088DEDE /* Info.plist */,
 			);
 			path = sidetalkUITests;
+			sourceTree = "<group>";
+		};
+		45221D971E2DACD30061FB45 /* model */ = {
+			isa = PBXGroup;
+			children = (
+				45221D981E2DACE90061FB45 /* MessageLog.swift */,
+			);
+			name = model;
 			sourceTree = "<group>";
 		};
 		454DBB961D08E47F0065DA1B /* util */ = {
@@ -558,6 +569,7 @@
 				458A73451D0A51E20061FAFD /* SignalExtensions.swift in Sources */,
 				45CB87A21D76430C0079E892 /* ShadowLayer.swift in Sources */,
 				45CB879E1D5BE5820079E892 /* ViewExtensions.swift in Sources */,
+				45221D991E2DACE90061FB45 /* MessageLog.swift in Sources */,
 				45691A8C1D7F826200ABD571 /* ModeView.swift in Sources */,
 				45AEC00E1CFD1F6700203967 /* XUIView.m in Sources */,
 				45AEC00D1CFD1F6700203967 /* XUIValueAdditions.m in Sources */,

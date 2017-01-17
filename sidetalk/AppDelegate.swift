@@ -14,6 +14,7 @@ typealias VoidFunction = () -> ();
 class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
 
     @IBOutlet weak var window: MainWindow!;
+    let messageLog: MessageLog?;
     let connection: Connection;
     var mainView: MainView?;
 
@@ -34,7 +35,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     let WIDTH: CGFloat = 400;
 
     override init() {
-        self.connection = OAuthConnection();
+        self.messageLog = MessageLog.create();
+        self.connection = OAuthConnection(messageLog: self.messageLog);
+
         super.init();
         self.connection.fault.observeNext({ fault in self._handleConnectionFault(fault) });
     }
