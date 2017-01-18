@@ -236,9 +236,8 @@ class ConversationView: NSView {
             let foreign = message.isForeign();
 
             // update our total stored text, with link detection.
-            let mutable = NSMutableAttributedString(string: message.body);
-            let fullRange = NSRange(location: 0, length: message.body.characters.count);
-            mutable.addAttributes(ST.message.textAttr, range: fullRange);
+            let mutable = NSMutableAttributedString(string: message.body, attributes: ST.message.textAttr);
+            let fullRange = NSRange(location: 0, length: message.body.characters.count); // TODO: is this actually the full range?
             let detector = try! NSDataDetector(types: NSTextCheckingType.Link.rawValue);
             detector.enumerateMatchesInString(message.body, options: NSMatchingOptions(), range: fullRange, usingBlock: { match, _, _ in
                 if let url = match?.URL { mutable.addAttributes([ NSLinkAttributeName: url ], range: match!.range); }
@@ -327,6 +326,12 @@ class ConversationView: NSView {
                 bubbleView.constrain.left == textView.constrain.left - (ST.message.paddingX + (foreign ? 0 : ST.message.calloutSize + ST.message.outlineWidth)) - (ST.message.outlineWidth / 2),
                 bubbleView.constrain.right == textView.constrain.right + (ST.message.paddingX + (foreign ? ST.message.calloutSize + ST.message.outlineWidth : 0)) + (ST.message.outlineWidth / 2)
             ]);
+
+            // hide off the bat if this message is old.
+            if !self.active_ && message.at.dateByAddingTimeInterval(ST.message.shownFor).isLessThanOrEqualTo(NSDate()) {
+                bubbleView.alphaValue = 0.0;
+                textView.alphaValue = 0.0;
+            }
 
             // hide the fallback bubble.
             self.truncateText.alphaValue = 0;
