@@ -114,8 +114,10 @@ class ContactTile : NSView {
                 if active { return 0; }
 
                 var count = 0; // count this mutably and manually for perf (early exit).
+                let startup = (NSApplication.sharedApplication().delegate as! AppDelegate).startup;
                 for message in conversation.messages {
                     if message.at.isLessThanOrEqualTo(shown) { break; }
+                    if message.at.isLessThan(startup) { break; }
                     if message.from == self.contact { count += 1; }
                 }
                 return count;

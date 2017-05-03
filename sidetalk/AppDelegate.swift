@@ -35,11 +35,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     private var _notificationActions = [NSUserNotification : VoidFunction]();
 
     let WIDTH: CGFloat = 400;
+    let startup: NSDate;
 
     override init() {
         self.hiddenJids = Registry.create("hidden")!;
         self.messageLog = MessageLog.create();
         self.connection = OAuthConnection(messageLog: self.messageLog);
+        self.startup = NSDate();
 
         super.init();
         self.connection.fault.observeNext({ fault in self._handleConnectionFault(fault) });
