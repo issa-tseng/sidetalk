@@ -351,7 +351,7 @@ class MainView: NSView {
 
                 case (let .Chatting(with, previous), .Click) where with == mousedUser: return previous;
                 case (let .Chatting(_, previous), .Click) where mousedUser != nil: return .Chatting(mousedUser!, previous);
-                case (_, .Click) where self.mouseIdx_ != nil: return .Chatting(sort[Clamped(self.mouseIdx_)]!, .Normal);
+                case (_, .Click) where mousedUser != nil: return .Chatting(mousedUser!, .Normal);
 
                 case (.Normal, .Escape): return .Inactive;
                 case (.Normal, .Up): return .Selecting(0);
