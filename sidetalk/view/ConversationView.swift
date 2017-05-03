@@ -201,6 +201,7 @@ class ConversationView: NSView {
         self.active
             .combineWithDefault(delayedMessage.downcastToOptional(), defaultValue: nil).map({ active, _ in active })
             .combineWithDefault(self.conversation.connection.hasInternet, defaultValue: true)
+            .combineWithDefault(self.conversation.connection.authenticated, defaultValue: true).map({ ($0.0, $0.1 && $1) }) // doesn't matter which flag is which, combine.
             .combinePrevious((false, true))
             .observeNext({ last, this in self.relayout(last, this); });
 

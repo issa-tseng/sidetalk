@@ -49,6 +49,12 @@ class XFStreamDelegateProxy: NSObject, XMPPStreamDelegate {
             self._messageProxy.observer.sendNext(message);
         }
     }
+
+    private var _faultSignal = ManagedSignal<ConnectionFault>();
+    var fault: Signal<ConnectionFault, NoError> { get { return self._faultSignal.signal; } };
+    func xmppStream(sender: XMPPStream!, didFailToSendMessage message: XMPPMessage!, error: NSError!) {
+        self._faultSignal.observer.sendNext(.MessageSendFailure(messageBody: message.body()));
+    }
 }
 
 class XFRosterDelegateProxy: XFDelegateModuleProxy, XMPPRosterDelegate {
@@ -69,11 +75,13 @@ class XFRosterDelegateProxy: XFDelegateModuleProxy, XMPPRosterDelegate {
 enum ConnectionFault {
     case ConnectionFailure(error: String);
     case AuthenticationFailure(error: String);
+    case MessageSendFailure(messageBody: String);
 
     func messages() -> (String, String) {
         switch (self) {
         case let .ConnectionFailure(error): return ("Connection error: \(error)", ConnectionFault.errorResolution(error));
         case let .AuthenticationFailure(error): return ("Login error: \(error)", ConnectionFault.errorResolution(error));
+        case let .MessageSendFailure(messageBody): return ("Failed to send message. Please try again.", messageBody);
         }
     }
 
@@ -217,6 +225,9 @@ class Connection {
             reach.whenUnreachable = { _ in self._hasInternet.modify { _ in false; } };
             do { try reach.startNotifier(); } catch _ { NSLog("could not start reachability"); }
         }
+
+        // if we get a fault from our delegate, pass it along.
+        self._streamDelegateProxy.fault.observeNext { fault in self._faultSignal.observer.sendNext(fault) };
     }
 
     private func createContact(user: XMPPUser) -> Contact {
