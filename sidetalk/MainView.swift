@@ -90,6 +90,7 @@ class MainView: NSView {
 
     let messageShown = NSTimeInterval(5.0);
     let restoreInterval = NSTimeInterval(10.0 * 60.0);
+    let inactivityInterval = NSTimeInterval(5.0 * 24.0 * 60.0 * 60.0);
 
     private let _pressedKey = ManagedSignal<Key>();
 
@@ -305,9 +306,12 @@ class MainView: NSView {
             .combineWithDefault(self.hiddenJids.members, defaultValue: Set<String>()).map({ ($0.0.0.0, $0.0.0.1, $0.0.1, $0.1, $1) })
             .map({ contacts, search, notifying, starred, hidden -> SortOf<Contact> in
                 let filteredContacts = contacts.filter({ contact in !hidden.contains(contact.inner.jid().full()) });
-
                 let (starredContacts, plebContacts) = filteredContacts.part({ contact in starred.contains(contact.inner.jid().full()) });
-                let (chattedContacts, restContacts) = plebContacts.part({ contact in contact.conversation.messages.count > 0 });
+
+                let cutoff = NSDate().dateByAddingTimeInterval(-1.0 * self.inactivityInterval);
+                let (chattedContacts, restContacts) = plebContacts.part({ contact in
+                    contact.conversation.messages.contains({ message in message.at.isGreaterThanOrEqualTo(cutoff) })
+                });
 
                 let sortedChattedContacts = chattedContacts.sort({ a, b in
                     a.conversation.messages.first!.at.compare(b.conversation.messages.first!.at) == .OrderedDescending
