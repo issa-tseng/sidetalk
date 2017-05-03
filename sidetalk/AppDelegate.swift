@@ -71,12 +71,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         self.window!.ignoresMouseEvents = true;
 
         // position our window.
-        let screenFrame = NSScreen.mainScreen()!.visibleFrame;
-        let frame = CGRect(
-            x: screenFrame.origin.x + screenFrame.size.width - self.WIDTH, y: 0,
-            width: self.WIDTH, height: screenFrame.size.height
-        );
-        window.setFrame(frame, display: true);
+        let frame = self.positionWindow();
 
         // appear on all spaces, and always on top.
         window.collectionBehavior = [window.collectionBehavior, NSWindowCollectionBehavior.CanJoinAllSpaces];
@@ -100,6 +95,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
     }
 
+    private func positionWindow() -> CGRect {
+        let screenFrame = NSScreen.mainScreen()!.visibleFrame;
+        let frame = CGRect(
+            x: screenFrame.origin.x + screenFrame.size.width - self.WIDTH, y: 0,
+            width: self.WIDTH, height: screenFrame.size.height
+        );
+        if frame != window.frame { window.setFrame(frame, display: true); }
+        return frame;
+    }
+
     func connect() {
         // if we have an account to connect to, do so. otherwise, show the prefpane.
         if let account = NSUserDefaults.standardUserDefaults().stringForKey("mainAccount") {
@@ -113,6 +118,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         self.hiddenJids.members.observeNext({ members in
             dispatch_async(dispatch_get_main_queue(), { self._updateHiddenContacts(members); });
         });
+
+        NSNotificationCenter.defaultCenter().addObserverForName(NSApplicationDidChangeScreenParametersNotification,
+            object: NSApplication.sharedApplication(), queue: NSOperationQueue.mainQueue()) { notification -> Void in
+                if let mainView = self.mainView {
+                    dispatch_async(dispatch_get_main_queue(), {
+                        self.positionWindow();
+                        mainView.frame = self.window.contentView!.bounds;
+                    })
+                }
+        }
     }
 
     private func _updateHiddenContacts(members: Set<String>) {

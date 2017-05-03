@@ -106,9 +106,13 @@ class MainView: NSView {
         super.init(frame: frame);
 
         // background gradient initial state and addition.
-        self.gradientView.frame = NSRect(origin: NSPoint.zero, size: self.frame.size);
+        self.gradientView.translatesAutoresizingMaskIntoConstraints = false;
         self.gradientView.alphaValue = 0;
         self.addSubview(self.gradientView);
+        self.addConstraints([
+            self.gradientView.constrain.left == self.constrain.left, self.gradientView.constrain.right == self.constrain.right,
+            self.gradientView.constrain.top == self.constrain.top, self.gradientView.constrain.bottom == self.constrain.bottom
+        ]);
 
         // status tile initial positioning.
         self.addSubview(self._statusTile);
