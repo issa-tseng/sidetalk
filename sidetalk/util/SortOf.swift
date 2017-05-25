@@ -26,7 +26,8 @@ class SortOf<T: Hashable> {
         else         { return nil; }
     }
     subscript(i: Int?) -> T? {
-        if let j = i { return self.array[j]; }
+        if let j = i { if j < self.count && self.count > 0 { return self.array[j]; }
+                       else { return nil; } }
         else         { return nil; }
     }
     subscript(c: Clamped) -> T? {
