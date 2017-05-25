@@ -367,13 +367,18 @@ class MainView: NSView {
                 case (.Selecting(0), .Down): return .Normal;
                 case (let .Selecting(idx), .Down): return .Selecting(idx - 1);
                 case (let .Selecting(idx), .Up): return .Selecting((idx + 1 == sort.count) ? idx : idx + 1);
-                case (let .Selecting(idx), .Return): return .Chatting(sort[idx]!, last);
+                case (let .Selecting(idx), .Return) where sort[Clamped(idx)] != nil: return .Chatting(sort[Clamped(idx)]!, last);
                 case (.Selecting, .Escape): return .Normal;
 
                 case (let .Searching(text, 0), .Down): return .Searching(text, 0);
                 case (let .Searching(text, idx), .Down): return .Searching(text, idx - 1);
                 case (let .Searching(text, idx), .Up): return .Searching(text, (idx + 1 == sort.count) ? idx : idx + 1);
-                case (let .Searching(_, idx), .Return): return .Chatting(sort[idx]!, last);
+                case (let .Searching(text, idx), .Return):
+                    if let contact = sort[Clamped(idx)] {
+                        return .Chatting(contact, last);
+                    } else {
+                        return .Searching(text, idx);
+                    }
                 case (.Searching, .Escape): return .Normal;
 
                 case (let .Chatting(with, .Selecting(_)), .Escape): return .Selecting(sort[with]!);
