@@ -382,6 +382,7 @@ class MainView: NSView {
                 case (.Searching, .Escape): return .Normal;
 
                 case (let .Chatting(with, .Selecting(_)), .Escape): return .Selecting(sort[with]!);
+                case (.Chatting(_, .Searching(_, _)), .Escape): return .Normal;
                 case (let .Chatting(_, previous), .Escape): return previous;
 
                 case (.Inactive, .Focus): fallthrough;
