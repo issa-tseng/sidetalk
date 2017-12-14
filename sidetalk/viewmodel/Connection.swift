@@ -2,7 +2,7 @@
 import Foundation
 import XMPPFramework
 import ReactiveCocoa
-import ReachabilitySwift
+import Reachability
 import p2_OAuth2
 import enum Result.NoError
 
