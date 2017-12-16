@@ -527,7 +527,7 @@ class MainView: NSView {
         hasConversation.observeValues({ isOpen in self.wantsMouseConversation.modify({ _ in isOpen }); });
 
         // also if a conversation is open we want to pop in the background gradient. TODO: animation seems to drop the framerate :/
-        hasConversation.observeValues({ isOpen in self.gradientView.alphaValue = (isOpen ? 1.0 : 0); });
+        hasConversation.observeValues({ isOpen in DispatchQueue.main.async(execute: { self.gradientView.alphaValue = (isOpen ? 1.0 : 0); }) });
 
         // if a conversation is open, all other conversations go to compact mode for notifications.
         hasConversation.observeValues({ isOpen in for conversation in self._conversationViews.all() { conversation.displayMode_ = (isOpen ? .Compact : .Normal); } });
@@ -545,11 +545,11 @@ class MainView: NSView {
         self.state.skipRepeats({ $0 == $1 }).filter({ state in state == .Inactive }).always(value: 0)
             .merge(self.mouseIdx.filter({ $0 == nil }).always(value: 0))
             .delay(ST.main.inactiveDelay, on: scheduler)
-            .observeValues { _ in
+            .observeValues { _ in DispatchQueue.main.async(execute: {
                 if (self.state_ == .Inactive) && (self.mouseIdx_ == nil) && (self.scrollView.contentView.documentVisibleRect.origin.y != 0) {
-                    DispatchQueue.main.async(execute: { self.scrollView.contentView.animator().setBoundsOrigin(NSPoint.zero); });
+                    self.scrollView.contentView.animator().setBoundsOrigin(NSPoint.zero);
                 }
-            }
+             }); }
 
         // if anyone wants mouse events, give it to them.
         let (dummy, dummyObserver) = Signal<Bool, NoError>.pipe();

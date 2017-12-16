@@ -105,13 +105,15 @@ class SettingsController: NSViewController {
                     };
                     connection.authenticated.observeValues { authenticated in
                         if authenticated == true {
-                            // it works; make this working account the primary and make it go.
-                            UserDefaults.standard.setValue(email, forKey: "mainAccount");
-                            if let field = self.emailLabel { field.stringValue = email; }
-                            
-                            // wait a tick for everything to be stored to keychain.
-                            DispatchQueue.global(qos: .default).async(execute: {
-                                (NSApplication.shared.delegate as! AppDelegate).connect();
+                            DispatchQueue.main.async(execute: {
+                                // it works; make this working account the primary and make it go.
+                                UserDefaults.standard.setValue(email, forKey: "mainAccount");
+                                if let field = self.emailLabel { field.stringValue = email; }
+
+                                // wait a tick for everything to be stored to keychain.
+                                DispatchQueue.global(qos: .default).async(execute: {
+                                    (NSApplication.shared.delegate as! AppDelegate).connect();
+                                });
                             });
                         }
                     }

@@ -16,6 +16,9 @@ class StatusTile: NSView {
 
     private let _ownPresence: ManagedSignal<Presence>; // TODO: temporary until i unify presence into contact.
     var ownPresence: Signal<Presence, NoError> { get { return self._ownPresence.signal; } };
+    
+    private let _contactTile = ManagedSignal<ContactTile?>();
+    var contactTile: Signal<ContactTile?, NoError> { get { return self._contactTile.signal; } };
 
     let tileSize = NSSize(width: 300, height: 50);
     let iconMargin = CGFloat(42);
@@ -78,12 +81,12 @@ class StatusTile: NSView {
         self.connection.myself
             .filter({ contact in contact != nil })
             .map({ contact in contact! })
+            .observeValues({ contact in
+                DispatchQueue.main.async(execute: { self._contactTile.observer.send(value: self.drawContact(contact)); });
+            });
 
-            // render the tile.
-            .map { contact in self.drawContact(contact) } // HACK: side effects in a map.
-
-            // clean up old tiles.
-            .map({ tile in tile as ContactTile? }) // TODO: is there a cleaner way to do this?
+        // if we must, clean up the old tile.
+        self.contactTile
             .combinePrevious(nil)
             .observeValues { last, _ in
                 if last != nil { DispatchQueue.main.async(execute: { last!.removeFromSuperview(); } ); }
