@@ -191,7 +191,7 @@ class Connection {
         self.authenticated.skipRepeats().observeValues { authenticated in
             if authenticated == true {
                 self.stream.send(XMPPPresence(name: "presence")); // TODO: this init is silly. this is just the NSXML init.
-                self._myself.modify({ _ in Contact(xmppUser: XMPPUserMemoryStorageObject.init(jid: self.stream.myJID), connection: self) });
+                self._myself.value = Contact(xmppUser: XMPPUserMemoryStorageObject.init(jid: self.stream.myJID), connection: self);
             }
         }
 
