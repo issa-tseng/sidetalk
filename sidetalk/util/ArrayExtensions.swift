@@ -23,17 +23,16 @@ extension Array {
 // from: http://stackoverflow.com/a/32127187
 extension CFArray: Sequence {
     public struct Iterator: IteratorProtocol {
-        var array: CFArray;
+        var array: NSArray;
         var idx = -1;
 
-        init(_ inArray: CFArray) {
-            self.array = inArray;
+        init(_ inArray: NSArray) {
+            self.array = inArray as NSArray;
         }
         public mutating func next() -> Any? {
             self.idx += 1;
-            guard self.idx < CFArrayGetCount(self.array) else { return nil; }
-            let unmanagedObject: UnsafeRawPointer = CFArrayGetValueAtIndex(self.array, self.idx);
-            return unsafeBitCast(unmanagedObject, to: Any.self)
+            guard self.idx < self.array.count else { return nil; }
+            return self.array[self.idx];
         }
     }
     
