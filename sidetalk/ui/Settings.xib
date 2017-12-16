@@ -1,8 +1,9 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="10117" systemVersion="15G31" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="13771" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="10117"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13771"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="SettingsController" customModule="sidetalk" customModuleProvider="target">
@@ -23,10 +24,10 @@
                     <rect key="frame" x="444" y="99" width="16" height="16"/>
                     <imageCell key="cell" refusesFirstResponder="YES" alignment="left" animates="YES" imageScaling="proportionallyDown" image="NSStatusNone" id="kAS-us-LIt"/>
                 </imageView>
-                <customView ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nW0-YE-meT" customClass="MASShortcutView">
+                <customView translatesAutoresizingMaskIntoConstraints="NO" id="nW0-YE-meT" customClass="MASShortcutView">
                     <rect key="frame" x="136" y="20" width="324" height="19"/>
                 </customView>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="SGp-UF-5z3">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="SGp-UF-5z3">
                     <rect key="frame" x="18" y="100" width="112" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Google Account:" id="4DI-Fq-c5U">
                         <font key="font" metaFont="system"/>
@@ -44,7 +45,7 @@
                         <action selector="showAuth:" target="-2" id="4qe-8I-kDB"/>
                     </connections>
                 </button>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="aXN-Nl-AcB">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aXN-Nl-AcB">
                     <rect key="frame" x="134" y="100" width="201" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" id="oji-Hn-K4r">
                         <font key="font" metaFont="system"/>
@@ -54,6 +55,7 @@
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="QvS-Lw-FgR">
                     <rect key="frame" x="134" y="47" width="328" height="42"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="left" id="PFY-FT-O7e">
                         <font key="font" metaFont="system" size="10"/>
                         <string key="title">You will be prompted to allow access to your email address. We need this to connect to your account. Don't worry: your email will never leave your computer and we will never use it to spam you.</string>
@@ -61,7 +63,7 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nDS-SA-nwi">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="nDS-SA-nwi">
                     <rect key="frame" x="18" y="22" width="112" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Global Activation:" id="nuF-65-poV">
                         <font key="font" metaFont="system"/>
@@ -69,8 +71,11 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <button hidden="YES" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="HTe-ds-UiU">
+                <button hidden="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="HTe-ds-UiU">
                     <rect key="frame" x="341" y="98" width="13" height="19"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="13" id="QSw-wf-kZO"/>
+                    </constraints>
                     <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSStopProgressTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" imageScaling="proportionallyDown" inset="2" id="T60-KL-tG5">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -81,11 +86,26 @@
                 </button>
             </subviews>
             <constraints>
+                <constraint firstItem="nW0-YE-meT" firstAttribute="top" secondItem="nDS-SA-nwi" secondAttribute="top" id="1sy-Jg-B9U"/>
+                <constraint firstAttribute="bottom" secondItem="nW0-YE-meT" secondAttribute="bottom" constant="20" symbolic="YES" id="2MG-5g-Bvi"/>
+                <constraint firstItem="SGp-UF-5z3" firstAttribute="leading" secondItem="nDS-SA-nwi" secondAttribute="leading" id="Fih-0l-jec"/>
+                <constraint firstItem="HTe-ds-UiU" firstAttribute="leading" secondItem="aXN-Nl-AcB" secondAttribute="trailing" constant="8" symbolic="YES" id="GTT-ew-rTo"/>
+                <constraint firstItem="HTe-ds-UiU" firstAttribute="centerY" secondItem="Ww3-jG-Ibv" secondAttribute="centerY" id="IeM-90-9iT"/>
+                <constraint firstItem="SGp-UF-5z3" firstAttribute="baseline" secondItem="aXN-Nl-AcB" secondAttribute="baseline" id="IvT-zV-ZU3"/>
+                <constraint firstItem="aXN-Nl-AcB" firstAttribute="top" secondItem="x3A-Ox-fHP" secondAttribute="top" constant="20" id="RFy-uQ-KAb"/>
+                <constraint firstItem="nW0-YE-meT" firstAttribute="leading" secondItem="aXN-Nl-AcB" secondAttribute="leading" id="Rvt-MO-qcR"/>
                 <constraint firstItem="Ww3-jG-Ibv" firstAttribute="top" secondItem="x3A-Ox-fHP" secondAttribute="top" constant="22" id="SW2-RK-LIp"/>
                 <constraint firstItem="oYy-yf-Sr8" firstAttribute="top" secondItem="x3A-Ox-fHP" secondAttribute="top" constant="19" id="Smq-RH-3MZ"/>
+                <constraint firstAttribute="trailing" secondItem="HTe-ds-UiU" secondAttribute="trailing" constant="126" id="Uuc-gm-OYt"/>
                 <constraint firstAttribute="trailing" secondItem="oYy-yf-Sr8" secondAttribute="trailing" constant="38" id="Xpf-R2-lUQ"/>
+                <constraint firstItem="nW0-YE-meT" firstAttribute="leading" secondItem="nDS-SA-nwi" secondAttribute="trailing" constant="8" symbolic="YES" id="cuw-Jf-ZF4"/>
+                <constraint firstItem="HTe-ds-UiU" firstAttribute="top" secondItem="aXN-Nl-AcB" secondAttribute="top" id="dVg-2A-kcK"/>
                 <constraint firstAttribute="trailing" secondItem="Ww3-jG-Ibv" secondAttribute="trailing" constant="20" id="kPb-LU-gWB"/>
+                <constraint firstItem="SGp-UF-5z3" firstAttribute="leading" secondItem="x3A-Ox-fHP" secondAttribute="leading" constant="20" symbolic="YES" id="nii-pT-BG4"/>
+                <constraint firstItem="aXN-Nl-AcB" firstAttribute="leading" secondItem="SGp-UF-5z3" secondAttribute="trailing" constant="8" symbolic="YES" id="qYM-32-bqq"/>
+                <constraint firstItem="HTe-ds-UiU" firstAttribute="centerY" secondItem="oYy-yf-Sr8" secondAttribute="centerY" id="u73-xM-cv1"/>
                 <constraint firstAttribute="trailing" secondItem="nW0-YE-meT" secondAttribute="trailing" constant="20" id="uIg-ce-jjj"/>
+                <constraint firstItem="nW0-YE-meT" firstAttribute="top" secondItem="x3A-Ox-fHP" secondAttribute="top" constant="98" id="v96-Ig-VXP"/>
                 <constraint firstItem="nW0-YE-meT" firstAttribute="leading" secondItem="x3A-Ox-fHP" secondAttribute="leading" constant="136" id="vjq-Mr-YHq"/>
             </constraints>
             <point key="canvasLocation" x="501" y="212.5"/>
