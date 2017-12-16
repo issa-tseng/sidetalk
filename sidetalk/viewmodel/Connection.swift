@@ -58,22 +58,15 @@ class XFStreamDelegateProxy: NSObject, XMPPStreamDelegate {
     }
 }
 
-class XFRosterDelegateProxy: XFDelegateModuleProxy, XMPPRosterDelegate {
+class XFRosterDelegateProxy: XFDelegateModuleProxy, XMPPRosterMemoryStorageDelegate {
     private let _usersProxy = ManagedSignal<[XMPPUser]>();
     var usersSignal: Signal<[XMPPUser], NoError> { get { return self._usersProxy.signal; } }
-    /*@objc internal func xmppRosterDidPopulate(sender: XMPPRosterMemoryStorage!) {
+    @objc internal func xmppRosterDidPopulate(_ sender: XMPPRosterMemoryStorage!) {
         self._usersProxy.observer.send(value: sender.sortedUsersByName() as! [XMPPUser]!);
-    }*/
-    @objc internal func xmppRosterDidEndPopulating(_ sender: XMPPRoster!) {
-        self._usersProxy.observer.send(value: (sender.xmppRosterStorage as! XMPPRosterMemoryStorage).sortedUsersByName() as! [XMPPUser]!);
     }
-    /*@objc internal func xmppRosterDidChange(sender: XMPPRosterMemoryStorage!) {
+    @objc internal func xmppRosterDidChange(_ sender: XMPPRosterMemoryStorage!) {
         self._usersProxy.observer.send(value: sender.sortedUsersByName() as! [XMPPUser]!);
-    }*/
-
-    /*@objc internal func didUpdateResource(resource: XMPPResourceMemoryStorageObject!, withUser: XMPPResourceMemoryStorageObject!) {
-        NSLog("resource updated");
-    }*/
+    }
 }
 
 enum ConnectionFault {
