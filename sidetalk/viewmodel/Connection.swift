@@ -27,7 +27,7 @@ class XFStreamDelegateProxy: NSObject, XMPPStreamDelegate {
 
     private let _connectProxy = ManagedSignal<Bool>();
     var connectSignal: Signal<Bool, NoError> { get { return self._connectProxy.signal; } }
-    @objc internal func xmppStreamDidConnect(sender: XMPPStream!) {
+    @objc internal func xmppStreamDidConnect(_ sender: XMPPStream!) {
         self._connectProxy.observer.send(value: true);
     }
 
@@ -45,7 +45,7 @@ class XFStreamDelegateProxy: NSObject, XMPPStreamDelegate {
 
     private let _messageProxy = ManagedSignal<XMPPMessage>();
     var messageSignal: Signal<XMPPMessage, NoError> { get { return self._messageProxy.signal; } };
-    @objc internal func xmppStream(sender: XMPPStream!, didReceiveMessage message: XMPPMessage!) {
+    @objc internal func xmppStream(_ sender: XMPPStream!, didReceive message: XMPPMessage!) {
         if message.isChatMessageWithBody() || ChatState.from(message) != nil {
             self._messageProxy.observer.send(value: message);
         }
@@ -61,12 +61,15 @@ class XFStreamDelegateProxy: NSObject, XMPPStreamDelegate {
 class XFRosterDelegateProxy: XFDelegateModuleProxy, XMPPRosterDelegate {
     private let _usersProxy = ManagedSignal<[XMPPUser]>();
     var usersSignal: Signal<[XMPPUser], NoError> { get { return self._usersProxy.signal; } }
-    @objc internal func xmppRosterDidPopulate(sender: XMPPRosterMemoryStorage!) {
+    /*@objc internal func xmppRosterDidPopulate(sender: XMPPRosterMemoryStorage!) {
         self._usersProxy.observer.send(value: sender.sortedUsersByName() as! [XMPPUser]!);
+    }*/
+    @objc internal func xmppRosterDidEndPopulating(_ sender: XMPPRoster!) {
+        self._usersProxy.observer.send(value: (sender.xmppRosterStorage as! XMPPRosterMemoryStorage).sortedUsersByName() as! [XMPPUser]!);
     }
-    @objc internal func xmppRosterDidChange(sender: XMPPRosterMemoryStorage!) {
+    /*@objc internal func xmppRosterDidChange(sender: XMPPRosterMemoryStorage!) {
         self._usersProxy.observer.send(value: sender.sortedUsersByName() as! [XMPPUser]!);
-    }
+    }*/
 
     /*@objc internal func didUpdateResource(resource: XMPPResourceMemoryStorageObject!, withUser: XMPPResourceMemoryStorageObject!) {
         NSLog("resource updated");

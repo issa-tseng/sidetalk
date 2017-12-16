@@ -30,7 +30,7 @@ class HelpController: NSViewController, WebFrameLoadDelegate {
         windowObject.setValue(UserDefaults.standard.string(forKey: "mainAccount"), forKey: "mainAccount");
     }
 
-    @IBAction func done(sender: AnyObject) {
+    @IBAction func done(_ sender: Any) {
         self.view.window!.close();
     }
 }

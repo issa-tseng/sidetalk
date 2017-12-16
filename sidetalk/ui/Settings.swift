@@ -66,7 +66,7 @@ class SettingsController: NSViewController {
         if let field = self.shortcutView { field.associatedUserDefaultsKey = "globalActivation"; }
     }
 
-    @IBAction func showAuth(sender: AnyObject) {
+    @IBAction func showAuth(_ sender: Any) {
         if let light = self.statusImage { light.image = NSImage.init(named: NSImage.Name.statusPartiallyAvailable); }
 
         self._oauth2.verbose = true;
@@ -122,7 +122,7 @@ class SettingsController: NSViewController {
         });
     }
 
-    @IBAction func clearAccount(sender: AnyObject) {
+    @IBAction func clearAccount(_ sender: Any) {
         UserDefaults.standard.removeObject(forKey: "mainAccount");
         self._oauth2.forgetTokens();
 
