@@ -262,14 +262,20 @@ class MainView: NSView {
         var lastState: (MainState, Date) = (.Normal, Date());
 
         // draw new contacts as required.
-        let tiles = self.connection.contacts.map({ (contacts) -> [ContactTile] in
-            contacts.map { contact in self._contactTiles.get(contact, orElse: { self.drawContact(contact); }); };
+        let tiles = ManagedSignal<[ContactTile]>();
+        self.connection.contacts.observeValues({ contacts in
+            DispatchQueue.main.async(execute: {
+                let newTiles = contacts.map({ contact in self._contactTiles.get(contact, orElse: { self.drawContact(contact); }); });
+                tiles.observer.send(value: newTiles);
+            });
         });
 
         // draw new conversations as required.
         self.connection.latestActivity.observeValues { contact in
             let conversation = contact.conversation;
-            self._conversationViews.get(conversation.with, orElse: { self.drawConversation(conversation); });
+            DispatchQueue.main.async(execute: {
+                self._conversationViews.get(conversation.with, orElse: { self.drawConversation(conversation); });
+            });
         };
 
         // remember the latest foreign message.
@@ -438,20 +444,22 @@ class MainView: NSView {
             .combineLatest(with: sort)
             .combineLatest(with: self.state).map({ ($0.0, $0.1, $1) })
             .observeValues { notifying, sort, state in
-                if (notifying.count > 0) && (state == .Inactive) {
-                    if let tracker = self.notifyingTracker { DispatchQueue.main.async(execute: { self.removeTrackingArea(tracker); }); }
+                DispatchQueue.main.async(execute: {
+                    if (notifying.count > 0) && (state == .Inactive) {
+                        if let tracker = self.notifyingTracker { self.removeTrackingArea(tracker); }
 
-                    let notifyingContacts = Set(notifying.filter({ contact in sort[contact] != nil }).map({ contact in sort[contact]! })); // TODO: cleaner upcast?
-                    self.notifyingTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: self.frame.width - self.tileSize.height - self.tilePadding, y: 0), size: self.frame.size),
-                        options: [ .mouseEnteredAndExited, .mouseMoved, .activeAlways ], owner: self, userInfo: [ "notifying": notifyingContacts ]);
-                    DispatchQueue.main.async(execute: { self.addTrackingArea(self.notifyingTracker!); });
-                } else if let tracker = self.notifyingTracker {
-                    DispatchQueue.main.async(execute: { self.removeTrackingArea(tracker); });
-                }
+                        let notifyingContacts = Set(notifying.filter({ contact in sort[contact] != nil }).map({ contact in sort[contact]! })); // TODO: cleaner upcast?
+                        self.notifyingTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: self.frame.width - self.tileSize.height - self.tilePadding, y: 0), size: self.frame.size),
+                            options: [ .mouseEnteredAndExited, .mouseMoved, .activeAlways ], owner: self, userInfo: [ "notifying": notifyingContacts ]);
+                         self.addTrackingArea(self.notifyingTracker!);
+                    } else if let tracker = self.notifyingTracker {
+                        self.removeTrackingArea(tracker);
+                    }
+                });
             };
 
         // relayout as required.
-        sort.combineLatest(with: tiles).map { order, _ in order } // (Order)
+        sort.combineLatest(with: tiles.signal).map { order, _ in order } // (Order)
             .combineWithDefault(latestMessage.map({ _ in nil as AnyObject? }), defaultValue: nil).map { order, _ in order } // (Order)
             .combineWithDefault(self.state, defaultValue: .Inactive) // (Order, MainState)
             .combineWithDefault(notifying, defaultValue: Set<Contact>()) // ((Order, MainState), Set[Contact])
@@ -463,7 +471,7 @@ class MainView: NSView {
             .observeValues { states in self.relayout(states.0, states.1) };
 
         // show or hide contact labels as appropriate.
-        tiles.combineLatest(with: sort) // ([ContactTile], [Contact:Int])
+        tiles.signal.combineLatest(with: sort) // ([ContactTile], [Contact:Int])
             .combineWithDefault(notifying.downcastToOptional(), defaultValue: nil) // (([ContactTile], [Contact:Int]), Set<Contact>?)
             .combineWithDefault(self.state, defaultValue: .Inactive) // ((([ContactTile], [Contact:Int]), Set<Contact>?), Contact?)
             .combineWithDefault(self.mouseIdx, defaultValue: nil) // (((([ContactTile], [Contact:Int]), Set<Contact>?), Contact?), Int?)
@@ -495,7 +503,7 @@ class MainView: NSView {
             };
 
         // set contact star visibility as appropriate.
-        tiles.combineWithDefault(self.starredJids.members, defaultValue: Set<String>()).observeValues({ (tiles, starred) in
+        tiles.signal.combineWithDefault(self.starredJids.members, defaultValue: Set<String>()).observeValues({ (tiles, starred) in
             for tile in tiles {
                 tile.showStar_ = starred.contains(tile.contact.inner.jid().full());
             }
