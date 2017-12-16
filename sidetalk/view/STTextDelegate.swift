@@ -36,7 +36,7 @@ class STTextDelegate : NSObject, NSControlTextEditingDelegate, NSTextFieldDelega
     // detect user-initiated text changes.
     @objc override func controlTextDidChange(_ obj: Notification) {
         if let field = obj.object as? NSTextField {
-            self._text.observer.send(value: field.stringValue ?? "");
+            self._text.observer.send(value: field.stringValue);
         }
     }
 

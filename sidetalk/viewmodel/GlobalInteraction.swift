@@ -81,7 +81,7 @@ class GlobalInteraction {
             // window layer of 0 is normalspace.
             if foundSelf && (window[kCGWindowLayer] as? Int) == 0 {
                 let pid = window[kCGWindowOwnerPID] as! CFNumber;
-                if let application = NSWorkspace.shared.runningApplications.find({ app in Int(app.processIdentifier) == Int(pid) }) {
+                if let application = NSWorkspace.shared.runningApplications.find({ app in Int(app.processIdentifier) == Int(truncating: pid) }) {
                     application.activate(options: NSApplication.ActivationOptions.activateIgnoringOtherApps);
                     return;
                 }
