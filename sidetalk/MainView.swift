@@ -162,36 +162,36 @@ class MainView: NSView {
         self.addTrackingArea(self.marginTracker!);
     }
 
-    func setHide(_ hidden: Bool) { self._hiddenMode.modify({ _ in hidden }); }
-    func setMute(_ muted: Bool) { self._mutedMode.modify({ _ in muted }); }
+    func setHide(_ hidden: Bool) { self._hiddenMode.value = hidden; }
+    func setMute(_ muted: Bool) { self._mutedMode.value = muted; }
 
     override func mouseEntered(with event: NSEvent) {
         if event.trackingArea == self.marginTracker {
             self.liveMouse();
-            self._mouseIdx.modify({ _ in self.idxForMouse(event.locationInWindow.y) });
+            self._mouseIdx.value = self.idxForMouse(event.locationInWindow.y);
         }
     }
     override func mouseMoved(with event: NSEvent) {
         if let tracker = self.contactTracker {
             if event.locationInWindow.x > tracker.rect.minX {
-                self._mouseIdx.modify({ _ in self.idxForMouse(event.locationInWindow.y) });
-                self.wantsMouseMain.modify({ _ in true });
+                self._mouseIdx.value = self.idxForMouse(event.locationInWindow.y);
+                self.wantsMouseMain.value = true;
             }
         } else if let tracker = self.notifyingTracker {
             guard let notifyingIdx = tracker.userInfo?["notifying"] as? Set<Int> else { return; }
             let idx = self.idxForMouse(event.locationInWindow.y);
-            self.wantsMouseNotifying.modify({ _ in notifyingIdx.contains(idx) });
+            self.wantsMouseNotifying.value = notifyingIdx.contains(idx);
         }
     }
     override func mouseExited(with event: NSEvent) {
         if event.trackingArea == self.contactTracker {
             if self.state_ == .Inactive { self.killMouse(); }
-            self._mouseIdx.modify({ _ -> Int? in nil });
+            self._mouseIdx.value = nil;
         }
 
         if event.trackingArea != self.marginTracker {
-            self.wantsMouseMain.modify({ _ in false });
-            self.wantsMouseNotifying.modify({ _ in false });
+            self.wantsMouseMain.value = false;
+            self.wantsMouseNotifying.value = false;
         }
     }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { return true; }
@@ -204,7 +204,7 @@ class MainView: NSView {
             guard let notifyingIdx = tracker.userInfo?["notifying"] as? Set<Int> else { return; }
             let idx = self.idxForMouse(event.locationInWindow.y);
             if notifyingIdx.contains(idx) {
-                self._mouseIdx.modify { _ in idx };
+                self._mouseIdx.value = idx;
                 GlobalInteraction.sharedInstance.send(.Click);
             }
         }
@@ -226,13 +226,13 @@ class MainView: NSView {
     private func killMouse() {
         if let tracker = self.contactTracker { self.removeTrackingArea(tracker); }
         self.contactTracker = nil;
-        self._mouseIdx.modify({ _ -> Int? in nil }); // unlike liveMouse, we always want to modify the idx, because it's an active flag of sorts.
-        self.wantsMouseMain.modify({ _ in false });
+        self._mouseIdx.value = nil; // unlike liveMouse, we always want to modify the idx, because it's an active flag of sorts.
+        self.wantsMouseMain.value = false;
     }
 
     @objc private func scrolled() {
         if self.state_.essentially == .Chatting { GlobalInteraction.sharedInstance.send(.Escape); } // HACK: feels like a sloppy way to do this.
-        self._mouseIdx.modify { _ in self.idxForMouse(NSEvent.mouseLocation.y) };
+        self._mouseIdx.value = self.idxForMouse(NSEvent.mouseLocation.y);
     }
 
     // don't react to mouse clicks unless the pointer is in a relevant spot at a relevant time.
@@ -424,14 +424,14 @@ class MainView: NSView {
 
                 return last;
             })
-            .observeValues({ state in self._state.modify({ _ -> MainState in state }) });
+            .observeValues({ state in self._state.value = state });
 
         // keep track of our last state:
         self.state.filter({ state in state != .Inactive }).observeValues({ state in lastState = (state, Date()); });
 
         // keep track of our last dismissal:
         self.state.skipRepeats({ $0 == $1 }).filter({ state in state == .Inactive }).observeValues({ _ in
-            DispatchQueue.global(qos: .default).async(execute: { self._lastInactive.modify({ _ in Date() }) });
+            DispatchQueue.global(qos: .default).async(execute: { self._lastInactive.value = Date() });
         });
 
         // wire/dewire mouse depending on our state:
@@ -532,7 +532,7 @@ class MainView: NSView {
         let hasConversation = activeConversation.map({ x in x != nil });
 
         // we want to trap mouse events if a conversation is open.
-        hasConversation.observeValues({ isOpen in self.wantsMouseConversation.modify({ _ in isOpen }); });
+        hasConversation.observeValues({ isOpen in self.wantsMouseConversation.value = isOpen });
 
         // also if a conversation is open we want to pop in the background gradient. TODO: animation seems to drop the framerate :/
         hasConversation.observeValues({ isOpen in DispatchQueue.main.async(execute: { self.gradientView.alphaValue = (isOpen ? 1.0 : 0); }) });

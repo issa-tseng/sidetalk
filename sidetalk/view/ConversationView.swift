@@ -53,7 +53,7 @@ class ConversationView: NSView {
     var displayMode: Signal<DisplayMode, NoError> { get { return self._displayMode.signal; } };
     var displayMode_: DisplayMode {
         get { return self._displayMode.value; }
-        set { self._displayMode.modify({ _ in newValue }) }
+        set { self._displayMode.value = newValue; }
     };
 
     private let _searchLeecher: STTextDelegate;
@@ -223,7 +223,7 @@ class ConversationView: NSView {
                 }
             };
 
-        self._active.modify({ _ in self._initiallyActivated });
+        self._active.value = self._initiallyActivated;
 
         self.text.observeValues { _ in self.updateComposeHeight(); };
 
@@ -362,13 +362,13 @@ class ConversationView: NSView {
 
     func activate() {
         self._initiallyActivated = true;
-        self._lastShown.modify({ _ in NSDate() });
-        self._active.modify({ _ in true });
+        self._lastShown.value = Date();
+        self._active.value = true;
     }
 
     func deactivate() {
-        self._lastShown.modify({ _ in NSDate() });
-        self._active.modify({ _ in false });
+        self._lastShown.value = Date();
+        self._active.value = false;
     }
 
     // ignore mouse events if we are not active.

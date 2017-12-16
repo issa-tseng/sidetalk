@@ -225,8 +225,8 @@ class Connection {
 
         // if we have a reachability instance, wire up that signal.
         if let reach = self.reachability {
-            reach.whenReachable = { _ in self._hasInternet.modify { _ in true; } };
-            reach.whenUnreachable = { _ in self._hasInternet.modify { _ in false; } };
+            reach.whenReachable = { _ in self._hasInternet.value = true; };
+            reach.whenUnreachable = { _ in self._hasInternet.value = false; };
             do { try reach.startNotifier(); } catch _ { NSLog("could not start reachability"); }
         }
 

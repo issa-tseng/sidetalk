@@ -20,21 +20,21 @@ class ContactTile : NSView {
     var showLabel: Signal<Bool, NoError> { get { return self._showLabel.signal; } };
     var showLabel_: Bool {
         get { return self._showLabel.value; }
-        set { self._showLabel.modify { _ in newValue }; }
+        set { self._showLabel.value = newValue; }
     };
 
     private let _selected = MutableProperty<Bool>(false);
     var selected: Signal<Bool, NoError> { get { return self._selected.signal; } };
     var selected_: Bool {
         get { return self._selected.value; }
-        set { self._selected.modify { _ in newValue }; }
+        set { self._selected.value = newValue; }
     };
 
     private let _showStar = MutableProperty<Bool>(false);
     var showStar: Signal<Bool, NoError> { get { return self._showStar.signal; } };
     var showStar_: Bool {
         get { return self._showStar.value; }
-        set { self._showStar.modify(({ _ in newValue })); }
+        set { self._showStar.value = newValue; }
     };
 
     let avatarLayer = CAAvatarLayer();
