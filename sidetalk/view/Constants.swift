@@ -11,39 +11,39 @@ class ST {
     static let oauth = OAuthConst();
 
     internal class AvatarConst {
-        let fallbackTextAttr: [String: AnyObject];
+        let fallbackTextAttr: [NSAttributedStringKey: Any];
         let fallbackTextFrame = NSRect(x: 5.5, y: 8, width: 38, height: 30);
 
-        let inactiveColor = NSColor.init(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.2).CGColor;
-        let composingColor = NSColor.init(red: 0.027, green: 0.785, blue: 0.746, alpha: 0.95).CGColor;
-        let attentionColor = NSColor.init(red: 0.859, green: 0.531, blue: 0.066, alpha: 1.0).CGColor;
+        let inactiveColor = NSColor.init(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.2).cgColor;
+        let composingColor = NSColor.init(red: 0.027, green: 0.785, blue: 0.746, alpha: 0.95).cgColor;
+        let attentionColor = NSColor.init(red: 0.859, green: 0.531, blue: 0.066, alpha: 1.0).cgColor;
 
-        let selectedInactiveColor = NSColor.init(red: 1, green: 1, blue: 1, alpha: 0.85).CGColor;
-        let selectedComposingColor = NSColor.init(red: 0.573, green: 0.957, blue: 0.937, alpha: 0.95).CGColor;
-        let selectedAttentionColor = NSColor.init(red: 0.965, green: 0.855, blue: 0.698, alpha: 1.0).CGColor;
+        let selectedInactiveColor = NSColor.init(red: 1, green: 1, blue: 1, alpha: 0.85).cgColor;
+        let selectedComposingColor = NSColor.init(red: 0.573, green: 0.957, blue: 0.937, alpha: 0.95).cgColor;
+        let selectedAttentionColor = NSColor.init(red: 0.965, green: 0.855, blue: 0.698, alpha: 1.0).cgColor;
 
-        let labelTextAttr = [
-            NSForegroundColorAttributeName: NSColor.whiteColor(),
-            NSKernAttributeName: -0.1,
-            NSFontAttributeName: NSFont.systemFontOfSize(10)
+        let labelTextAttr: [NSAttributedStringKey: Any] = [
+            NSAttributedStringKey.foregroundColor: NSColor.white,
+            NSAttributedStringKey.kern: -0.1,
+            NSAttributedStringKey.font: NSFont.systemFont(ofSize: 10)
         ];
 
-        let countTextAttr = [
-            NSForegroundColorAttributeName: NSColor.whiteColor(),
-            NSKernAttributeName: -0.1,
-            NSFontAttributeName: NSFont.boldSystemFontOfSize(9)
+        let countTextAttr: [NSAttributedStringKey: Any] = [
+            NSAttributedStringKey.foregroundColor: NSColor.white,
+            NSAttributedStringKey.kern: -0.1,
+            NSAttributedStringKey.font: NSFont.boldSystemFont(ofSize: 9)
         ];
 
-        private init() {
+        internal init() {
             // set up fallback text attrs.
-            let paragraphStyle: NSMutableParagraphStyle = NSParagraphStyle.defaultParagraphStyle().mutableCopy() as! NSMutableParagraphStyle;
-            paragraphStyle.alignment = .Center;
+            let paragraphStyle: NSMutableParagraphStyle = NSParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle;
+            paragraphStyle.alignment = .center;
 
             self.fallbackTextAttr = [
-                NSForegroundColorAttributeName: NSColor.whiteColor(),
-                NSKernAttributeName: -0.2,
-                NSFontAttributeName: NSFont.systemFontOfSize(22),
-                NSParagraphStyleAttributeName: paragraphStyle
+                NSAttributedStringKey.foregroundColor: NSColor.white,
+                NSAttributedStringKey.kern: -0.2,
+                NSAttributedStringKey.font: NSFont.systemFont(ofSize: 22),
+                NSAttributedStringKey.paragraphStyle: paragraphStyle
             ];
 
         }
@@ -52,21 +52,21 @@ class ST {
     internal class ConversationConst {
         let minHeight = CGFloat(150);
 
-        let titleTextAttr: [String : AnyObject];
+        let titleTextAttr: [NSAttributedStringKey: Any];
         let titleTextHeight = CGFloat(14);
 
         let composeHeight = CGFloat(80);
         let composeMargin = CGFloat(6);
         let composeTextSize = CGFloat(12);
 
-        let composeBg = NSColor.init(red: 0.97, green: 0.97, blue: 0.97, alpha: 0.9).CGColor;
-        let composeOutline = NSColor.init(red: 0, green: 0, blue: 0, alpha: 0.1).CGColor;
+        let composeBg = NSColor.init(red: 0.97, green: 0.97, blue: 0.97, alpha: 0.9).cgColor;
+        let composeOutline = NSColor.init(red: 0, green: 0, blue: 0, alpha: 0.1).cgColor;
 
-        let sendLockout = NSTimeInterval(0.1);
+        let sendLockout = TimeInterval(0.1);
 
-        private init() {
-            let paragraphStyle: NSMutableParagraphStyle = NSParagraphStyle.defaultParagraphStyle().mutableCopy() as! NSMutableParagraphStyle;
-            paragraphStyle.alignment = .Center;
+        internal init() {
+            let paragraphStyle: NSMutableParagraphStyle = NSParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle;
+            paragraphStyle.alignment = .center;
 
             let shadow = NSShadow();
             shadow.shadowColor = NSColor(red: 0, green: 0, blue: 0, alpha: 0.3);
@@ -74,35 +74,35 @@ class ST {
             shadow.shadowOffset = NSSize(width: 0, height: 0);
 
             self.titleTextAttr = [
-                NSForegroundColorAttributeName: NSColor(red: 1, green: 1, blue: 1, alpha: 1),
-                NSKernAttributeName: -0.1,
-                NSFontAttributeName: NSFont.systemFontOfSize(10),
-                NSParagraphStyleAttributeName: paragraphStyle,
-                NSShadowAttributeName: shadow
+                NSAttributedStringKey.foregroundColor: NSColor(red: 1, green: 1, blue: 1, alpha: 1),
+                NSAttributedStringKey.kern: -0.1,
+                NSAttributedStringKey.font: NSFont.systemFont(ofSize: 10),
+                NSAttributedStringKey.paragraphStyle: paragraphStyle,
+                NSAttributedStringKey.shadow: shadow
             ];
         }
     }
 
     internal class MainConst {
-        let inactiveDelay = NSTimeInterval(10.0);
+        let inactiveDelay = TimeInterval(10.0);
 
-        let boldFont = NSFont.boldSystemFontOfSize(13);
+        let boldFont = NSFont.boldSystemFont(ofSize: 13);
     }
 
     internal class MessageConst {
         let textAttr = [
-            NSForegroundColorAttributeName: NSColor.whiteColor(),
-            NSFontAttributeName: NSFont.systemFontOfSize(12)
+            NSAttributedStringKey.foregroundColor: NSColor.white,
+            NSAttributedStringKey.font: NSFont.systemFont(ofSize: 12)
         ];
 
-        let bgForeign = NSColor(red: 0, green: 0.4102, blue: 0.6484, alpha: 0.85).CGColor;
-        let outlineForeign = NSColor(red: 0.7813, green: 0.8672, blue: 0.9297, alpha: 0.2).CGColor;
+        let bgForeign = NSColor(red: 0, green: 0.4102, blue: 0.6484, alpha: 0.85).cgColor;
+        let outlineForeign = NSColor(red: 0.7813, green: 0.8672, blue: 0.9297, alpha: 0.2).cgColor;
 
-        let bgOwn = NSColor(red: 0.1719, green: 0.1719, blue: 0.1719, alpha: 0.95).CGColor;
-        let outlineOwn = NSColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.15).CGColor;
+        let bgOwn = NSColor(red: 0.1719, green: 0.1719, blue: 0.1719, alpha: 0.95).cgColor;
+        let outlineOwn = NSColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.15).cgColor;
 
-        let bgTitle = NSColor(red: 0, green: 0, blue: 0, alpha: 0.9).CGColor;
-        let outlineTitle = NSColor.clearColor().CGColor;
+        let bgTitle = NSColor(red: 0, green: 0, blue: 0, alpha: 0.9).cgColor;
+        let outlineTitle = NSColor.clear.cgColor;
 
         let margin = CGFloat(3);
         let outlineWidth = CGFloat(1.5);
@@ -114,7 +114,7 @@ class ST {
         let calloutSize = CGFloat(4);
         let calloutVline = CGFloat(11.5);
 
-        let shownFor = NSTimeInterval(5.0);
+        let shownFor = TimeInterval(5.0);
 
         let multilineCutoff = CGFloat(15);
     }

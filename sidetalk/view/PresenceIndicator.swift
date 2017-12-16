@@ -1,6 +1,6 @@
 
 import Foundation;
-import ReactiveCocoa;
+import ReactiveSwift;
 import enum Result.NoError;
 
 class PresenceIndicator: NSView {
@@ -9,8 +9,8 @@ class PresenceIndicator: NSView {
 
     internal let size = CGFloat(10);
     internal let stroke = CGFloat(1.5);
-    internal let offlineColor = NSColor.init(red: 0.7, green: 0, blue: 0, alpha: 0.95).CGColor;
-    internal let onlineColor =  NSColor.init(red: 0, green: 0.8, blue: 0.15, alpha: 0.95).CGColor;
+    internal let offlineColor = NSColor.init(red: 0.7, green: 0, blue: 0, alpha: 0.95).cgColor;
+    internal let onlineColor =  NSColor.init(red: 0, green: 0.8, blue: 0.15, alpha: 0.95).cgColor;
 
     private let ringLayer: CAShapeLayer;
 
@@ -30,31 +30,31 @@ class PresenceIndicator: NSView {
             roundedRect: NSRect(origin: NSPoint(x: self.stroke, y: self.stroke), size: NSSize(width: self.size, height: self.size)),
             cornerRadius: self.size / 2
         );
-        self.ringLayer.path = path.CGPath;
+        self.ringLayer.path = path!.cgPath;
         self.ringLayer.lineWidth = self.stroke;
-        self.update(self.initial);
+        self.update(presence: self.initial);
         self.layer!.addSublayer(self.ringLayer);
 
         self.prepare();
     }
 
     private func prepare() {
-        self.signal.observeNext { presence in self.update(presence); };
+        self.signal.observeValues { presence in self.update(presence: presence); };
     }
 
     private func update(presence: Presence) {
-        dispatch_async(dispatch_get_main_queue(), {
+        DispatchQueue.main.async(execute: {
             // for now, only offline/online.
             switch presence {
             case .Offline:
                 self.ringLayer.fillColor = self.offlineColor;
-                self.ringLayer.strokeColor = NSColor.whiteColor().CGColor;
+                self.ringLayer.strokeColor = NSColor.white.cgColor;
             case .Online:
                 self.ringLayer.fillColor = self.onlineColor;
-                self.ringLayer.strokeColor = NSColor.whiteColor().CGColor;
+                self.ringLayer.strokeColor = NSColor.white.cgColor;
             default:
-                self.ringLayer.fillColor = NSColor.clearColor().CGColor;
-                self.ringLayer.strokeColor = NSColor.clearColor().CGColor;
+                self.ringLayer.fillColor = NSColor.clear.cgColor;
+                self.ringLayer.strokeColor = NSColor.clear.cgColor;
             }
         });
     }

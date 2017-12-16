@@ -1,49 +1,49 @@
 
 import Foundation;
-import ReactiveCocoa;
+import ReactiveSwift;
 import enum Result.NoError;
 
 class Registry {
-    private let handle: NSFileHandle;
+    private let handle: FileHandle;
     private var _members = Set<String>();
 
     private let membersSignal = ManagedSignal<Set<String>>();
     var members: Signal<Set<String>, NoError> { get { return self.membersSignal.signal; } };
 
-    init(handle: NSFileHandle) {
+    init(handle: FileHandle) {
         self.handle = handle;
         self.load();
     }
 
-    func add(member: String) { if !self._members.contains(member) { self._add(member); } }
-    private func _add(member: String) {
+    func add(_ member: String) { if !self._members.contains(member) { self._add(member); } }
+    private func _add(_ member: String) {
         self._members.insert(member);
-        dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), { self.membersSignal.observer.sendNext(self._members); });
+        DispatchQueue.global(qos: .default).async(execute: { self.membersSignal.observer.send(value: self._members); });
         self.save();
     }
 
     func contains(member: String) -> Bool { return self._members.contains(member); }
 
-    func remove(member: String) { if self._members.contains(member) { self._remove(member); } }
-    func _remove(member: String) {
+    func remove(_ member: String) { if self._members.contains(member) { self._remove(member); } }
+    func _remove(_ member: String) {
         self._members.remove(member);
-        dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), { self.membersSignal.observer.sendNext(self._members); });
+        DispatchQueue.global(qos: .default).async(execute: { self.membersSignal.observer.send(value: self._members); });
         self.save();
     }
 
-    func toggle(member: String) {
+    func toggle(_ member: String) {
         if self._members.contains(member) { self._remove(member); } else { self._add(member); }
     }
 
     // TODO: this is very clearly a terrible hack. but with RAC working the way it does i don't see an alternative.
     func ping() {
-        self.membersSignal.observer.sendNext(self._members);
+        self.membersSignal.observer.send(value: self._members);
     }
 
     private func load() {
-        self._members.removeAll(keepCapacity: true);
+        self._members.removeAll(keepingCapacity: true);
         let data = self.handle.readDataToEndOfFile();
-        if let root = try? NSPropertyListSerialization.propertyListWithData(data, options: .Immutable, format: nil) {
+        if let root = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) {
             if let array = root as? NSArray {
                 for member in array {
                     if let strMember = member as? NSString {
@@ -54,34 +54,34 @@ class Registry {
         } else {
             NSLog("Unable to read property list");
         }
-        self.membersSignal.observer.sendNext(self._members);
+        self.membersSignal.observer.send(value: self._members);
     }
 
     private func save() {
         let nsmembers = self._members.map({ member in NSString.init(string: member) });
         let root = NSArray.init(array: nsmembers);
-        if let data = try? NSPropertyListSerialization.dataWithPropertyList(root, format: .BinaryFormat_v1_0, options: 0) {
-            self.handle.truncateFileAtOffset(0);
-            self.handle.writeData(data);
+        if let data = try? PropertyListSerialization.data(fromPropertyList: root, format: .binary, options: 0) {
+            self.handle.truncateFile(atOffset: 0);
+            self.handle.write(data);
         } else {
             NSLog("Unable to serialize property list");
         }
     }
 
     static func create(filename: String) -> Registry? {
-        let searchPath = NSSearchPathForDirectoriesInDomains(.ApplicationSupportDirectory, .UserDomainMask, true);
+        let searchPath = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .userDomainMask, true);
         if let path = searchPath.first {
             do {
-                try NSFileManager.defaultManager().createDirectoryAtPath(path, withIntermediateDirectories: true, attributes: nil);
+                try FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true, attributes: nil);
             } catch {
                 NSLog("Unable to create library directory");
             }
 
             let path = "\(path)/\(filename)";
-            if !NSFileManager.defaultManager().fileExistsAtPath(path) {
-                NSFileManager.defaultManager().createFileAtPath(path, contents: nil, attributes: nil);
+            if !FileManager.default.fileExists(atPath: path) {
+                FileManager.default.createFile(atPath: path, contents: nil, attributes: nil);
             }
-            if let handle = NSFileHandle.init(forUpdatingAtPath: path) {
+            if let handle = FileHandle.init(forUpdatingAtPath: path) {
                 return Registry(handle: handle);
             }
         }

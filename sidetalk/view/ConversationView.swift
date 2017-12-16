@@ -1,7 +1,7 @@
 
-import Foundation
-import ReactiveCocoa
-import enum Result.NoError
+import Foundation;
+import ReactiveSwift;
+import enum Result.NoError;
 
 struct MessageViews {
     let container: NSTextContainer;
@@ -45,9 +45,9 @@ class ConversationView: NSView {
     var active: Signal<Bool, NoError> { get { return self._active.signal; } };
     var active_: Bool { get { return self._active.value; } };
 
-    private let _lastShown = MutableProperty<NSDate>(NSDate.distantPast());
-    var lastShown: Signal<NSDate, NoError> { get { return self._lastShown.signal; } };
-    var lastShown_: NSDate { get { return self._lastShown.value; } };
+    private let _lastShown = MutableProperty<Date>(Date.distantPast);
+    var lastShown: Signal<Date, NoError> { get { return self._lastShown.signal; } };
+    var lastShown_: Date { get { return self._lastShown.value; } };
 
     private let _displayMode = MutableProperty<DisplayMode>(.Normal);
     var displayMode: Signal<DisplayMode, NoError> { get { return self._displayMode.signal; } };
@@ -70,9 +70,9 @@ class ConversationView: NSView {
         super.init(frame: frame);
     }
 
-    override func viewWillMoveToSuperview(newSuperview: NSView?) {
+    override func viewWillMove(toSuperview newSuperview: NSView?) {
         self.wantsLayer = true;
-        super.viewWillMoveToSuperview(newSuperview);
+        super.viewWillMove(toSuperview: newSuperview);
 
         self.autoresizesSubviews = false;
         self.prepare();
@@ -82,11 +82,11 @@ class ConversationView: NSView {
         self.composeBubble.color = .Compose;
 
         // set up textfield.
-        self.textField.backgroundColor = NSColor.clearColor();
-        self.textField.bezeled = false;
-        self.textField.focusRingType = NSFocusRingType.None;
-        self.textField.font = NSFont.systemFontOfSize(ST.conversation.composeTextSize);
-        self.textField.lineBreakMode = .ByWordWrapping;
+        self.textField.backgroundColor = NSColor.clear;
+        self.textField.isBezeled = false;
+        self.textField.focusRingType = NSFocusRingType.none;
+        self.textField.font = NSFont.systemFont(ofSize: ST.conversation.composeTextSize);
+        self.textField.lineBreakMode = .byWordWrapping;
         self.textField.alphaValue = 0.0;
 
         // add layers.
@@ -102,14 +102,14 @@ class ConversationView: NSView {
         self.truncateBubble.calloutSide = .Right;
         self.truncateBubble.color = .Foreign;
         self.truncateBubble.frame = truncateBounds;
-        self.truncateText.editable = false;
+        self.truncateText.isEditable = false;
         self.truncateText.usesSingleLineMode = true;
-        self.truncateText.lineBreakMode = .ByTruncatingTail;
-        self.truncateText.backgroundColor = NSColor.clearColor();
-        self.truncateText.font = NSFont.systemFontOfSize(12);
+        self.truncateText.lineBreakMode = .byTruncatingTail;
+        self.truncateText.backgroundColor = NSColor.clear;
+        self.truncateText.font = NSFont.systemFont(ofSize: 12);
         self.truncateText.drawsBackground = false;
-        self.truncateText.bezeled = false;
-        self.truncateText.textColor = NSColor.whiteColor();
+        self.truncateText.isBezeled = false;
+        self.truncateText.textColor = NSColor.white;
         self.truncateText.frame = NSRect(origin: truncateBounds.insetBy(dx: ST.message.paddingX, dy: ST.message.paddingY).origin,
                                          size: NSSize(width: self.width - (2 * ST.message.paddingX) - ST.message.calloutSize, height: 16));
         self.truncateBubble.alphaValue = 0;
@@ -120,7 +120,7 @@ class ConversationView: NSView {
         // set up the scroll view itself.
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false;
         self.scrollView.hasVerticalScroller = true;
-        self.scrollView.scrollerStyle = .Overlay;
+        self.scrollView.scrollerStyle = .overlay;
         self.scrollView.drawsBackground = false;
         self.addSubview(self.scrollView);
 
@@ -134,10 +134,10 @@ class ConversationView: NSView {
         self.scrollContents.frame = self.scrollView.contentView.bounds;
         self.scrollContents.translatesAutoresizingMaskIntoConstraints = false;
         let views = [ "scrollContents": self.scrollContents ];
-        self.scrollView.contentView.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[scrollContents]|",
-            options: NSLayoutFormatOptions(), metrics: nil, views: views));
-        self.scrollView.contentView.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:[scrollContents]|",
-            options: NSLayoutFormatOptions(), metrics: nil, views: views));
+        self.scrollView.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[scrollContents]|",
+            options: NSLayoutConstraint.FormatOptions(), metrics: nil, views: views));
+        self.scrollView.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[scrollContents]|",
+            options: NSLayoutConstraint.FormatOptions(), metrics: nil, views: views));
 
         // set up the bubble underlying the title.
         self.titleBubble.color = .Title;
@@ -149,7 +149,7 @@ class ConversationView: NSView {
         // set up the title inside the scroll area.
         let title = NSAttributedString(string: "Conversation with \(self.conversation.with.displayName)", attributes: ST.conversation.titleTextAttr);
         self.titleText.drawsBackground = false;
-        self.titleText.selectable = false;
+        self.titleText.isSelectable = false;
         self.titleText.textStorage!.setAttributedString(title);
         self.titleText.translatesAutoresizingMaskIntoConstraints = false;
         self.titleText.alphaValue = 0;
@@ -173,8 +173,8 @@ class ConversationView: NSView {
 
         // set up an invisible field we'll use to measure message sizes.
         self.textMeasurer.frame = NSRect(origin: NSPoint.zero, size: NSSize(width: 250, height: 0));
-        self.textMeasurer.verticallyResizable = true;
-        self.textMeasurer.font = NSFont.systemFontOfSize(12);
+        self.textMeasurer.isVerticallyResizable = true;
+        self.textMeasurer.font = NSFont.systemFont(ofSize: 12);
         self.textMeasurer.textContainerInset = NSSize.zero;
         self.textMeasurer.textContainer!.lineFragmentPadding = 0;
     }
@@ -183,9 +183,9 @@ class ConversationView: NSView {
     func allMessages() -> Signal<Message, NoError> {
         let managed = ManagedSignal<Message>();
 
-        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), {
-            for message in self.conversation.messages.reverse() { managed.observer.sendNext(message); }
-            self.conversation.latestMessage.observeNext({ message in managed.observer.sendNext(message); });
+        DispatchQueue.global(qos: .userInitiated).async(execute: {
+            for message in self.conversation.messages.reversed() { managed.observer.send(value: message); }
+            self.conversation.latestMessage.observeValues({ message in managed.observer.send(value: message); });
         });
 
         return managed.signal;
@@ -193,27 +193,27 @@ class ConversationView: NSView {
 
     private func prepare() {
         let allMessages = self.allMessages();
-        allMessages.observeNext { message in self.drawMessage(message) };
+        allMessages.observeValues { message in self.drawMessage(message) };
 
-        let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "delayed-messages-conversationview");
-        let delayedMessage = allMessages.delay(ST.message.shownFor, onScheduler: scheduler);
+        let scheduler = QueueScheduler(qos: .default, name: "delayed-messages-conversationview");
+        let delayedMessage = allMessages.delay(ST.message.shownFor, on: scheduler);
 
         self.active
             .combineWithDefault(delayedMessage.downcastToOptional(), defaultValue: nil).map({ active, _ in active })
             .combineWithDefault(self.conversation.connection.hasInternet, defaultValue: true)
             .combineWithDefault(self.conversation.connection.authenticated, defaultValue: true).map({ ($0.0, $0.1 && $1) }) // doesn't matter which flag is which, combine.
             .combinePrevious((false, true))
-            .observeNext({ last, this in self.relayout(last, this); });
+            .observeValues({ states in self.relayout(states.0, states.1); });
 
         // TODO: it's entirely possible that the better way to do this would be to drop Impulses altogether and
         // simply consume the keystroke entirely within MainView. but for now, bodge it with a delay.
-        let keyTracker = Impulse.track(Key);
+        let keyTracker = Impulse.track(Key.self);
         GlobalInteraction.sharedInstance.keyPress
             .combineWithDefault(self.active, defaultValue: false)
-            .observeNext { wrappedKey, active in
+            .observeValues { wrappedKey, active in
                 let key = keyTracker.extract(wrappedKey);
 
-                if !active || self.lastShown_.dateByAddingTimeInterval(ST.conversation.sendLockout).isGreaterThan(NSDate()) { return; }
+                if !active || (self.lastShown_.addingTimeInterval(ST.conversation.sendLockout) > Date()) { return; }
 
                 if self.conversation.connection.hasInternet_ && (key == .Return) && (self.textField.stringValue != "") {
                     self.conversation.sendMessage(self.textField.stringValue);
@@ -225,27 +225,27 @@ class ConversationView: NSView {
 
         self._active.modify({ _ in self._initiallyActivated });
 
-        self.text.observeNext { _ in self.updateComposeHeight(); };
+        self.text.observeValues { _ in self.updateComposeHeight(); };
 
         let immediateChatState = self.text.map { (text) -> ChatState in (text == "") ? .Active : .Composing };
-        let delayedChatState = self.text.debounce(NSTimeInterval(5), onScheduler: scheduler).map { (text) -> ChatState in (text == "") ? .Active : .Paused };
-        immediateChatState.merge(delayedChatState).skipRepeats().observeNext { state in self.conversation.sendChatState(state); };
+        let delayedChatState = self.text.debounce(TimeInterval(5), on: scheduler).map { (text) -> ChatState in (text == "") ? .Active : .Paused };
+        immediateChatState.merge(delayedChatState).skipRepeats().observeValues { state in self.conversation.sendChatState(state); };
     }
 
-    private func drawMessage(message: Message) {
-        dispatch_async(dispatch_get_main_queue(), {
+    private func drawMessage(_ message: Message) {
+        DispatchQueue.main.async(execute: {
             let foreign = message.isForeign();
 
             // update our total stored text, with link detection.
             let mutable = NSMutableAttributedString(string: message.body, attributes: ST.message.textAttr);
-            let fullRange = NSRange(location: 0, length: message.body.characters.count); // TODO: is this actually the full range?
-            let detector = try! NSDataDetector(types: NSTextCheckingType.Link.rawValue);
-            detector.enumerateMatchesInString(message.body, options: NSMatchingOptions(), range: fullRange, usingBlock: { match, _, _ in
-                if let url = match?.URL { mutable.addAttributes([ NSLinkAttributeName: url ], range: match!.range); }
+            let fullRange = NSRange(location: message.body.startIndex.encodedOffset, length: message.body.endIndex.encodedOffset); // TODO: is this actually the full range?
+            let detector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue);
+            detector.enumerateMatches(in: message.body, options: NSRegularExpression.MatchingOptions(), range: fullRange, using: { match, _, _ in
+                if let url = match?.url { mutable.addAttributes([ NSAttributedStringKey.link: url ], range: match!.range); }
             });
             let nonmutable = mutable.copy() as! NSAttributedString;
-            self.textStorage.appendAttributedString(nonmutable);
-            self.textStorage.appendAttributedString(NSAttributedString(string: "\n"));
+            self.textStorage.append(nonmutable);
+            self.textStorage.append(NSAttributedString(string: "\n"));
 
             // create a new text container that tracks the view.
             let textContainer = NSTextContainer();
@@ -256,24 +256,24 @@ class ConversationView: NSView {
             // measure the new message so we know how big to make the textView.
             self.textMeasurer.textStorage!.setAttributedString(mutable);
             self.textMeasurer.sizeToFit();
-            let measuredSize = ceil(self.textMeasurer.layoutManager!.usedRectForTextContainer(self.textMeasurer.textContainer!).size);
+            let measuredSize = ceil(self.textMeasurer.layoutManager!.usedRect(for: self.textMeasurer.textContainer!).size);
             let size = NSSize(width: measuredSize.width, height: measuredSize.height);
 
             // create the textView, set basic attributes.
             let textView = NSTextView(frame: NSRect(origin: NSPoint.zero, size: size), textContainer: textContainer);
             textView.translatesAutoresizingMaskIntoConstraints = false;
-            textView.linkTextAttributes?[NSForegroundColorAttributeName] = NSColor.whiteColor();
+            textView.linkTextAttributes?[NSAttributedStringKey.foregroundColor] = NSColor.white;
             textView.drawsBackground = false;
-            textView.editable = false;
-            textView.selectable = true;
+            textView.isEditable = false;
+            textView.isSelectable = true;
             textView.textContainerInset = NSSize.zero;
 
             // set tooltip to the receipt timestamp.
-            let formatter = NSDateFormatter();
-            formatter.timeStyle = .MediumStyle;
-            formatter.dateStyle = .ShortStyle;
+            let formatter = DateFormatter();
+            formatter.timeStyle = .medium;
+            formatter.dateStyle = .short;
             formatter.doesRelativeDateFormatting = true;
-            textView.toolTip = formatter.stringFromDate(message.at);
+            textView.toolTip = formatter.string(from: message.at);
 
             // make a bubble.
             let bubbleView = BubbleView();
@@ -283,7 +283,7 @@ class ConversationView: NSView {
             bubbleView.color = foreign ? .Foreign : .Own;
 
             // save off the objects.
-            self.messageViews.insert(MessageViews(container: textContainer, textView: textView, bubble: bubbleView, message: message), atIndex: 0);
+            self.messageViews.insert(MessageViews(container: textContainer, textView: textView, bubble: bubbleView, message: message), at: 0);
 
             // add our views.
             self.scrollContents.addSubview(bubbleView);
@@ -297,7 +297,7 @@ class ConversationView: NSView {
             self.scrollContents.addConstraint(textView.constrain.height == size.height);
 
             // put the message in the correct horizontal position.
-            let hAttribute: NSLayoutAttribute = foreign ? .Right : .Left;
+            let hAttribute: NSLayoutConstraint.Attribute = foreign ? .right : .left;
             let hOffset = (foreign ? -1 : 1) * (ST.message.paddingX + ST.message.calloutSize);
             self.scrollContents.addConstraint(textView.constrain.my(hAttribute) == self.scrollContents.constrain.my(hAttribute) + hOffset);
 
@@ -329,7 +329,7 @@ class ConversationView: NSView {
             ]);
 
             // hide off the bat if this message is old.
-            if !self.active_ && message.at.dateByAddingTimeInterval(ST.message.shownFor).isLessThanOrEqualTo(NSDate()) {
+            if !self.active_ && (message.at.addingTimeInterval(ST.message.shownFor) <= Date()) {
                 bubbleView.alphaValue = 0.0;
                 textView.alphaValue = 0.0;
             }
@@ -356,7 +356,7 @@ class ConversationView: NSView {
             }
 
             // scroll to the bottom if we're inactive. (leave it alone if the user might be scrolling manually)
-            if !self.active_ { self.scrollView.contentView.scrollToPoint(NSPoint.zero); }
+            if !self.active_ { self.scrollView.contentView.scroll(to: NSPoint.zero); }
         });
     }
 
@@ -372,46 +372,46 @@ class ConversationView: NSView {
     }
 
     // ignore mouse events if we are not active.
-    override func hitTest(point: NSPoint) -> NSView? {
+    override func hitTest(_ point: NSPoint) -> NSView? {
         if self._active.value { return super.hitTest(point); }
         else { return nil; }
     }
 
     // kind of a misnomer; this doesn't lay anything out at all. it just controls visibility.
-    private func relayout(lastState: (Bool, Bool), _ thisState: (Bool, Bool)) {
+    private func relayout(_ lastState: (Bool, Bool), _ thisState: (Bool, Bool)) {
         let (last, _) = lastState;
         let (this, online) = thisState;
 
-        dispatch_async(dispatch_get_main_queue(), {
+        DispatchQueue.main.async(execute: {
             // handle messages.
             if !last && this {
                 // show all messages. TODO: don't bother to animate offscreen stuff.
-                for (idx, messagePack) in self.messageViews.enumerate() {
-                    animationWithDuration(0.1 + (0.07 * Double(idx)), {
+                for (idx, messagePack) in self.messageViews.enumerated() {
+                    animationWithDuration(duration: 0.1 + (0.07 * Double(idx)), {
                         messagePack.textView.animator().alphaValue = 1.0;
                         messagePack.bubble.animator().alphaValue = 1.0;
                     });
                 }
             } else if last && !this {
                 // hide all messages.
-                for (idx, messagePack) in self.messageViews.enumerate() {
-                    animationWithDuration(0.2 + (0.04 * Double(idx)), {
+                for (idx, messagePack) in self.messageViews.enumerated() {
+                    animationWithDuration(duration: 0.2 + (0.04 * Double(idx)), {
                         messagePack.textView.animator().alphaValue = 0.0;
                         messagePack.bubble.animator().alphaValue = 0.0;
                     });
                 }
             } else if !this {
                 // hide individual messages that may have been shown on receipt.
-                let now = NSDate();
+                let now = Date();
                 for messagePack in self.messageViews {
-                    if messagePack.message.at.dateByAddingTimeInterval(ST.message.shownFor).isLessThanOrEqualTo(now) {
+                    if messagePack.message.at.addingTimeInterval(ST.message.shownFor) <= now {
                         if messagePack.textView == self.truncateMessage {
-                            animationWithDuration(0.15, {
+                            animationWithDuration(duration: 0.15, {
                                 self.truncateText.animator().alphaValue = 0.0;
                                 self.truncateBubble.animator().alphaValue = 0.0;
                             });
                         } else {
-                            animationWithDuration(0.15, {
+                            animationWithDuration(duration: 0.15, {
                                 messagePack.textView.animator().alphaValue = 0.0;
                                 messagePack.bubble.animator().alphaValue = 0.0;
                             });
@@ -450,7 +450,7 @@ class ConversationView: NSView {
     private var lastHeight = CGFloat(0);
     private func updateComposeHeight() {
         let height = (self.textField.stringValue == "") ? 26.0 : min(ST.conversation.composeHeight,
-                                                                     self.textField.cell!.cellSizeForBounds(self.textField.bounds).height) + (ST.message.paddingY * 2);
+            self.textField.cell!.cellSize(forBounds: self.textField.bounds).height) + (ST.message.paddingY * 2);
         if height == lastHeight { return; }
         lastHeight = height;
 

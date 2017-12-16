@@ -2,7 +2,7 @@
 import Foundation
 
 extension Array {
-    func part(predicate: (Element) -> Bool) -> (Array<Element>, Array<Element>) {
+    func part(_ predicate: (Element) -> Bool) -> (Array<Element>, Array<Element>) {
         var a = Array<Element>();
         var b = Array<Element>();
 
@@ -14,22 +14,30 @@ extension Array {
         return (a, b);
     }
 
-    func find(predicate: (Element) -> Bool) -> Element? {
+    func find(_ predicate: (Element) -> Bool) -> Element? {
         for elem in self { if predicate(elem) { return elem; } }
         return nil;
     }
 }
 
 // from: http://stackoverflow.com/a/32127187
-extension CFArray: SequenceType {
-    public func generate() -> AnyGenerator<AnyObject> {
-        var index = -1;
-        let maxIndex = CFArrayGetCount(self);
-        return AnyGenerator {
-            index += 1;
-            guard index < maxIndex else { return nil; };
-            let unmanagedObject: UnsafePointer<Void> = CFArrayGetValueAtIndex(self, index);
-            return unsafeBitCast(unmanagedObject, AnyObject.self);
-        };
+extension CFArray: Sequence {
+    public struct Iterator: IteratorProtocol {
+        var array: CFArray;
+        var idx = -1;
+
+        init(_ inArray: CFArray) {
+            self.array = inArray;
+        }
+        public mutating func next() -> Any? {
+            self.idx += 1;
+            guard self.idx < CFArrayGetCount(self.array) else { return nil; }
+            let unmanagedObject: UnsafeRawPointer = CFArrayGetValueAtIndex(self.array, self.idx);
+            return unsafeBitCast(unmanagedObject, to: Any.self)
+        }
+    }
+    
+    public func makeIterator() -> CFArray.Iterator {
+        return Iterator(self);
     }
 }

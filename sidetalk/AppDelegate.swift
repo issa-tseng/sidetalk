@@ -4,8 +4,8 @@ import ReactiveCocoa;
 import enum Result.NoError;
 
 class MainWindow: NSWindow {
-    override var canBecomeKeyWindow: Bool { get { return true; } };
-    override var canBecomeMainWindow: Bool { get { return true; } };
+    override var canBecomeKey: Bool { get { return true; } };
+    override var canBecomeMain: Bool { get { return true; } };
 }
 
 typealias VoidFunction = () -> ();
@@ -38,19 +38,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     let startup: NSDate;
 
     override init() {
-        self.hiddenJids = Registry.create("hidden")!;
+        self.hiddenJids = Registry.create(filename: "hidden")!;
         self.messageLog = MessageLog.create();
         self.connection = OAuthConnection(messageLog: self.messageLog);
         self.startup = NSDate();
 
         super.init();
-        self.connection.fault.observeNext({ fault in self._handleConnectionFault(fault) });
+        self.connection.fault.observeValues({ fault in self._handleConnectionFault(fault) });
     }
 
-    func applicationWillFinishLaunching(notification: NSNotification) {
-        NSAppleEventManager.sharedAppleEventManager().setEventHandler(self, andSelector: #selector(handleURL), forEventClass: UInt32(kInternetEventClass), andEventID: UInt32(kAEGetURL));
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(windowClosing), name: NSWindowWillCloseNotification, object: nil);
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(windowFocusing), name: NSWindowDidBecomeKeyNotification, object: nil);
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(handleURL), forEventClass: UInt32(kInternetEventClass), andEventID: UInt32(kAEGetURL));
+        NotificationCenter.default.addObserver(self, selector: #selector(windowClosing), name: NSWindow.willCloseNotification, object: nil);
+        NotificationCenter.default.addObserver(self, selector: #selector(windowFocusing), name: NSWindow.didBecomeKeyNotification, object: nil);
     }
 
     func applicationDidFinishLaunching(aNotification: NSNotification) {
@@ -60,9 +60,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let window = self.window!
 
         // make our window transparent.
-        window.opaque = false;
-        window.backgroundColor = NSColor.clearColor();
-        window.styleMask = NSBorderlessWindowMask;
+        window.isOpaque = false;
+        window.backgroundColor = NSColor.clear;
+        window.styleMask = .borderless; //NSBorderlessWindowMask;
 
         // shadows are currently causing problems w core animation.
         window.hasShadow = false;
@@ -74,29 +74,29 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let frame = self.positionWindow();
 
         // appear on all spaces, and always on top.
-        window.collectionBehavior = [window.collectionBehavior, NSWindowCollectionBehavior.CanJoinAllSpaces];
-        window.level = Int(CGWindowLevelForKey(.FloatingWindowLevelKey));
+        window.collectionBehavior = [window.collectionBehavior, NSWindow.CollectionBehavior.canJoinAllSpaces];
+        window.level = .floating; //CGWindowLevelForKey(.FloatingWindowLevelKey);
 
         // set our primary view.
-        self.mainView = MainView(frame: frame, connection: self.connection, starred: Registry.create("starred")!, hidden: self.hiddenJids);
+        self.mainView = MainView(frame: frame, connection: self.connection, starred: Registry.create(filename: "starred")!, hidden: self.hiddenJids);
         self.mainView!.frame = window.contentView!.bounds;
         window.contentView!.addSubview(self.mainView!);
 
         // restore hide/mute settings.
-        if NSUserDefaults.standardUserDefaults().boolForKey("hidden") == true { self.toggleHidden(self); }
-        if NSUserDefaults.standardUserDefaults().boolForKey("muted") == true { self.toggleMuted(self); }
+        if UserDefaults.standard.bool(forKey: "hidden") == true { self.toggleHidden(sender: self); }
+        if UserDefaults.standard.bool(forKey: "muted") == true { self.toggleMuted(sender: self); }
 
         // attempt to connect.
-        if NSUserDefaults.standardUserDefaults().boolForKey("hasRun") != true {
-            NSUserDefaults.standardUserDefaults().setBool(true, forKey: "hasRun");
-            self.showHelp(0);
+        if UserDefaults.standard.bool(forKey: "hasRun") != true {
+            UserDefaults.standard.set(true, forKey: "hasRun");
+            self.showHelp(sender: self);
         } else {
             self.connect();
         }
     }
 
     private func positionWindow() -> CGRect {
-        let screenFrame = NSScreen.mainScreen()!.visibleFrame;
+        let screenFrame = NSScreen.main!.visibleFrame;
         let frame = CGRect(
             x: screenFrame.origin.x + screenFrame.size.width - self.WIDTH, y: 0,
             width: self.WIDTH, height: screenFrame.size.height
@@ -107,22 +107,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     func connect() {
         // if we have an account to connect to, do so. otherwise, show the prefpane.
-        if let account = NSUserDefaults.standardUserDefaults().stringForKey("mainAccount") {
+        if let account = UserDefaults.standard.string(forKey: "mainAccount") {
             self.connection.connect(account);
         } else {
-            self.showPreferences(0);
+            self.showPreferences(sender: self);
         }
     }
 
     func prepare() {
-        self.hiddenJids.members.observeNext({ members in
-            dispatch_async(dispatch_get_main_queue(), { self._updateHiddenContacts(members); });
+        self.hiddenJids.members.observeValues({ members in
+            DispatchQueue.main.async(execute: { self._updateHiddenContacts(members); });
         });
 
-        NSNotificationCenter.defaultCenter().addObserverForName(NSApplicationDidChangeScreenParametersNotification,
-            object: NSApplication.sharedApplication(), queue: NSOperationQueue.mainQueue()) { notification -> Void in
+        NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
+            object: NSApplication.shared, queue: OperationQueue.main) { notification -> Void in
                 if let mainView = self.mainView {
-                    dispatch_async(dispatch_get_main_queue(), {
+                    DispatchQueue.main.async(execute: {
                         self.positionWindow();
                         mainView.frame = self.window.contentView!.bounds;
                     })
@@ -130,11 +130,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
     }
 
-    private func _updateHiddenContacts(members: Set<String>) {
+    private func _updateHiddenContacts(_ members: Set<String>) {
         self.hiddenContactsMenu.removeAllItems();
         if members.isEmpty {
             let item = NSMenuItem.init(title: "(none)", action: #selector(noop), keyEquivalent: "");
-            item.enabled = false;
+            item.isEnabled = false;
             self.hiddenContactsMenu.addItem(item);
         } else {
             for member in members {
@@ -151,36 +151,36 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
     }
 
-    private func _handleConnectionFault(fault: ConnectionFault) {
+    private func _handleConnectionFault(_ fault: ConnectionFault) {
         let (headline, detail) = fault.messages();
         let logSnapshot = STMemoryLogger.sharedInstance.all();
 
         self.showNotification(headline, action: {
             let finalText = NSMutableAttributedString();
-            let errorText = NSAttributedString(string: "\(headline).\n\(detail)\n\n", attributes: [ NSFontAttributeName: ST.main.boldFont ]);
-            finalText.appendAttributedString(errorText);
-            finalText.appendAttributedString(NSAttributedString.init(string: logSnapshot));
+            let errorText = NSAttributedString(string: "\(headline).\n\(detail)\n\n", attributes: [ NSAttributedStringKey.font: ST.main.boldFont ]);
+            finalText.append(errorText);
+            finalText.append(NSAttributedString.init(string: logSnapshot));
             self.showLogs(finalText);
         });
     }
 
     @IBAction func toggleHidden(sender: AnyObject) {
-        let hidden = (self.hideMenuItem.state == NSOffState);
+        let hidden = (self.hideMenuItem.state == NSControl.StateValue.off);
         self.mainView!.setHide(hidden);
-        NSUserDefaults.standardUserDefaults().setBool(hidden, forKey: "hidden");
-        self.hideMenuItem.state = hidden ? NSOnState : NSOffState;
+        UserDefaults.standard.set(hidden, forKey: "hidden");
+        self.hideMenuItem.state = hidden ? NSControl.StateValue.on : NSControl.StateValue.off;
     }
 
     @IBAction func toggleMuted(sender: AnyObject) {
-        let muted = (self.muteMenuItem.state == NSOffState);
+        let muted = (self.muteMenuItem.state == NSControl.StateValue.off);
         self.mainView!.setMute(muted);
-        NSUserDefaults.standardUserDefaults().setBool(muted, forKey: "muted");
-        self.muteMenuItem.state = muted ? NSOnState : NSOffState;
+        UserDefaults.standard.set(muted, forKey: "muted");
+        self.muteMenuItem.state = muted ? NSControl.StateValue.on : NSControl.StateValue.off;
     }
 
     @IBAction func showPreferences(sender: AnyObject) {
         if self._settingsWindow == nil {
-            self._settingsController = SettingsController(nibName: "Settings", bundle: nil)!;
+            self._settingsController = SettingsController(nibName: NSNib.Name(rawValue: "Settings"), bundle: nil);
             self._settingsWindow = NSWindow(contentViewController: self._settingsController!);
 
             self._settingsWindow!.title = "Sidetalk Preferences";
@@ -191,7 +191,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     @IBAction func showHelp(sender: AnyObject) {
         if self._helpWindow == nil {
-            self._helpController = HelpController(nibName: "Help", bundle: nil)!;
+            self._helpController = HelpController(nibName: NSNib.Name(rawValue: "Help"), bundle: nil);
             self._helpWindow = NSWindow(contentViewController: self._helpController!);
 
             self._helpWindow!.title = "Getting Started";
@@ -205,8 +205,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         self.showLogs(NSAttributedString.init(string: STMemoryLogger.sharedInstance.all()));
     }
 
-    func showLogs(logs: NSAttributedString) {
-        let controller = LogViewerController(nibName: "LogViewer", bundle: nil)!;
+    func showLogs(_ logs: NSAttributedString) {
+        let controller = LogViewerController(nibName: NSNib.Name(rawValue: "LogViewer"), bundle: nil);
         let window = NSWindow(contentViewController: controller);
         window.title = "Log Viewer";
         window.nextResponder = self.window;
@@ -217,27 +217,27 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         self._otherWindows.insert(window);
     }
 
-    private func showNotification(message: String, action: VoidFunction? = .None) {
+    private func showNotification(_ message: String, action: VoidFunction? = .none) {
         let notification = NSUserNotification.init();
         notification.title = "Sidetalk";
         notification.informativeText = message;
 
-        if case let .Some(vf) = action {
+        if case let .some(vf) = action {
             notification.actionButtonTitle = "More";
             notification.hasActionButton = true;
             self._notificationActions[notification] = vf;
         }
 
-        let center = NSUserNotificationCenter.defaultUserNotificationCenter();
+        let center = NSUserNotificationCenter.default;
         center.delegate = self;
-        center.deliverNotification(notification);
+        center.deliver(notification);
     }
 
-    func userNotificationCenter(center: NSUserNotificationCenter, shouldPresentNotification notification: NSUserNotification) -> Bool {
+    func userNotificationCenter(_ center: NSUserNotificationCenter, shouldPresent notification: NSUserNotification) -> Bool {
         return true;
     }
 
-    func userNotificationCenter(center: NSUserNotificationCenter, didActivateNotification notification: NSUserNotification) {
+    func userNotificationCenter(_ center: NSUserNotificationCenter, didActivate notification: NSUserNotification) {
         if let action = self._notificationActions[notification] { action(); }
     }
 
@@ -250,7 +250,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @objc private func windowClosing(notification: NSNotification) {
         if (notification.object as! NSWindow) == self._helpWindow {
             // if we're closing the help screen and no account is configured, show that.
-            if NSUserDefaults.standardUserDefaults().stringForKey("mainAccount") == nil { self.showPreferences(0); }
+            if UserDefaults.standard.string(forKey: "mainAccount") == nil { self.showPreferences(sender: self); }
         }
 
         self._otherWindows.remove(notification.object as! NSWindow);
@@ -258,24 +258,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     @objc private func windowFocusing(notification: NSNotification) {
         let window = notification.object as! NSWindow;
-        self.windowMenu.hidden = ((window == self.window) || (window.level == 101)); // TODO: why can't i find NSMainMenuWindowLevel defined?
+        self.windowMenu.isHidden = ((window == self.window) || (window.level.rawValue == 101)); // TODO: why can't i find NSMainMenuWindowLevel defined?
     }
 
     @objc private func handleURL(event: NSAppleEventDescriptor, withReplyEvent: NSAppleEventDescriptor) {
-        guard let urlString = event.paramDescriptorForKeyword(UInt32(keyDirectObject))?.stringValue else { return; }
+        guard let urlString = event.paramDescriptor(forKeyword: UInt32(keyDirectObject))?.stringValue else { return; }
         guard let url = NSURL.init(string: urlString) else { return; }
 
         if url.scheme == "com.giantacorn.sidetalk" {
-            NSNotificationCenter.defaultCenter().postNotificationName("OAuth2AppDidReceiveCallback", object: url);
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "OAuth2AppDidReceiveCallback"), object: url);
         }
     }
 
     @IBAction func showSupport(sender: AnyObject) {
-        NSWorkspace.sharedWorkspace().openURL(NSURL(string: "https://sidetalk.freshdesk.com")!);
+        NSWorkspace.shared.open(URL(string: "https://sidetalk.freshdesk.com")!);
     }
 
     @IBAction func sendFeedback(sender: AnyObject) {
-        NSWorkspace.sharedWorkspace().openURL(NSURL(string: "mailto:feedback@sidetalk.io")!);
+        NSWorkspace.shared.open(URL(string: "mailto:feedback@sidetalk.io")!);
     }
 
     func applicationWillTerminate(aNotification: NSNotification) {

@@ -12,18 +12,18 @@ class ContactMenu {
         self.menu = NSMenu(title: contact.displayName);
 
         self.menu.addItem(NSMenuItem(title: self.jid, action: #selector(noop), keyEquivalent: ""));
-        self.menu.addItem(NSMenuItem.separatorItem());
+        self.menu.addItem(NSMenuItem.separator());
 
         let starItem = NSMenuItem(title: "Star", action: #selector(star), keyEquivalent: "");
-        starItem.state = mainView.starredJids.contains(self.jid) ? NSOnState : NSOffState;
+        starItem.state = mainView.starredJids.contains(member: self.jid) ? NSControl.StateValue.on : NSControl.StateValue.off;
         starItem.target = self;
-        starItem.enabled = true;
+        starItem.isEnabled = true;
         self.menu.addItem(starItem);
 
         let hideItem = NSMenuItem(title: "Hide", action: #selector(hide), keyEquivalent: "");
-        hideItem.state = mainView.hiddenJids.contains(self.jid) ? NSOnState : NSOffState;
+        hideItem.state = mainView.hiddenJids.contains(member: self.jid) ? NSControl.StateValue.on : NSControl.StateValue.off;
         hideItem.target = self;
-        hideItem.enabled = true;
+        hideItem.isEnabled = true;
         self.menu.addItem(hideItem);
     }
 
@@ -37,11 +37,11 @@ class ContactMenu {
 
     @objc func noop() {}
 
-    func show(event: NSEvent) {
-        NSMenu.popUpContextMenu(self.menu, withEvent: event, forView: self.mainView);
+    func show(_ event: NSEvent) {
+        NSMenu.popUpContextMenu(self.menu, with: event, for: self.mainView);
     }
 
-    static func show(contact: Contact, event: NSEvent, view: MainView) {
+    static func show(_ contact: Contact, event: NSEvent, view: MainView) {
         let instance = ContactMenu(contact: contact, mainView: view);
         instance.show(event);
     }

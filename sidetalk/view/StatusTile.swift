@@ -1,6 +1,6 @@
 
 import Foundation;
-import ReactiveCocoa;
+import ReactiveSwift;
 import enum Result.NoError;
 
 class StatusTile: NSView {
@@ -26,13 +26,13 @@ class StatusTile: NSView {
         self.connection = connection;
 
         self._searchField = NSTextField(frame: searchFrame);
-        self._searchField.backgroundColor = NSColor.clearColor();
-        self._searchField.bezeled = false;
-        self._searchField.focusRingType = NSFocusRingType.None;
-        self._searchField.textColor = NSColor.whiteColor();
-        self._searchField.font = NSFont.systemFontOfSize(20);
-        self._searchField.alignment = NSTextAlignment.Right;
-        self._searchField.lineBreakMode = .ByTruncatingHead;
+        self._searchField.backgroundColor = NSColor.clear;
+        self._searchField.isBezeled = false;
+        self._searchField.focusRingType = NSFocusRingType.none;
+        self._searchField.textColor = NSColor.white;
+        self._searchField.font = NSFont.systemFont(ofSize: 20);
+        self._searchField.alignment = NSTextAlignment.right;
+        self._searchField.lineBreakMode = .byTruncatingHead;
         self._searchField.alphaValue = 0.0;
         self._searchLeecher = STTextDelegate(field: self._searchField);
 
@@ -42,7 +42,7 @@ class StatusTile: NSView {
             frame: NSRect(origin: NSPoint(x: tileSize.width - tileSize.height, y: self.iconMargin), size: NSSize(width: tileSize.height, height: tileSize.height))
         );
         searchIconLayer.opacity = 0.0;
-        searchIconLayer.image = NSImage.init(named: "search");
+        searchIconLayer.image = NSImage.init(named: NSImage.Name.init(rawValue: "search"));
 
         let presence = ManagedSignal<Presence>();
         self._ownPresence = presence;
@@ -55,9 +55,9 @@ class StatusTile: NSView {
         fatalError("no coder for you");
     }
 
-    override func viewWillMoveToSuperview(newSuperview: NSView?) {
+    override func viewWillMove(toSuperview newSuperview: NSView?) {
         self.wantsLayer = true;
-        super.viewWillMoveToSuperview(newSuperview);
+        super.viewWillMove(toSuperview: newSuperview);
 
         // add calayers directly.
         let radius: CGFloat = 8;
@@ -73,7 +73,7 @@ class StatusTile: NSView {
         self.addSubview(self._presenceIndicator);
     }
 
-    func prepare(mainView: MainView) {
+    func prepare(_ mainView: MainView) {
         // grab and render our own info.
         self.connection.myself
             .filter({ contact in contact != nil })
@@ -85,16 +85,16 @@ class StatusTile: NSView {
             // clean up old tiles.
             .map({ tile in tile as ContactTile? }) // TODO: is there a cleaner way to do this?
             .combinePrevious(nil)
-            .observeNext { last, _ in
-                if last != nil { dispatch_async(dispatch_get_main_queue(), { last!.removeFromSuperview(); } ); }
+            .observeValues { last, _ in
+                if last != nil { DispatchQueue.main.async(execute: { last!.removeFromSuperview(); } ); }
             };
 
         // focus textfield if activated. clear it if deactivated.
-        mainView.state.combinePrevious(.Inactive).observeNext { (last, this) in
+        mainView.state.combinePrevious(.Inactive).observeValues { (last, this) in
             if last == this { return; }
 
             if this == .Normal || this.essentially == .Selecting {
-                dispatch_async(dispatch_get_main_queue(), {
+                DispatchQueue.main.async(execute: {
                     self._searchField.stringValue = "";
                     self.window!.makeFirstResponder(self._searchField);
                 });
@@ -102,38 +102,38 @@ class StatusTile: NSView {
         };
 
         // show textfield and search icon if there is content.
-        self.searchText.observeNext { text in dispatch_async(dispatch_get_main_queue(), {
-            let hasContent = text.characters.count > 0;
+        self.searchText.observeValues { text in DispatchQueue.main.async(execute: {
+            let hasContent = !text.isEmpty;
             self._searchField.alphaValue = hasContent ? 1.0 : 0.0;
             self._searchIcon.iconLayer.opacity = hasContent ? 1.0 : 0.0;
         }); };
 
         // update our shadow layer when the text changes.
-        self.searchText.observeNext { text in
-            let width = NSAttributedString(string: text, attributes: [ NSFontAttributeName: NSFont.systemFontOfSize(20) ]).size().width;
+        self.searchText.observeValues { text in
+            let width = NSAttributedString(string: text, attributes: [ NSAttributedStringKey.font: NSFont.systemFont(ofSize: 20) ]).size().width;
             self._shadowLayer.width = width;
         };
 
         // update our presence when network connectivity changes (TODO: temporary until unified?)
         self.connection.authenticated
             .combineWithDefault(self.connection.hasInternet, defaultValue: true)
-            .observeNext { auth, online in
+            .observeValues { auth, online in
                 switch (auth, online) {
-                case (false, _): self._ownPresence.observer.sendNext(.None);
-                case (true, false): self._ownPresence.observer.sendNext(.Offline);
-                case (true, true): self._ownPresence.observer.sendNext(.Online);
+                case (false, _): self._ownPresence.observer.send(value: .None);
+                case (true, false): self._ownPresence.observer.send(value: .Offline);
+                case (true, true): self._ownPresence.observer.send(value: .Online);
                 };
             };
     }
 
-    private func drawContact(contact: Contact) -> ContactTile {
+    private func drawContact(_ contact: Contact) -> ContactTile {
         let tile = ContactTile(
             frame: NSRect(origin: NSPoint.init(x: 0, y: self.iconMargin), size: self.tileSize),
             contact: contact
         );
-        dispatch_async(dispatch_get_main_queue(), {
+        DispatchQueue.main.async(execute: {
             self.addSubview(tile);
-            self.sendSubviewToBack(tile);
+            self.sendSubview(toBack: tile);
         });
         return tile;
     }

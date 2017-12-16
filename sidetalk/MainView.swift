@@ -1,7 +1,7 @@
 
 import Foundation;
 import Cocoa;
-import ReactiveCocoa;
+import ReactiveSwift;
 import FuzzySearch;
 import enum Result.NoError;
 
@@ -23,12 +23,12 @@ enum MouseButton: Impulsable {
 
 class STScrollView: NSScrollView {
     var onScroll: (() -> ())?;
-    override func scrollWheel(event: NSEvent) {
-        super.scrollWheel(event);
+    override func scrollWheel(with event: NSEvent) {
+        super.scrollWheel(with: event);
         self.onScroll?();
     }
 
-    override func acceptsFirstMouse(theEvent: NSEvent?) -> Bool { return true; }
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { return true; }
 }
 
 // TODO: split into V/VM?
@@ -57,15 +57,15 @@ class MainView: NSView {
     private var state_: MainState { get { return self._state.value; } };
     var state: Signal<MainState, NoError> { get { return self._state.signal; } };
 
-    private var _lastInactive = MutableProperty<NSDate>(NSDate.distantPast());
-    private var lastInactive_: NSDate { get { return self._lastInactive.value; } };
-    private var lastInactive: Signal<NSDate, NoError> { get { return self._lastInactive.signal; } };
+    private var _lastInactive = MutableProperty<Date>(Date.distantPast);
+    private var lastInactive_: Date { get { return self._lastInactive.value; } };
+    private var lastInactive: Signal<Date, NoError> { get { return self._lastInactive.signal; } };
 
     private let _mouseIdx = MutableProperty<Int?>(nil);
     var mouseIdx_: Int? { get { return self._mouseIdx.value; } };
     var mouseIdx: Signal<Int?, NoError> { get { return self._mouseIdx.signal.skipRepeats({ a, b in a == b }); } };
 
-    private let _mouseClickGenerator = Impulse.generate(MouseButton);
+    private let _mouseClickGenerator = Impulse.generate(MouseButton.self);
     private let _mouseClickSignal = ManagedSignal<Impulse<MouseButton>>();
     var mouseClick: Signal<Impulse<MouseButton>, NoError> { get { return self._mouseClickSignal.signal; } };
 
@@ -88,9 +88,9 @@ class MainView: NSView {
     let conversationWidth = CGFloat(300);
     let conversationVOffset = CGFloat(-72);
 
-    let messageShown = NSTimeInterval(5.0);
-    let restoreInterval = NSTimeInterval(10.0 * 60.0);
-    let inactivityInterval = NSTimeInterval(5.0 * 24.0 * 60.0 * 60.0);
+    let messageShown = TimeInterval(5.0);
+    let restoreInterval = TimeInterval(10.0 * 60.0);
+    let inactivityInterval = TimeInterval(5.0 * 24.0 * 60.0 * 60.0);
 
     private let _pressedKey = ManagedSignal<Key>();
 
@@ -126,7 +126,7 @@ class MainView: NSView {
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false;
         self.scrollView.hasVerticalScroller = true;
         self.scrollView.drawsBackground = false;
-        self.scrollView.horizontalScrollElasticity = .None;
+        self.scrollView.horizontalScrollElasticity = .none;
         self.addSubview(self.scrollView);
 
         self.scrollView.onScroll = { self.scrolled(); };
@@ -158,85 +158,85 @@ class MainView: NSView {
 
         // mouse things.
         self.marginTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: frame.width - 2, y: 0), size: frame.size),
-                                            options: [.MouseEnteredAndExited, .ActiveAlways], owner: self, userInfo: nil);
+                                            options: [.mouseEnteredAndExited, .activeAlways], owner: self, userInfo: nil);
         self.addTrackingArea(self.marginTracker!);
     }
 
-    func setHide(hidden: Bool) { self._hiddenMode.modify({ _ in hidden }); }
-    func setMute(muted: Bool) { self._mutedMode.modify({ _ in muted }); }
+    func setHide(_ hidden: Bool) { self._hiddenMode.modify({ _ in hidden }); }
+    func setMute(_ muted: Bool) { self._mutedMode.modify({ _ in muted }); }
 
-    override func mouseEntered(theEvent: NSEvent) {
-        if theEvent.trackingArea == self.marginTracker {
+    override func mouseEntered(with event: NSEvent) {
+        if event.trackingArea == self.marginTracker {
             self.liveMouse();
-            self._mouseIdx.modify({ _ in self.idxForMouse(theEvent.locationInWindow.y) });
+            self._mouseIdx.modify({ _ in self.idxForMouse(event.locationInWindow.y) });
         }
     }
-    override func mouseMoved(theEvent: NSEvent) {
+    override func mouseMoved(with event: NSEvent) {
         if let tracker = self.contactTracker {
-            if theEvent.locationInWindow.x > tracker.rect.minX {
-                self._mouseIdx.modify({ _ in self.idxForMouse(theEvent.locationInWindow.y) });
+            if event.locationInWindow.x > tracker.rect.minX {
+                self._mouseIdx.modify({ _ in self.idxForMouse(event.locationInWindow.y) });
                 self.wantsMouseMain.modify({ _ in true });
             }
         } else if let tracker = self.notifyingTracker {
             guard let notifyingIdx = tracker.userInfo?["notifying"] as? Set<Int> else { return; }
-            let idx = self.idxForMouse(theEvent.locationInWindow.y);
+            let idx = self.idxForMouse(event.locationInWindow.y);
             self.wantsMouseNotifying.modify({ _ in notifyingIdx.contains(idx) });
         }
     }
-    override func mouseExited(theEvent: NSEvent) {
-        if theEvent.trackingArea == self.contactTracker {
+    override func mouseExited(with event: NSEvent) {
+        if event.trackingArea == self.contactTracker {
             if self.state_ == .Inactive { self.killMouse(); }
-            self._mouseIdx.modify({ _ in nil });
+            self._mouseIdx.modify({ _ -> Int? in nil });
         }
 
-        if theEvent.trackingArea != self.marginTracker {
+        if event.trackingArea != self.marginTracker {
             self.wantsMouseMain.modify({ _ in false });
             self.wantsMouseNotifying.modify({ _ in false });
         }
     }
-    override func acceptsFirstMouse(theEvent: NSEvent?) -> Bool { return true; }
-    override func mouseDown(theEvent: NSEvent) {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { return true; }
+    override func mouseDown(with event: NSEvent) {
         //self._mouseClickSignal.observer.sendNext(self._mouseClickGenerator.create(.Left(event: theEvent)));
         if self.mouseIdx_ != nil {
             GlobalInteraction.sharedInstance.send(.Click);
         } else if let tracker = self.notifyingTracker {
             // only process the notifying tracker on mousedown so we don't pop the whole frame.
             guard let notifyingIdx = tracker.userInfo?["notifying"] as? Set<Int> else { return; }
-            let idx = self.idxForMouse(theEvent.locationInWindow.y);
+            let idx = self.idxForMouse(event.locationInWindow.y);
             if notifyingIdx.contains(idx) {
                 self._mouseIdx.modify { _ in idx };
                 GlobalInteraction.sharedInstance.send(.Click);
             }
         }
     }
-    override func rightMouseDown(event: NSEvent) {
-        self._mouseClickSignal.observer.sendNext(self._mouseClickGenerator.create(.Right(event: event)));
+    override func rightMouseDown(with event: NSEvent) {
+        self._mouseClickSignal.observer.send(value: self._mouseClickGenerator.create(.Right(event: event)));
     }
 
     private func liveMouse() {
         if self.contactTracker == nil {
             self.contactTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: frame.width - self.tileSize.height - self.tilePadding, y: 0), size: frame.size),
-                                                 options: [.MouseEnteredAndExited, .MouseMoved, .ActiveAlways], owner: self, userInfo: nil);
+                                                 options: [.mouseEnteredAndExited, .mouseMoved, .activeAlways], owner: self, userInfo: nil);
             self.addTrackingArea(self.contactTracker!);
         }
     }
-    private func idxForMouse(location: CGFloat) -> Int {
+    private func idxForMouse(_ location: CGFloat) -> Int {
         return Int(max(0, floor((location + self.scrollView.contentView.documentVisibleRect.origin.y - self.allPadding - self.listPadding) / (self.tileSize.height + self.tilePadding)) - 1)); // TODO/HACK: why -1?
     }
     private func killMouse() {
         if let tracker = self.contactTracker { self.removeTrackingArea(tracker); }
         self.contactTracker = nil;
-        self._mouseIdx.modify({ _ in nil }); // unlike liveMouse, we always want to modify the idx, because it's an active flag of sorts.
+        self._mouseIdx.modify({ _ -> Int? in nil }); // unlike liveMouse, we always want to modify the idx, because it's an active flag of sorts.
         self.wantsMouseMain.modify({ _ in false });
     }
 
     @objc private func scrolled() {
         if self.state_.essentially == .Chatting { GlobalInteraction.sharedInstance.send(.Escape); } // HACK: feels like a sloppy way to do this.
-        self._mouseIdx.modify { _ in self.idxForMouse(NSEvent.mouseLocation().y) };
+        self._mouseIdx.modify { _ in self.idxForMouse(NSEvent.mouseLocation.y) };
     }
 
     // don't react to mouse clicks unless the pointer is in a relevant spot at a relevant time.
-    override func hitTest(point: NSPoint) -> NSView? {
+    override func hitTest(_ point: NSPoint) -> NSView? {
         // normal mouse behaviour any time we're within a conversation view.
         if let view = super.hitTest(point) {
             if view.ancestors().find({ view in (view as? ConversationView) != nil }) != nil {
@@ -257,9 +257,9 @@ class MainView: NSView {
     }
 
     private func prepare() {
-        let scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "mainview-scheduler");
+        let scheduler = QueueScheduler(qos: .default, name: "mainview-scheduler");
         let latestMessage = self.connection.latestMessage;
-        var lastState: (MainState, NSDate) = (.Normal, NSDate());
+        var lastState: (MainState, Date) = (.Normal, Date());
 
         // draw new contacts as required.
         let tiles = self.connection.contacts.map({ (contacts) -> [ContactTile] in
@@ -267,23 +267,23 @@ class MainView: NSView {
         });
 
         // draw new conversations as required.
-        self.connection.latestActivity.observeNext { contact in
+        self.connection.latestActivity.observeValues { contact in
             let conversation = contact.conversation;
-            self._conversationViews.get(conversation.with, orElse: { self.drawConversation(conversation); })
+            self._conversationViews.get(conversation.with, orElse: { self.drawConversation(conversation); });
         };
 
         // remember the latest foreign message.
         var latestForeignMessage_: Message?; // sort of a deviation from pattern. but i think it's better?
         let latestForeignMessage = latestMessage.filter({ message in message.isForeign() });
-        latestForeignMessage.observeNext { message in latestForeignMessage_ = message };
+        latestForeignMessage.observeValues { message in latestForeignMessage_ = message };
 
         // figure out which contacts currently have notification bubbles.
-        let notifying = latestForeignMessage.always(0)
-            .merge(latestForeignMessage.always(0).delay(self.messageShown, onScheduler: scheduler))
-            .merge(self.lastInactive.always(0))
+        let notifying = latestForeignMessage.always(value: 0)
+            .merge(latestForeignMessage.always(value: 0).delay(self.messageShown, on: scheduler))
+            .merge(self.lastInactive.always(value: 0))
             .map { _ -> Set<Contact> in
                 var result = Set<Contact>();
-                let now = NSDate();
+                let now = Date();
 
                 // MAYBE HACK: i *think* we don't actually need to react based on mute, just readonce it.
                 if !self.mutedMode_ {
@@ -291,7 +291,7 @@ class MainView: NSView {
                     for conversationView in self._conversationViews.all() {
                         let conversation = conversationView.conversation;
                         if let message = conversation.messages.find({ message in message.isForeign() }) {
-                            if message.at.isGreaterThanOrEqualTo(self.lastInactive_) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThanOrEqualTo(now) {
+                            if (message.at >= self.lastInactive_) && (message.at.addingTimeInterval(self.messageShown) >= now) {
                                 result.insert(conversation.with);
                             }
                         }
@@ -312,13 +312,13 @@ class MainView: NSView {
                 let filteredContacts = contacts.filter({ contact in !hidden.contains(contact.inner.jid().full()) });
                 let (starredContacts, plebContacts) = filteredContacts.part({ contact in starred.contains(contact.inner.jid().full()) });
 
-                let cutoff = NSDate().dateByAddingTimeInterval(-1.0 * self.inactivityInterval);
+                let cutoff = Date().addingTimeInterval(-1.0 * self.inactivityInterval);
                 let (chattedContacts, restContacts) = plebContacts.part({ contact in
-                    contact.conversation.messages.contains({ message in message.at.isGreaterThanOrEqualTo(cutoff) })
+                    contact.conversation.messages.contains(where: { message in message.at >= cutoff })
                 });
 
-                let sortedChattedContacts = chattedContacts.sort({ a, b in
-                    a.conversation.messages.first!.at.compare(b.conversation.messages.first!.at) == .OrderedDescending
+                let sortedChattedContacts = chattedContacts.sorted(by: { a, b in
+                    a.conversation.messages.first!.at.compare(b.conversation.messages.first!.at) == .orderedDescending
                 });
 
                 let availableContacts = restContacts.filter { contact in contact.online_ && contact.presence_ == nil };
@@ -334,7 +334,7 @@ class MainView: NSView {
                         (contact, FuzzySearch.score(originalString: contact.displayName, stringToMatch: search, fuzziness: 0.75));
                     };
 
-                    let maxScore = scores.map({ (_, score) in score }).maxElement();
+                    let maxScore = scores.map({ (_, score) in score }).max();
                     let matches = scores.filter({ (_, score) in score > maxScore! - 0.2 && score > 0.1 }).map({ (contact, _) in contact });
 
                     let notifyingOverrides = sortedChattedContacts.filter({ contact in notifying.contains(contact) });
@@ -345,9 +345,9 @@ class MainView: NSView {
             });
 
         // determine global state (gets pushed into MainState._state at the end).
-        let keyTracker = Impulse.track(Key);
+        let keyTracker = Impulse.track(Key.self);
         GlobalInteraction.sharedInstance.keyPress
-            .combineLatestWith(sort)
+            .combineLatest(with: sort)
             .combineWithDefault(self._statusTile.searchText, defaultValue: "").map({ ($0.0, $0.1, $1); })
             .scan(.Inactive, { (last, args) -> MainState in
                 let (wrappedKey, sort, search) = args;
@@ -387,12 +387,12 @@ class MainView: NSView {
 
                 case (.Inactive, .Focus): fallthrough;
                 case (.Inactive, .GlobalToggle):
-                    let now = NSDate();
+                    let now = Date();
                     let (state, time) = lastState;
-                    let shouldRestore = time.dateByAddingTimeInterval(self.restoreInterval).isGreaterThan(now)
+                    let shouldRestore = time.addingTimeInterval(self.restoreInterval) > now;
 
                     if let message = latestForeignMessage_ {
-                        if message.at.isGreaterThan(self.lastInactive_) && message.at.dateByAddingTimeInterval(self.messageShown).isGreaterThan(now) {
+                        if (message.at > self.lastInactive_) && (message.at.addingTimeInterval(self.messageShown) > now) {
                             switch (shouldRestore, state) {
                             case (true, let .Chatting(_, previous)): return .Chatting(message.conversation.with, previous);
                             case (true, .Searching(_, _)): return .Chatting(message.conversation.with, .Normal);
@@ -418,57 +418,57 @@ class MainView: NSView {
 
                 return last;
             })
-            .observeNext({ state in self._state.modify({ _ in state }) });
+            .observeValues({ state in self._state.modify({ _ -> MainState in state }) });
 
         // keep track of our last state:
-        self.state.filter({ state in state != .Inactive }).observeNext({ state in lastState = (state, NSDate()); });
+        self.state.filter({ state in state != .Inactive }).observeValues({ state in lastState = (state, Date()); });
 
         // keep track of our last dismissal:
-        self.state.skipRepeats({ $0 == $1 }).filter({ state in state == .Inactive }).observeNext({ _ in
-            dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), { self._lastInactive.modify({ _ in NSDate() }) });
+        self.state.skipRepeats({ $0 == $1 }).filter({ state in state == .Inactive }).observeValues({ _ in
+            DispatchQueue.global(qos: .default).async(execute: { self._lastInactive.modify({ _ in Date() }) });
         });
 
         // wire/dewire mouse depending on our state:
-        self.state.map({ $0 == .Inactive }).skipRepeats().observeNext { inactive in
-            dispatch_async(dispatch_get_main_queue(), { if inactive { self.killMouse(); } else { self.liveMouse(); } });
+        self.state.map({ $0 == .Inactive }).skipRepeats().observeValues { inactive in
+            DispatchQueue.main.async(execute: { if inactive { self.killMouse(); } else { self.liveMouse(); } });
         };
 
         // if there are any contacts currently notifying and we are inactive, create or update a tracking area.
         notifying
-            .combineLatestWith(sort)
-            .combineLatestWith(self.state).map({ ($0.0, $0.1, $1) })
-            .observeNext { notifying, sort, state in
+            .combineLatest(with: sort)
+            .combineLatest(with: self.state).map({ ($0.0, $0.1, $1) })
+            .observeValues { notifying, sort, state in
                 if (notifying.count > 0) && (state == .Inactive) {
-                    if let tracker = self.notifyingTracker { dispatch_async(dispatch_get_main_queue(), { self.removeTrackingArea(tracker); }); }
+                    if let tracker = self.notifyingTracker { DispatchQueue.main.async(execute: { self.removeTrackingArea(tracker); }); }
 
                     let notifyingContacts = Set(notifying.filter({ contact in sort[contact] != nil }).map({ contact in sort[contact]! })); // TODO: cleaner upcast?
                     self.notifyingTracker = NSTrackingArea(rect: NSRect(origin: NSPoint(x: self.frame.width - self.tileSize.height - self.tilePadding, y: 0), size: self.frame.size),
-                        options: [ .MouseEnteredAndExited, .MouseMoved, .ActiveAlways ], owner: self, userInfo: [ "notifying": notifyingContacts ]);
-                    dispatch_async(dispatch_get_main_queue(), { self.addTrackingArea(self.notifyingTracker!); });
+                        options: [ .mouseEnteredAndExited, .mouseMoved, .activeAlways ], owner: self, userInfo: [ "notifying": notifyingContacts ]);
+                    DispatchQueue.main.async(execute: { self.addTrackingArea(self.notifyingTracker!); });
                 } else if let tracker = self.notifyingTracker {
-                    dispatch_async(dispatch_get_main_queue(), { self.removeTrackingArea(tracker); });
+                    DispatchQueue.main.async(execute: { self.removeTrackingArea(tracker); });
                 }
-            }
+            };
 
         // relayout as required.
-        sort.combineLatestWith(tiles).map { order, _ in order } // (Order)
+        sort.combineLatest(with: tiles).map { order, _ in order } // (Order)
             .combineWithDefault(latestMessage.map({ _ in nil as AnyObject? }), defaultValue: nil).map { order, _ in order } // (Order)
             .combineWithDefault(self.state, defaultValue: .Inactive) // (Order, MainState)
             .combineWithDefault(notifying, defaultValue: Set<Contact>()) // ((Order, MainState), Set[Contact])
             .combineWithDefault(self.hiddenMode, defaultValue: false) // (((Order, MainState), Set[Contact]), Bool)
             .combineWithDefault(self.mouseIdx, defaultValue: nil) // ((((Order, MainState), Set[Contact]), Bool), Int?)
             .map({ tuple, mouseIdx in LayoutState(order: tuple.0.0.0, state: tuple.0.0.1, notifying: tuple.0.1, hidden: tuple.1, mouseIdx: mouseIdx); })
-            .debounce(NSTimeInterval(0.02), onScheduler: QueueScheduler.mainQueueScheduler)
+            .debounce(TimeInterval(0.02), on: QueueScheduler.main)
             .combinePrevious(LayoutState(order: SortOf<Contact>(), state: .Inactive, notifying: Set<Contact>(), hidden: false, mouseIdx: nil))
-            .observeNext { last, this in self.relayout(last, this) };
+            .observeValues { states in self.relayout(states.0, states.1) };
 
         // show or hide contact labels as appropriate.
-        tiles.combineLatestWith(sort) // ([ContactTile], [Contact:Int])
+        tiles.combineLatest(with: sort) // ([ContactTile], [Contact:Int])
             .combineWithDefault(notifying.downcastToOptional(), defaultValue: nil) // (([ContactTile], [Contact:Int]), Set<Contact>?)
             .combineWithDefault(self.state, defaultValue: .Inactive) // ((([ContactTile], [Contact:Int]), Set<Contact>?), Contact?)
             .combineWithDefault(self.mouseIdx, defaultValue: nil) // (((([ContactTile], [Contact:Int]), Set<Contact>?), Contact?), Int?)
             .map({ ($0.0.0.0, $0.0.0.1, $0.0.1, $0.1, $1) }) // ([ContactTile], [Contact:Int], Set<Contact>?, Contact?)
-            .observeNext { (tiles, sort, notifying, state, mouseIdx) in
+            .observeValues { (tiles, sort, notifying, state, mouseIdx) in
                 for tile in tiles {
                     tile.showLabel_ = ((state != .Inactive) || (mouseIdx != nil)) && (state.essentially != .Chatting) &&
                                       (notifying == nil || notifying!.count == 0) && (sort[tile.contact] != nil);
@@ -480,8 +480,8 @@ class MainView: NSView {
             .combineWithDefault(self.mouseIdx, defaultValue: nil).map({ ($0.0, $0.1, $1) })
             .map({ (sort, state, mouseIdx) -> Contact? in
                 switch (state, mouseIdx) {
-                case (let .Chatting(contact, _), let .Some(idx)) where sort[contact] == idx: return nil;
-                case (_, let .Some(idx)):           return sort[Clamped(idx)];
+                case (let .Chatting(contact, _), let .some(idx)) where sort[contact] == idx: return nil;
+                case (_, let .some(idx)):           return sort[Clamped(idx)];
                 case (let .Selecting(idx), _):      return sort[Clamped(idx)];
                 case (let .Searching(_, idx), _):   return sort[Clamped(idx)];
                 default:                            return nil;
@@ -489,13 +489,13 @@ class MainView: NSView {
             })
             .skipRepeats({ a, b in a == b })
             .combinePrevious(nil)
-            .observeNext { last, this in
+            .observeValues { last, this in
                 if let tile = self._contactTiles.get(last) { tile.selected_ = false; }
                 if let tile = self._contactTiles.get(this) { tile.selected_ = true; }
             };
 
         // set contact star visibility as appropriate.
-        tiles.combineWithDefault(self.starredJids.members, defaultValue: Set<String>()).observeNext({ (tiles, starred) in
+        tiles.combineWithDefault(self.starredJids.members, defaultValue: Set<String>()).observeValues({ (tiles, starred) in
             for tile in tiles {
                 tile.showStar_ = starred.contains(tile.contact.inner.jid().full());
             }
@@ -503,7 +503,7 @@ class MainView: NSView {
 
         // determine who we're actively chatting with.
         let activeConversation = self.state
-            .combineLatestWith(sort)
+            .combineLatest(with: sort)
             .map({ (state, sort) -> Contact? in
                 switch state {
                 case let .Chatting(with, _): return with;
@@ -514,7 +514,7 @@ class MainView: NSView {
         // render only the conversation for the active contact.
         activeConversation
             .combinePrevious(nil)
-            .observeNext { (last, this) in
+            .observeValues { (last, this) in
                 if last == this { return; }
                 if let view = self._conversationViews.get(last) { view.deactivate(); }
 
@@ -524,30 +524,30 @@ class MainView: NSView {
         let hasConversation = activeConversation.map({ x in x != nil });
 
         // we want to trap mouse events if a conversation is open.
-        hasConversation.observeNext({ isOpen in self.wantsMouseConversation.modify({ _ in isOpen }); });
+        hasConversation.observeValues({ isOpen in self.wantsMouseConversation.modify({ _ in isOpen }); });
 
         // also if a conversation is open we want to pop in the background gradient. TODO: animation seems to drop the framerate :/
-        hasConversation.observeNext({ isOpen in self.gradientView.alphaValue = (isOpen ? 1.0 : 0); });
+        hasConversation.observeValues({ isOpen in self.gradientView.alphaValue = (isOpen ? 1.0 : 0); });
 
         // if a conversation is open, all other conversations go to compact mode for notifications.
-        hasConversation.observeNext({ isOpen in for conversation in self._conversationViews.all() { conversation.displayMode_ = (isOpen ? .Compact : .Normal); } });
+        hasConversation.observeValues({ isOpen in for conversation in self._conversationViews.all() { conversation.displayMode_ = (isOpen ? .Compact : .Normal); } });
 
         // upon activate/deactivate, handle window focus correctly.
-        self.state.combinePrevious(.Inactive).observeNext { last, this in
+        self.state.combinePrevious(.Inactive).observeValues { last, this in
             if last == .Inactive && this != .Inactive {
-                NSApplication.sharedApplication().activateIgnoringOtherApps(true);
+                NSApplication.shared.activate(ignoringOtherApps: true);
             } else if last != .Inactive && this == .Inactive {
                 GlobalInteraction.sharedInstance.relinquish();
             }
         };
 
         // if we have been idle and inactive for 10 seconds, revert scroll to the bottom.
-        self.state.skipRepeats({ $0 == $1 }).filter({ state in state == .Inactive }).always(0)
-            .merge(self.mouseIdx.filter({ $0 == nil }).always(0))
-            .delay(ST.main.inactiveDelay, onScheduler: scheduler)
-            .observeNext { _ in
+        self.state.skipRepeats({ $0 == $1 }).filter({ state in state == .Inactive }).always(value: 0)
+            .merge(self.mouseIdx.filter({ $0 == nil }).always(value: 0))
+            .delay(ST.main.inactiveDelay, on: scheduler)
+            .observeValues { _ in
                 if (self.state_ == .Inactive) && (self.mouseIdx_ == nil) && (self.scrollView.contentView.documentVisibleRect.origin.y != 0) {
-                    dispatch_async(dispatch_get_main_queue(), { self.scrollView.contentView.animator().setBoundsOrigin(NSPoint.zero); });
+                    DispatchQueue.main.async(execute: { self.scrollView.contentView.animator().setBoundsOrigin(NSPoint.zero); });
                 }
             }
 
@@ -556,14 +556,14 @@ class MainView: NSView {
         dummy.combineWithDefault(self.wantsMouseMain.signal, defaultValue: false).map({ _, x in x })
             .combineWithDefault(self.wantsMouseNotifying.signal, defaultValue: false).map({ a, b in a || b })
             .combineWithDefault(self.wantsMouseConversation.signal, defaultValue: false).map({ a, b in a || b })
-            .observeNext({ wantsMouse in self.window?.ignoresMouseEvents = !wantsMouse });
-        dummyObserver.sendNext(false);
+            .observeValues({ wantsMouse in self.window?.ignoresMouseEvents = !wantsMouse });
+        dummyObserver.send(value: false);
 
         // show context menu on right-click on a contact.
-        let buttonTracker = Impulse.track(MouseButton);
-        sort.combineLatestWith(self.mouseClick)
-            .combineLatestWith(self.mouseIdx).map({ ($0.0, $0.1, $1); })
-            .observeNext({ (sort, buttonImpulse, idx) in
+        let buttonTracker = Impulse.track(MouseButton.self);
+        sort.combineLatest(with: self.mouseClick)
+            .combineLatest(with: self.mouseIdx).map({ ($0.0, $0.1, $1); })
+            .observeValues({ (sort, buttonImpulse, idx) in
                 let button = buttonTracker.extract(buttonImpulse);
                 if case let .Right(event) = button {
                     if let contact = sort[idx] {
@@ -573,17 +573,17 @@ class MainView: NSView {
             });
     }
 
-    private func drawContact(contact: Contact) -> ContactTile {
+    private func drawContact(_ contact: Contact) -> ContactTile {
         let newTile = ContactTile(
             frame: NSRect(origin: NSPoint.zero, size: self.tileSize),
             contact: contact
         );
-        newTile.showStar_ = self.starredJids.contains(contact.inner.jid().full());
-        dispatch_async(dispatch_get_main_queue(), { self.scrollContents.addSubview(newTile); });
+        newTile.showStar_ = self.starredJids.contains(member: contact.inner.jid().full());
+        DispatchQueue.main.async(execute: { self.scrollContents.addSubview(newTile); });
         return newTile;
     }
 
-    private func drawConversation(conversation: Conversation) -> ConversationView {
+    private func drawConversation(_ conversation: Conversation) -> ConversationView {
         let newView = ConversationView(
             frame: self.frame,
             width: self.conversationWidth,
@@ -591,18 +591,18 @@ class MainView: NSView {
             mainView: self
         );
         self._contactTiles.get(conversation.with)!.attachConversation(newView);
-        dispatch_async(dispatch_get_main_queue(), { self.addSubview(newView); });
+        DispatchQueue.main.async(execute: { self.addSubview(newView); });
         return newView;
     }
 
-    private func relayout(lastState: LayoutState, _ thisState: LayoutState) {
-        dispatch_async(dispatch_get_main_queue(), {
+    private func relayout(_ lastState: LayoutState, _ thisState: LayoutState) {
+        DispatchQueue.main.async(execute: {
             // deal with self
             let tile = self._statusTile;
             let x = self.frame.width - self.tileSize.width - self.tilePadding;
             let y = self.allPadding;
 
-            animationWithDuration(thisState.state.active ? 0.03 : 0.2, {
+            animationWithDuration(duration: thisState.state.active ? 0.03 : 0.2, {
                 if (thisState.state.active || thisState.mouseIdx != nil) { tile.animator().frame.origin = NSPoint(x: x, y: y); }
                 else if (thisState.hidden) { tile.animator().frame.origin = NSPoint(x: x + self.tileSize.height + self.tilePadding, y: y); }
                 else                       { tile.animator().frame.origin = NSPoint(x: x + (self.tileSize.height * 0.55), y: y); }
@@ -615,10 +615,10 @@ class MainView: NSView {
 
                 // make sure we're offscreen if we're not to be shown
                 if last == nil && this == nil {
-                    tile.hidden = true;
+                    tile.isHidden = true;
                     continue;
                 } else {
-                    tile.hidden = false;
+                    tile.isHidden = false;
                 }
 
                 // calculate positions. TODO: mutable. gross.
@@ -639,7 +639,7 @@ class MainView: NSView {
                 case (let lidx, _, let .Searching(_, idx), _) where lidx == idx:    from = NSPoint(x: xOn, y: yLast);
                 case (_, _, let .Chatting(with, _), _) where with == tile.contact:  from = NSPoint(x: xOn, y: yLast);
                 case (_, _, .Normal, _), (_, true, _, _):                           from = NSPoint(x: xOn, y: yLast);
-                case (_, _, .Inactive, .Some(_)):                                   from = NSPoint(x: xOn, y: yLast);
+                case (_, _, .Inactive, .some(_)):                                   from = NSPoint(x: xOn, y: yLast);
                 default: switch (lastState.state == .Inactive, lastState.hidden) {
                     case (true, true):                                              from = NSPoint(x: xOff, y: yLast);
                     default:                                                        from = NSPoint(x: xHalf, y: yLast);
@@ -651,7 +651,7 @@ class MainView: NSView {
                 case (let tidx, _, let .Searching(_, idx), _) where tidx == idx:    to = NSPoint(x: xOn, y: yThis);
                 case (_, _, let .Chatting(with, _), _) where with == tile.contact:  to = NSPoint(x: xOn, y: yThis);
                 case (_, _, .Normal, _), (_, true, _, _):                           to = NSPoint(x: xOn, y: yThis);
-                case (_, _, .Inactive, .Some(_)):                                   to = NSPoint(x: xOn, y: yThis);
+                case (_, _, .Inactive, .some(_)):                                   to = NSPoint(x: xOn, y: yThis);
                 default: switch (thisState.state == .Inactive, thisState.hidden) {
                     case (true, true):                                              to = NSPoint(x: xOff, y: yThis);
                     default:                                                        to = NSPoint(x: xHalf, y: yThis);
@@ -659,8 +659,8 @@ class MainView: NSView {
 
                 // actually animate the tile. set its from directly, then after letting the layout settle set the to on the animator.
                 tile.setFrameOrigin(from);
-                let duration = NSTimeInterval((!lastState.state.active && thisState.state.active ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
-                dispatch_async(dispatch_get_main_queue(), { animationWithDuration(duration, { tile.animator().setFrameOrigin(to); }); });
+                let duration = TimeInterval((!lastState.state.active && thisState.state.active ? 0.05 : 0.2) + (0.02 * Double(this ?? 0)));
+                DispatchQueue.main.async(execute: { animationWithDuration(duration: duration, { tile.animator().setFrameOrigin(to); }); });
 
                 // if we have a conversation as well, position that appropriately.
                 if let conversationView = self._conversationViews.get(tile.contact) {
@@ -695,7 +695,7 @@ class MainView: NSView {
         });
     }
 
-    override func performKeyEquivalent(event: NSEvent) -> Bool {
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
         return event.keyCode == 53;
     }
 

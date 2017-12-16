@@ -5,19 +5,19 @@ import SQLite;
 class MessageLog {
     private let table = Table("messages");
     private let withJID = Expression<String>("withJID");
-    private let at = Expression<NSDate>("at");
+    private let at = Expression<Date>("at");
     private let body = Expression<String>("body");
     private let foreign = Expression<Bool>("foreign");
 
     private let db: SQLite.Connection;
-    private var timer: NSTimer?;
+    private var timer: Timer?;
     private var pruner: Statement?;
 
     static func create() -> MessageLog? {
-        let searchPath = NSSearchPathForDirectoriesInDomains(.ApplicationSupportDirectory, .UserDomainMask, true);
+        let searchPath = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .userDomainMask, true);
         if let path = searchPath.first {
             do {
-                try NSFileManager.defaultManager().createDirectoryAtPath(path, withIntermediateDirectories: true, attributes: nil);
+                try FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true, attributes: nil);
             } catch {
                 NSLog("Unable to create library directory");
             }
@@ -32,7 +32,7 @@ class MessageLog {
         self.db = connection;
 
         self.migrate();
-        self.timer = NSTimer.scheduledTimerWithTimeInterval(60 * 15, target: self, selector: #selector(prune), userInfo: nil, repeats: true);
+        self.timer = Timer.scheduledTimer(timeInterval: 60 * 15, target: self, selector: #selector(prune), userInfo: nil, repeats: true);
         self.pruner = try? db.prepare("delete from messages where withJID = ? and at < (select at from messages where withJID = ? order by at desc limit 1 offset 29)");
     }
 
@@ -64,20 +64,20 @@ class MessageLog {
                 Message(from: ((message[foreign] == true) ? conversation.with : myself), body: message[body], at: message[at], conversation: conversation);
             });
         } catch {
-            NSLog("Unable to load messages for user \(conversation.with.inner.jid().bare())");
+            NSLog("Unable to load messages for user \(conversation.with.inner.jid().full())");
             return [Message]();
         }
     }
 
-    func log(message: Message) {
+    func log(_ message: Message) {
         do {
             try db.run(table.insert(
                 withJID <- message.conversation.with.inner.jid().full(),
                 body <- message.body,
-                at <- message.at,
+                at <- message.at as Date,
                 foreign <- (message.conversation.with == message.from)));
         } catch {
-            NSLog("Unable to save message for \(message.conversation.with.inner.jid().bare())");
+            NSLog("Unable to save message for \(message.conversation.with.inner.jid().full())");
         }
     }
 }

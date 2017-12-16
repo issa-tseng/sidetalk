@@ -1,13 +1,13 @@
 
 import Foundation
 import XMPPFramework
-import ReactiveCocoa
+import ReactiveSwift
 import enum Result.NoError
 
 struct Message {
     let from: Contact;
     let body: String;
-    let at: NSDate;
+    let at: Date;
     let conversation: Conversation;
 
     func isForeign() -> Bool { return self.from == self.conversation.with; }
@@ -16,11 +16,11 @@ struct Message {
 enum ChatState {
     case Inactive, Active, Composing, Paused;
 
-    static func fromMessage(it: XMPPMessage) -> ChatState? {
-        if it.hasInactiveChatState() { return .Inactive; }
-        if it.hasActiveChatState() { return .Active; }
-        if it.hasComposingChatState() { return .Composing; }
-        if it.hasPausedChatState() { return .Paused; }
+    static func from(_ message: XMPPMessage) -> ChatState? {
+        if message.hasInactiveChatState() { return .Inactive; }
+        if message.hasActiveChatState() { return .Active; }
+        if message.hasComposingChatState() { return .Composing; }
+        if message.hasPausedChatState() { return .Paused; }
         return nil;
     }
 }
@@ -44,16 +44,16 @@ class Conversation: Hashable {
         self.connection = connection;
     }
 
-    func addMessage(message: Message) {
-        self.messages.insert(message, atIndex: 0);
-        self._latestMessageSignal.observer.sendNext(message);
+    func addMessage(_ message: Message) {
+        self.messages.insert(message, at: 0);
+        self._latestMessageSignal.observer.send(value: message);
     }
 
-    func sendMessage(text: String) {
-        self.connection.sendMessage(self.with, text);
+    func sendMessage(_ text: String) {
+        self.connection.sendMessage(to: self.with, text);
     }
 
-    func messages(range: NSRange) -> [Message] {
+    func messages(_ range: NSRange) -> [Message] {
         if range.location > self.messages.count {
             return [];
         } else {
@@ -61,12 +61,12 @@ class Conversation: Hashable {
         }
     }
 
-    func setChatState(state: ChatState) {
-        self._chatStateSignal.observer.sendNext(state);
+    func setChatState(_ state: ChatState) {
+        self._chatStateSignal.observer.send(value: state);
     }
 
-    func sendChatState(state: ChatState) {
-        self.connection.sendChatState(self.with, state);
+    func sendChatState(_ state: ChatState) {
+        self.connection.sendChatState(to: self.with, state);
     }
 }
 

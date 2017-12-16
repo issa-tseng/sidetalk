@@ -1,25 +1,25 @@
 
 import Foundation
-import ReactiveCocoa
+import ReactiveSwift
 import enum Result.NoError
 
 extension Signal {
     // HACK: this causes observation to happen! careful with use on cold signals.
-    func combineWithDefault<U>(other: Signal<U, Error>, defaultValue: U) -> Signal<(Value, U), Error> {
+    func combineWithDefault<U>(_ other: Signal<U, Error>, defaultValue: U) -> Signal<(Value, U), Error> {
         let (signal, observer) = Signal<U, Error>.pipe();
-        let result = self.combineLatestWith(signal);
+        let result = self.combineLatest(with: signal);
         other.observe(observer);
-        observer.sendNext(defaultValue);
+        observer.send(value: defaultValue);
 
         return result;
     }
 
     // HACK: same problem!
-    func merge(other: Signal<Value, Error>) -> Signal<Value, Error> {
+    func merge(_ other: Signal<Value, Error>) -> Signal<Value, Error> {
         let (signal, observer) = Signal<Value, Error>.pipe();
 
-        self.observeNext { value in observer.sendNext(value); }
-        other.observeNext { value in observer.sendNext(value); }
+        self.observe { value in observer.send(value); }
+        other.observe { value in observer.send(value); }
 
         return signal;
     }
@@ -31,20 +31,4 @@ extension Signal {
     func always<U>(value: U) -> Signal<U, Error> {
         return self.map({ _ in value });
     }
-
-    // pulled forward from a future version of RAC. See #2952 on their repo.
-    public func debounce(interval: NSTimeInterval, onScheduler scheduler: DateSchedulerType) -> Signal<Value, Error> {
-        precondition(interval >= 0)
-
-		return self
-			.materialize()
-			.flatMap(.Latest) { event -> SignalProducer<Event<Value, Error>, NoError> in
-				if event.isTerminating {
-					return SignalProducer(value: event).observeOn(scheduler)
-				} else {
-					return SignalProducer(value: event).delay(interval, onScheduler: scheduler)
-				}
-			}
-			.dematerialize()
-	}
 }
