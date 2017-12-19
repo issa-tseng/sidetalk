@@ -1,6 +1,6 @@
 
 import Cocoa;
-import ReactiveCocoa;
+import ReactiveSwift;
 import enum Result.NoError;
 
 class MainWindow: NSWindow {
@@ -51,22 +51,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(handleURL), forEventClass: UInt32(kInternetEventClass), andEventID: UInt32(kAEGetURL));
         NotificationCenter.default.addObserver(self, selector: #selector(windowClosing), name: NSWindow.willCloseNotification, object: nil);
         NotificationCenter.default.addObserver(self, selector: #selector(windowFocusing), name: NSWindow.didBecomeKeyNotification, object: nil);
+
+        // do initial things with window:
+        let window = self.window!
+        
+        // make our window transparent.
+        window.isOpaque = false;
+        window.backgroundColor = NSColor.clear;
+        window.styleMask = .borderless; //NSBorderlessWindowMask;
+        
+        // shadows are currently causing problems w core animation.
+        window.hasShadow = false;
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // set up signals.
         self.prepare();
 
-        let window = self.window!
-
-        // make our window transparent.
-        window.isOpaque = false;
-        window.backgroundColor = NSColor.clear;
-        window.styleMask = .borderless; //NSBorderlessWindowMask;
-
-        // shadows are currently causing problems w core animation.
-        window.hasShadow = false;
-
+        // do more things with window:
         // ignore mouse events by default.
         self.window!.ignoresMouseEvents = true;
 
