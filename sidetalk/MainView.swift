@@ -560,12 +560,8 @@ class MainView: NSView {
              }); }
 
         // if anyone wants mouse events, give it to them.
-        let (dummy, dummyObserver) = Signal<Bool, NoError>.pipe();
-        dummy.combineWithDefault(self.wantsMouseMain.signal, defaultValue: false).map({ _, x in x })
-            .combineWithDefault(self.wantsMouseNotifying.signal, defaultValue: false).map({ a, b in a || b })
-            .combineWithDefault(self.wantsMouseConversation.signal, defaultValue: false).map({ a, b in a || b })
-            .observeValues({ wantsMouse in self.window?.ignoresMouseEvents = !wantsMouse });
-        dummyObserver.send(value: false);
+        anySignal(self.wantsMouseMain.signal, self.wantsMouseNotifying.signal, self.wantsMouseConversation.signal)
+            .observeValues({ wantsMouse in DispatchQueue.main.async(execute: { self.window?.ignoresMouseEvents = !wantsMouse }); });
 
         // show context menu on right-click on a contact.
         let buttonTracker = Impulse.track(MouseButton.self);

@@ -32,3 +32,19 @@ extension Signal {
         return self.map({ _ in value });
     }
 }
+
+// HACK: as usual, this causes observation.
+// HACK 2: due to some swift compiler nonsense, this can't actually live in the extension.
+func anySignal(_ signals: Signal<Bool, NoError>...) -> Signal<Bool, NoError> {
+    let (outSignal, outObserver) = Signal<Bool, NoError>.pipe();
+
+    var flags = [Bool](repeating: false, count: signals.count);
+    for (idx, signal) in signals.enumerated() {
+        signal.observeValues({ (flag: Bool) -> Void in
+            flags[idx] = flag;
+            outObserver.send(value: flags.contains(true));
+        });
+    }
+
+    return outSignal;
+}
