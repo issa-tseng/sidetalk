@@ -10,6 +10,30 @@ struct ContactState {
     let latestMessage: Message?;
     let active: Bool;
     let selected: Bool;
+
+    static func fromSignals(chatStateSignal: Signal<ChatState, NoError>,
+                           lastShownSignal: Signal<Date, NoError>,
+                           latestMessageSignal: Signal<Message?, NoError>,
+                           activeSignal: Signal<Bool, NoError>,
+                           selectedSignal: Signal<Bool, NoError>) -> Signal<ContactState, NoError> {
+        // TODO/HACK: hate hate hate hate hate hate
+        var chatState = ChatState.Inactive;
+        var lastShown = Date.distantPast;
+        var latestMessage: Message? = nil;
+        var active = false;
+        var selected = false;
+
+        let (signal, observer) = Signal<ContactState, NoError>.pipe();
+        let update = { (_: Any) -> Void in observer.send(value: ContactState(chatState: chatState, lastShown: lastShown, latestMessage: latestMessage, active: active, selected: selected)); };
+
+        chatStateSignal.observeValues({ x in update(chatState = x) });
+        lastShownSignal.observeValues({ x in update(lastShown = x) });
+        latestMessageSignal.observeValues({ x in update(latestMessage = x) });
+        activeSignal.observeValues({ x in update(active = x) });
+        selectedSignal.observeValues({ x in update(selected = x) });
+
+        return signal;
+    }
 }
 
 class ContactTile : NSView {
@@ -93,18 +117,15 @@ class ContactTile : NSView {
         // listen to various things.
         let conversation = conversationView.conversation;
 
-        // status ring. HACK: holy fuck the fucking swift compiler just couldn't even with this code so it looks like shit.
+        // status ring.
         self._simpleRingObserver?.dispose(); // we're replacing this logic with the full set.
-        let (dummy, dummyObserver) = Signal<Bool, NoError>.pipe();
-        dummy
-            .combineWithDefault(conversation.chatState, defaultValue: .Inactive).map({ _, state in state })
-            .combineWithDefault(conversationView.lastShown, defaultValue: Date.distantPast)
-            .combineWithDefault(conversationView.allMessages().filter({ message in message.from == self.contact }).downcastToOptional(), defaultValue: nil)
-            .combineWithDefault(conversationView.active, defaultValue: false)
-            .combineWithDefault(self.selected, defaultValue: false)
-            .map({ tuple, selected in ContactState(chatState: tuple.0.0.0, lastShown: tuple.0.0.1, latestMessage: tuple.0.1, active: tuple.1, selected: selected) })
-            .observeValues { all in self.updateRing(all); };
-        dummyObserver.send(value: false);
+        ContactState.fromSignals(
+            chatStateSignal: conversation.chatState,
+            lastShownSignal: conversationView.lastShown,
+            latestMessageSignal: conversationView.allMessages().filter({ message in message.from == self.contact }).downcastToOptional(),
+            activeSignal: conversationView.active,
+            selectedSignal: self.selected)
+                .observeValues({ all in self.updateRing(all); });
 
         // unread message count.
         let unread = conversation.latestMessage
@@ -114,7 +135,7 @@ class ContactTile : NSView {
                 if active { return 0; }
 
                 var count = 0; // count this mutably and manually for perf (early exit).
-                let startup = (NSApplication.shared.delegate as! AppDelegate).startup as Date;
+                let startup = (NSApplication.shared.delegate as! AppDelegate).startup;
                 for message in conversation.messages {
                     if message.at <= shown { break; }
                     if message.at < startup { break; }
@@ -210,7 +231,7 @@ class ContactTile : NSView {
             });
         }
 
-        // set up the simple version of ring color adjust. this gets overriden when
+        // set up the simple version of ring color adjust. this gets overridden when
         // a conversation is attached.
         self._simpleRingObserver = self.selected.observeValues { selected in
             self.updateRing(ContactState(chatState: .Inactive, lastShown: Date.distantPast, latestMessage: nil, active: false, selected: selected));
