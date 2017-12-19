@@ -25,17 +25,19 @@ class PresenceIndicator: NSView {
 
     required init(coder: NSCoder) { fatalError("brocoder"); }
 
-    override func viewDidMoveToSuperview() {
-        let path = NSBezierPath.init(
-            roundedRect: NSRect(origin: NSPoint(x: self.stroke, y: self.stroke), size: NSSize(width: self.size, height: self.size)),
-            cornerRadius: self.size / 2
-        );
-        self.ringLayer.path = path!.cgPath;
-        self.ringLayer.lineWidth = self.stroke;
-        self.update(presence: self.initial);
-        self.layer!.addSublayer(self.ringLayer);
+    override func viewWillMove(toSuperview newSuperview: NSView?) {
+        DispatchQueue.main.async(execute: {
+            let path = NSBezierPath.init(
+                roundedRect: NSRect(origin: NSPoint(x: self.stroke, y: self.stroke), size: NSSize(width: self.size, height: self.size)),
+                cornerRadius: self.size / 2
+            );
+            self.ringLayer.path = path!.cgPath;
+            self.ringLayer.lineWidth = self.stroke;
+            self.update(presence: self.initial);
+            self.layer!.addSublayer(self.ringLayer);
 
-        self.prepare();
+            self.prepare();
+        });
     }
 
     private func prepare() {
