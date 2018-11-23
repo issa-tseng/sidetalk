@@ -18,37 +18,36 @@ class BubbleView: NSView {
         set { self._calloutShown = newValue; self.relayout(); }
     };
 
-    private var _color: BubbleColor?;
-    var color: BubbleColor? {
-        get { return self._color; }
-        set {
-            self._color = newValue;
-            switch newValue {
-            case .none:             fallthrough;
-            case .some(.Foreign):   self.shapeLayer.fillColor = ST.message.bgForeign;
-                                    self.shapeLayer.strokeColor = ST.message.outlineForeign;
-            case .some(.Own):       self.shapeLayer.fillColor = ST.message.bgOwn;
-                                    self.shapeLayer.strokeColor = ST.message.outlineOwn;
-            case .some(.Compose):   self.shapeLayer.fillColor = ST.conversation.composeBg;
-                                    self.shapeLayer.strokeColor = ST.conversation.composeOutline;
-            case .some(.Title):     self.shapeLayer.fillColor = ST.message.bgTitle;
-                                    self.shapeLayer.strokeColor = ST.message.outlineTitle;
-            }
-        }
-    };
+    var color: BubbleColor = .Foreign;
 
     override func viewWillMove(toSuperview view: NSView?) {
         self.wantsLayer = true;
         super.viewWillMove(toSuperview: view);
 
-        if self._color == nil { self.color = .Foreign; }
-        self.shapeLayer.lineWidth = ST.message.outlineWidth;
+        self.setColor();
+        self.shapeLayer.lineWidth = 0;
         self.layer!.addSublayer(self.shapeLayer);
+    }
+
+    override func viewDidChangeEffectiveAppearance() {
+        self.setColor();
     }
 
     override func setFrameSize(_ newSize: NSSize) {
         super.setFrameSize(newSize);
         self.relayout();
+    }
+
+    private func setColor() {
+        let oldAppearance = NSAppearance.current;
+        NSAppearance.current = effectiveAppearance;
+        switch self.color {
+        case .Foreign:   self.shapeLayer.fillColor = ST.message.bgForeign;
+        case .Own:       self.shapeLayer.fillColor = ST.message.bgOwn;
+        case .Compose:   self.shapeLayer.fillColor = NSColor.controlBackgroundColor.cgColor;
+        case .Title:     self.shapeLayer.fillColor = ST.message.bgTitle;
+        }
+        NSAppearance.current = oldAppearance;
     }
 
     private func relayout() {
@@ -57,9 +56,9 @@ class BubbleView: NSView {
 
         // draw bubble.
         let origin = NSPoint(x: (self.calloutSide == .Left) ? ST.message.calloutSize : 0, y: 0);
-        let width = self.frame.size.width - ST.message.calloutSize - ((self.calloutSide == .Right) ? ST.message.outlineWidth : 0);
+        let width = self.frame.size.width - ST.message.calloutSize;
         let size = NSSize(width: width, height: self.frame.size.height);
-        let rect = NSRect(origin: origin, size: size).insetBy(dx: ST.message.outlineWidth, dy: ST.message.outlineWidth);
+        let rect = NSRect(origin: origin, size: size);
 
         // draw the entire path manually on account of no merge operations for the callout.
         let path = NSBezierPath();

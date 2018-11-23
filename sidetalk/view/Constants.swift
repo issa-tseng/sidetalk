@@ -96,20 +96,13 @@ class ST {
         ];
 
         let bgForeign = NSColor(red: 0, green: 0.4102, blue: 0.6484, alpha: 0.85).cgColor;
-        let outlineForeign = NSColor(red: 0.7813, green: 0.8672, blue: 0.9297, alpha: 0.0).cgColor;
-
         let bgOwn = NSColor(red: 0.14, green: 0.14, blue: 0.14, alpha: 0.95).cgColor;
-        let outlineOwn = NSColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.0).cgColor;
-
         let bgTitle = NSColor.clear.cgColor;
-        let outlineTitle = NSColor.clear.cgColor;
-
         let margin = CGFloat(3);
-        let outlineWidth = CGFloat(1.5);
 
         let paddingX = CGFloat(7);
         let paddingY = CGFloat(5);
-        let radius = CGFloat(6);
+        let radius = CGFloat(7);
 
         let calloutSize = CGFloat(4);
         let calloutVline = CGFloat(11.5);

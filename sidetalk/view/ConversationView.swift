@@ -322,10 +322,10 @@ class ConversationView: NSView {
 
             // position the bubble.
             self.scrollContents.addConstraints([
-                bubbleView.constrain.top == textView.constrain.top - ST.message.paddingY - (ST.message.outlineWidth / 2),
-                bubbleView.constrain.bottom == textView.constrain.bottom + ST.message.paddingY + (ST.message.outlineWidth / 2),
-                bubbleView.constrain.left == textView.constrain.left - (ST.message.paddingX + (foreign ? 0 : ST.message.calloutSize + ST.message.outlineWidth)) - (ST.message.outlineWidth / 2),
-                bubbleView.constrain.right == textView.constrain.right + (ST.message.paddingX + (foreign ? ST.message.calloutSize + ST.message.outlineWidth : 0)) + (ST.message.outlineWidth / 2)
+                bubbleView.constrain.top == textView.constrain.top - ST.message.paddingY,
+                bubbleView.constrain.bottom == textView.constrain.bottom + ST.message.paddingY,
+                bubbleView.constrain.left == textView.constrain.left - (ST.message.paddingX + (foreign ? 0 : ST.message.calloutSize)),
+                bubbleView.constrain.right == textView.constrain.right + (ST.message.paddingX + (foreign ? ST.message.calloutSize : 0))
             ]);
 
             // hide off the bat if this message is old.
