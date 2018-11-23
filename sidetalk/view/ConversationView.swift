@@ -360,7 +360,8 @@ class ConversationView: NSView {
         });
     }
 
-    func activate() {
+    func activate(_ force: Bool) {
+        if !self._initiallyActivated && !force { return; }
         self._initiallyActivated = true;
         self._lastShown.value = Date();
         self._active.value = true;

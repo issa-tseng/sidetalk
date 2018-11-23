@@ -518,7 +518,7 @@ class MainView: NSView {
                 if last == this { return; }
                 if let view = self._conversationViews.get(last) { view.deactivate(); }
 
-                if let contact = this { self._conversationViews.get(contact, orElse: { self.drawConversation(contact.conversation) }).activate(); }
+                if let contact = this { self._conversationViews.get(contact, orElse: { self.drawConversation(contact.conversation) }).activate(false); }
             };
 
         let hasConversation = activeConversation.map({ x in x != nil });
@@ -676,14 +676,19 @@ class MainView: NSView {
 
                     // position the conversation.
                     let y = self.allPadding + self.listPadding + self.tileSize.height + yThis + self.conversationVOffset - scrollY;
-                    conversationView.animator().frame.origin = NSPoint(
+                    let origin = NSPoint(
                         x: self.frame.width - self.tileSize.height - self.tilePadding - self.conversationPadding - self.conversationWidth,
-                        y: y
-                    );
-                    conversationView.animator().frame.size = NSSize(
-                        width: self.conversationWidth,
-                        height: max(ST.conversation.minHeight, self.frame.height - y)
-                    );
+                        y: y);
+                    let size = NSSize(width: self.conversationWidth, height: max(ST.conversation.minHeight, self.frame.height - y));
+
+                    if conversationView.frame.origin == .zero {
+                        conversationView.frame.origin = origin;
+                        conversationView.frame.size = size;
+                        conversationView.activate(true);
+                    } else {
+                        conversationView.animator().frame.origin = origin;
+                        conversationView.animator().frame.size = size;
+                    }
                 }
             }
 
