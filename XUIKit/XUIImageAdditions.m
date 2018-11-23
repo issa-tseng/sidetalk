@@ -70,7 +70,7 @@
 
 - (void) xui_drawInRect:(CGRect)rect
 {
-    [self drawInRect:rect fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1 respectFlipped:YES hints:nil];
+    [self drawInRect:rect fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1 respectFlipped:YES hints:nil];
 }
 
 

@@ -64,7 +64,7 @@ class MessageLog {
                 Message(from: ((message[foreign] == true) ? conversation.with : myself), body: message[body], at: message[at], conversation: conversation);
             });
         } catch {
-            NSLog("Unable to load messages for user \(conversation.with.inner.jid().full())");
+            NSLog("Unable to load messages for user \(conversation.with.inner.jid().full() ?? "[unknown]")");
             return [Message]();
         }
     }
@@ -77,7 +77,7 @@ class MessageLog {
                 at <- message.at as Date,
                 foreign <- (message.conversation.with == message.from)));
         } catch {
-            NSLog("Unable to save message for \(message.conversation.with.inner.jid().full())");
+            NSLog("Unable to save message for \(message.conversation.with.inner.jid().full() ?? "[unknown]")");
         }
     }
 }

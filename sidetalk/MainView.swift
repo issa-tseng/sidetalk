@@ -528,10 +528,9 @@ class MainView: NSView {
 
         // also if a conversation is open we want to pop in the background blur.
         hasConversation.observeValues({ isOpen in DispatchQueue.main.async(execute: {
-            NSAnimationContext.runAnimationGroup({ context in
-                context.duration = isOpen ? 0.15 : 0.25;
+            animationWithDuration(duration: isOpen ? 0.15 : 0.25, {
                 self.underlay.animator().alphaValue = isOpen ? 1 : 0;
-            }, completionHandler: nil)
+            });
         }) });
 
         // if a conversation is open, all other conversations go to compact mode for notifications.

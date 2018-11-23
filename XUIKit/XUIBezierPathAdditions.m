@@ -176,7 +176,7 @@
 
 - (void) xui_fillWithBlendMode:(CGBlendMode)blendMode alpha:(CGFloat)alpha
 {
-    CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+    CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] CGContext];
     CGContextSaveGState(context);
 
     CGContextSetBlendMode(context, blendMode);
@@ -190,7 +190,7 @@
 
 - (void) xui_strokeWithBlendMode:(CGBlendMode)blendMode alpha:(CGFloat)alpha
 {
-    CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+    CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] CGContext];
     CGContextSaveGState(context);
 
     CGContextSetBlendMode(context, blendMode);

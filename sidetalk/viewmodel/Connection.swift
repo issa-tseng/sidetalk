@@ -62,10 +62,10 @@ class XFRosterDelegateProxy: XFDelegateModuleProxy, XMPPRosterMemoryStorageDeleg
     private let _usersProxy = ManagedSignal<[XMPPUser]>();
     var usersSignal: Signal<[XMPPUser], NoError> { get { return self._usersProxy.signal; } }
     @objc internal func xmppRosterDidPopulate(_ sender: XMPPRosterMemoryStorage!) {
-        self._usersProxy.observer.send(value: sender.sortedUsersByName() as! [XMPPUser]!);
+        self._usersProxy.observer.send(value: sender.sortedUsersByName() as! [XMPPUser]);
     }
     @objc internal func xmppRosterDidChange(_ sender: XMPPRosterMemoryStorage!) {
-        self._usersProxy.observer.send(value: sender.sortedUsersByName() as! [XMPPUser]!);
+        self._usersProxy.observer.send(value: sender.sortedUsersByName() as! [XMPPUser]);
     }
 }
 
@@ -212,7 +212,7 @@ class Connection {
                     conversation.setChatState(state);
                 }
             } else {
-                NSLog("unrecognized user \(rawMessage.from().full())!");
+                NSLog("unrecognized user \(rawMessage.from().full() ?? "[unknown]")!");
             }
         }
 

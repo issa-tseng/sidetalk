@@ -9,8 +9,8 @@ enum Presence {
 }
 
 class AvatarDelegate: NSObject, XMPPvCardTempModuleDelegate {
-    private let _withResult: (NSImage!) -> ();
-    init(withResult: @escaping (NSImage!) -> ()) { self._withResult = withResult; }
+    private let _withResult: (NSImage?) -> ();
+    init(withResult: @escaping (NSImage?) -> ()) { self._withResult = withResult; }
 
     @objc internal func xmppvCardTempModule(vCardTempModule: XMPPvCardTempModule!, didReceivevCardTemp vCardTemp: XMPPvCardTemp!, forJID jid: XMPPJID!) {
         let avatarb64 = vCardTemp.forName("PHOTO").stringValue;

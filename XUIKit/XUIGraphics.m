@@ -81,7 +81,7 @@ static void sSetBaseCTM(CGAffineTransform transform)
 
 - (CGContextRef) CGContext
 {
-    return [_context graphicsPort];
+    return [_context CGContext];
 }
 
 @end
@@ -97,7 +97,7 @@ static void sPushContext(CGContextRef cgContext)
         sOriginalContext = [NSGraphicsContext currentContext];
     }
 
-    NSGraphicsContext *context = [NSGraphicsContext graphicsContextWithGraphicsPort:(void *)cgContext flipped:YES];
+    NSGraphicsContext *context = [NSGraphicsContext graphicsContextWithCGContext:(void *)cgContext flipped:YES];
     XUIGraphicsContextState *state = [[XUIGraphicsContextState alloc] init];
     [state setContext:context];
 
@@ -112,7 +112,7 @@ static void sPushContext(CGContextRef cgContext)
 
 CGContextRef XUIGraphicsGetCurrentContext()
 {
-    return [[NSGraphicsContext currentContext] graphicsPort];
+    return [[NSGraphicsContext currentContext] CGContext];
 }
 
 
