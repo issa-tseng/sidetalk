@@ -31,6 +31,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     private var _helpWindow: NSWindow?;
 
     private var _otherWindows = Set<NSWindow>();
+    private let _underlayWindow = NSWindow();
 
     private var _notificationActions = [NSUserNotification : VoidFunction]();
 
@@ -53,15 +54,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         NotificationCenter.default.addObserver(self, selector: #selector(windowFocusing), name: NSWindow.didBecomeKeyNotification, object: nil);
 
         // do initial things with window:
-        let window = self.window!
+        let window = self.window!;
         
         // make our window transparent.
         window.isOpaque = false;
         window.backgroundColor = NSColor.clear;
         window.styleMask = .borderless; //NSBorderlessWindowMask;
+        window.hasShadow = false; // shadows are currently causing problems w core animation.
         
-        // shadows are currently causing problems w core animation.
-        window.hasShadow = false;
+        // now set up the underlay window similarly.
+        self._underlayWindow.isOpaque = false;
+        self._underlayWindow.backgroundColor = NSColor.clear;
+        self._underlayWindow.styleMask = .borderless;
+        self._underlayWindow.hasShadow = false; // no reason for this simple overlay to have a shadow
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
@@ -75,14 +80,34 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         // position our window.
         let frame = self.positionWindow();
 
+        // quick detour to set up our underlay window:
+        self._underlayWindow.ignoresMouseEvents = true;
+        self._underlayWindow.setFrame(frame, display: false);
+        self._underlayWindow.collectionBehavior = [self._underlayWindow.collectionBehavior, NSWindow.CollectionBehavior.canJoinAllSpaces];
+        self._underlayWindow.level = .floating; //CGWindowLevelForKey(.FloatingWindowLevelKey);
+        self._underlayWindow.alphaValue = 0;
+
+        // make the underlay blurred view and add it to the window.
+        let underlayView = NSVisualEffectView(frame: self._underlayWindow.contentView!.bounds);
+        underlayView.blendingMode = .behindWindow;
+        underlayView.material = .hudWindow;
+        underlayView.state = .active;
+        self._underlayWindow.contentView!.addSubview(underlayView);
+
         // appear on all spaces, and always on top.
         window.collectionBehavior = [window.collectionBehavior, NSWindow.CollectionBehavior.canJoinAllSpaces];
         window.level = .floating; //CGWindowLevelForKey(.FloatingWindowLevelKey);
 
         // set our primary view.
-        self.mainView = MainView(frame: frame, connection: self.connection, starred: Registry.create(filename: "starred")!, hidden: self.hiddenJids);
+        self.mainView = MainView(frame: frame, connection: self.connection, underlay: self._underlayWindow,
+                                 starred: Registry.create(filename: "starred")!, hidden: self.hiddenJids);
         self.mainView!.frame = window.contentView!.bounds;
         window.contentView!.addSubview(self.mainView!);
+        window.makeKeyAndOrderFront(self);
+
+        // now show the underlay window:
+        self._underlayWindow.makeKeyAndOrderFront(self);
+        self._underlayWindow.order(.below, relativeTo: self.window!.windowNumber);
 
         // restore hide/mute settings.
         if UserDefaults.standard.bool(forKey: "hidden") == true { self.toggleHidden(self); }
@@ -97,6 +122,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
     }
 
+    // TODO: why does this mutate directly?
     private func positionWindow() -> CGRect {
         let screenFrame = NSScreen.main!.visibleFrame;
         let frame = CGRect(

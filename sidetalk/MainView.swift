@@ -35,7 +35,7 @@ class STScrollView: NSScrollView {
 class MainView: NSView {
     internal let connection: Connection;
 
-    private let gradientView = GradientView();
+    private let underlay: NSWindow;
     private let _statusTile: StatusTile;
     private let modeView: ModeView;
     private var _contactTiles = QuickCache<Contact, ContactTile>();
@@ -94,9 +94,10 @@ class MainView: NSView {
 
     private let _pressedKey = ManagedSignal<Key>();
 
-    init(frame: CGRect, connection: Connection, starred: Registry, hidden: Registry) {
+    init(frame: CGRect, connection: Connection, underlay: NSWindow, starred: Registry, hidden: Registry) {
         // store and init.
         self.connection = connection;
+        self.underlay = underlay;
         self.starredJids = starred;
         self.hiddenJids = hidden;
         self._statusTile = StatusTile(connection: connection, frame: NSRect(origin: NSPoint.zero, size: frame.size));
@@ -104,15 +105,6 @@ class MainView: NSView {
                                                size: NSSize(width: ST.mode.iconSize, height: ST.mode.iconSize * 2)));
 
         super.init(frame: frame);
-
-        // background gradient initial state and addition.
-        self.gradientView.translatesAutoresizingMaskIntoConstraints = false;
-        self.gradientView.alphaValue = 0;
-        self.addSubview(self.gradientView);
-        self.addConstraints([
-            self.gradientView.constrain.left == self.constrain.left, self.gradientView.constrain.right == self.constrain.right,
-            self.gradientView.constrain.top == self.constrain.top, self.gradientView.constrain.bottom == self.constrain.bottom
-        ]);
 
         // status tile initial positioning.
         self.addSubview(self._statusTile);
@@ -534,8 +526,13 @@ class MainView: NSView {
         // we want to trap mouse events if a conversation is open.
         hasConversation.observeValues({ isOpen in self.wantsMouseConversation.value = isOpen });
 
-        // also if a conversation is open we want to pop in the background gradient. TODO: animation seems to drop the framerate :/
-        hasConversation.observeValues({ isOpen in DispatchQueue.main.async(execute: { self.gradientView.alphaValue = (isOpen ? 1.0 : 0); }) });
+        // also if a conversation is open we want to pop in the background blur.
+        hasConversation.observeValues({ isOpen in DispatchQueue.main.async(execute: {
+            NSAnimationContext.runAnimationGroup({ context in
+                context.duration = isOpen ? 0.15 : 0.25;
+                self.underlay.animator().alphaValue = isOpen ? 1 : 0;
+            }, completionHandler: nil)
+        }) });
 
         // if a conversation is open, all other conversations go to compact mode for notifications.
         hasConversation.observeValues({ isOpen in for conversation in self._conversationViews.all() { conversation.displayMode_ = (isOpen ? .Compact : .Normal); } });

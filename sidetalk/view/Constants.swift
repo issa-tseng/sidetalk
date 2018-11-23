@@ -60,7 +60,7 @@ class ST {
         let composeTextSize = CGFloat(12);
 
         let composeBg = NSColor.init(red: 0.97, green: 0.97, blue: 0.97, alpha: 0.9).cgColor;
-        let composeOutline = NSColor.init(red: 0, green: 0, blue: 0, alpha: 0.1).cgColor;
+        let composeOutline = NSColor.init(red: 0, green: 0, blue: 0, alpha: 0.0).cgColor;
 
         let sendLockout = TimeInterval(0.1);
 
@@ -96,12 +96,12 @@ class ST {
         ];
 
         let bgForeign = NSColor(red: 0, green: 0.4102, blue: 0.6484, alpha: 0.85).cgColor;
-        let outlineForeign = NSColor(red: 0.7813, green: 0.8672, blue: 0.9297, alpha: 0.2).cgColor;
+        let outlineForeign = NSColor(red: 0.7813, green: 0.8672, blue: 0.9297, alpha: 0.0).cgColor;
 
-        let bgOwn = NSColor(red: 0.1719, green: 0.1719, blue: 0.1719, alpha: 0.95).cgColor;
-        let outlineOwn = NSColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.15).cgColor;
+        let bgOwn = NSColor(red: 0.14, green: 0.14, blue: 0.14, alpha: 0.95).cgColor;
+        let outlineOwn = NSColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.0).cgColor;
 
-        let bgTitle = NSColor(red: 0, green: 0, blue: 0, alpha: 0.9).cgColor;
+        let bgTitle = NSColor.clear.cgColor;
         let outlineTitle = NSColor.clear.cgColor;
 
         let margin = CGFloat(3);
