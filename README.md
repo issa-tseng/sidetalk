@@ -98,5 +98,4 @@ prelease
 License
 -------
 
-Currently, this is *not* an open source project; it is merely *visible* source. If you see something here that would help with your own projects, please feel free to take it at will. And as noted above, please feel free to grab the source and modify it for your personal usage. But as a complete piece of software, it's not licensed for any distribution other than my own. See the Introduction section for further detail.
-
+Licensed under the [WTFPL](http://www.wtfpl.net/about/).
