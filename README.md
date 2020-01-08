@@ -6,9 +6,7 @@ Introduction
 
 Sidetalk is a new way to chat with your friends on Google Hangouts (and soon any Jabber service). Instead of a bunch of floating windows, Sidetalk tucks away neatly into the side of your screen. You can always see at a glance who's available to chat with, whether anybody is typing, and any new messages that come in. Check out the full marketing site at [sidetalk.io](http://sidetalk.io).
 
-This app is on the Mac App Store. But I'm leaving the code visible-source here on this repo. What does this mean, exactly? I'm not exactly sure yet. At the very least, it means that all the code I've written is available for anyone to see and learn from. It means that if you have the means and know-how, you can write your own modifications to the software to better suit your needs. But of course it also means that anybody could bypass paying up via the App Store and simply build their own copy — or worse, build an unprotected copy and spread it. As long as this repository is open, there's no way for me to physically prevent that, and I'm not the legal recourse type. So if you're reading this and considering stealing it, please just be considerate.
-
-The visible-source repository also means that people could theoretically submit pull requests. I'm not sure how to handle this yet. I haven't yet seen a paid-product open-contribution system that actually works. If you have, please send it along. In the meantime, if anybody does submit a pull request, please note that I have no idea how to compensate you monetarily -- not that I've actually made any money either.
+This app is on the Mac App Store, but it is also free and open source.
 
 Usage
 -----
